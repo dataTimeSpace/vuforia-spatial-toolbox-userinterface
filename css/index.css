@@ -2292,6 +2292,7 @@ Logic Interface CSS
 .ru-container.ru-desktop {
     top: 55px;
     left: 300px;
+    pointer-events: none;
 }
 
 .ru-icon {
@@ -2301,6 +2302,7 @@ Logic Interface CSS
     border: 2px solid rgba(0, 0, 0, 0);
     border-radius: 12.8px;
     cursor: pointer;
+    pointer-events: auto;
 }
 
 .ru-icon.ru-icon-active {

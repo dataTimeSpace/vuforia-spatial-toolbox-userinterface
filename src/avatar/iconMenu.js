@@ -16,14 +16,15 @@ createNameSpace("realityEditor.avatar.iconMenu");
 
     let callbacks = {
         onMenuItemClicked: [],
-    }
+    };
 
     // Enum of the menu item labels, which other modules can also check against to listen to specific menu items
     const MENU_ITEMS = Object.freeze({
         EditName: 'Edit Name',
         AllFollowMe: 'All Follow Me',
         FollowThem: 'Follow',
-        FollowMe: 'Follow Me'
+        FollowMe: 'Follow Me',
+        Logout: 'Log Out'
     });
 
     function initService() {
@@ -237,6 +238,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
         if (isMyIcon) {
             addMenuItemToDropdown(container, MENU_ITEMS.EditName, objectId, userProfile, userInitials, isMyIcon);
             addMenuItemToDropdown(container, MENU_ITEMS.AllFollowMe, objectId, userProfile, userInitials, isMyIcon);
+            addMenuItemToDropdown(container, MENU_ITEMS.Logout, objectId, userProfile, userInitials, isMyIcon);
         } else {
             addMenuItemToDropdown(container, MENU_ITEMS.FollowThem, objectId, userProfile, userInitials, isMyIcon);
             addMenuItemToDropdown(container, MENU_ITEMS.FollowMe, objectId, userProfile, userInitials, isMyIcon);
