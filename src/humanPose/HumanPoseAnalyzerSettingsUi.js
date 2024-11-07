@@ -76,6 +76,15 @@ export class HumanPoseAnalyzerSettingsUi {
                         </div>
                     </div>
                 </div>
+                <div class="hpa-settings-section" id="hpa-tag-settings">
+                    <div class="hpa-settings-section-title">Tag Settings</div>
+                    <div class="hpa-settings-section-body">
+                        <div class="hpa-settings-section-row">
+                            <div class="hpa-settings-section-row-label">Show Tag Menu</div>
+                            <input type="checkbox" class="hpa-settings-section-row-checkbox" id="hpa-settings-toggle-tag-menu">
+                        </div>
+                    </div>
+                </div>
                 <div class="hpa-settings-section" id="hpa-table-settings">
                     <div class="hpa-settings-section-title">Table Settings</div>
                     <div class="hpa-settings-section-body">
@@ -85,7 +94,7 @@ export class HumanPoseAnalyzerSettingsUi {
                         </div>
                     </div>
                 </div>
-                <div class="hpa-settings-section" id="hpa-table-settings">
+                <div class="hpa-settings-section" id="hpa-playback-settings">
                     <div class="hpa-settings-section-title">Playback Settings</div>
                     <div class="hpa-settings-section-body">
                         <div class="hpa-settings-section-row">
@@ -171,6 +180,15 @@ export class HumanPoseAnalyzerSettingsUi {
 
         this.root.querySelector('#hpa-settings-select-lens').addEventListener('change', (event) => {
             this.humanPoseAnalyzer.setActiveLensByName(event.target.value);
+        });
+
+        this.root.querySelector('#hpa-settings-toggle-tag-menu').addEventListener('change', (event) => {
+            if (event.target.checked) {
+                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.show();
+                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.maximize();
+            } else {
+                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.hide();
+            }
         });
 
         this.root.querySelector('#hpa-settings-toggle-table').addEventListener('change', (event) => {

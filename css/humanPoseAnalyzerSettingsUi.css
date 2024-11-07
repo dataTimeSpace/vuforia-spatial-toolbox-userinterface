@@ -121,6 +121,14 @@
     cursor: pointer;
 }
 
+.hpa-settings-section-row-text-input {
+    padding: 5px;
+    border-radiys: 5px;
+    border: 1px solid #e5e5e5;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
 .profiler-settings-section-row-tall {
     display: flex;
     align-items: center;

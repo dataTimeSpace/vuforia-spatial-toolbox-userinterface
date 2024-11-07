@@ -114,8 +114,8 @@
 
 .draggable-menu-section-row-button {
     background-color: black;
-    border: 1px solid red;
-    color: red;
+    border: 1px solid white;
+    color: white;
     border-radius: 5px;
     padding: 5px 10px;
     font-size: 14px;
@@ -124,11 +124,11 @@
 }
 
 .draggable-menu-section-row-button:hover {
-    background-color: #660000;
+    background-color: #666666;
 }
 
 .draggable-menu-section-row-button:active {
-    background-color: #990000;
+    background-color: #999999;
 }
 
 .draggable-menu-section-row-select {
