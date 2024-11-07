@@ -3,6 +3,7 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
 import {Timeline} from './timeline.js';
 import {DraggableMenu} from '../utilities/DraggableMenu.js';
 import {TableView} from '../utilities/TableView.js';
+import {TagSystem, TagCategory, Tag} from '../utilities/TagSystem.js';
 import {
     RegionCard,
     RegionCardState,
@@ -75,6 +76,8 @@ export class MotionStudy {
         this.tableViewMenu = null;
         this.createNewPinnedRegionCardsContainer();
         this.valueAddWasteTimeManager = new ValueAddWasteTimeManager();
+        this.tagSystem = new TagSystem();
+        this.createTagSystemMenu();
 
         this.pinnedRegionCardsContainer.appendChild(this.createStepSensorsButton.container);
 
@@ -99,6 +102,225 @@ export class MotionStudy {
         this.container.appendChild(this.stepLabelContainer);
     }
 
+    createTagSystemMenu() {
+        this.tagSystemMenu = new DraggableMenu(
+            'analytics-tag-system-root',
+            'Tag System',
+            {
+                sections: [
+                    {
+                        id: 'analytics-tag-system-category-section',
+                        title: 'Categories',
+                        items: [
+                            {
+                                type: 'textInput',
+                                id: 'analytics-tag-system-add-category-text-input',
+                                label: 'Category Name',
+                                placeholder: 'New category name...',
+                            },
+                            {
+                                type: 'button',
+                                id: 'analytics-tag-system-add-category-button',
+                                label: '+ Add Category',
+                            },
+                            {
+                                type: 'select',
+                                id: 'analytics-tag-system-category-select',
+                                label: 'Select Category',
+                                options: this.tagSystem.categories.map(
+                                    (category) => category.name,
+                                ),
+                            },
+                            {
+                                type: 'button',
+                                id: 'analytics-tag-system-delete-category-button',
+                                label: '- Delete Category',
+                            },
+                        ],
+                    },
+                    {
+                        id: 'analytics-tag-system-tag-section',
+                        title: 'Tags', // Override with Tags ([Category Name])
+                        items: [
+                            {
+                                type: 'textInput',
+                                id: 'analytics-tag-system-add-tag-text-input',
+                                label: 'Tag Name',
+                                placeholder: 'New tag name...',
+                            },
+                            {
+                                type: 'button',
+                                id: 'analytics-tag-system-add-tag-button',
+                                label: '+ Add Tag',
+                            },
+                            {
+                                type: 'div',
+                                id: 'analytics-tag-system-tag-container',
+                            },
+                        ],
+                    },
+                ],
+            },
+        );
+
+        const addCategoryInput = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-add-category-text-input',
+        );
+        const addCategoryButton = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-add-category-button',
+        );
+        addCategoryButton.addEventListener('click', () => {
+            if (addCategoryInput.value.trim()) {
+                const category = new TagCategory(addCategoryInput.value.trim());
+                this.tagSystem.addCategory(category);
+                this.tagSystemMenuState.selectedCategory = category;
+                this.updateTagSystemMenu();
+                this.writeMotionStudyData();
+                addCategoryInput.value = '';
+            }
+        });
+        const categorySelect = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-category-select',
+        );
+        categorySelect.addEventListener('change', (e) => {
+            this.tagSystemMenuState.selectedCategory =
+                this.tagSystem.categories.find(
+                    (category) => category.name === e.target.value,
+                );
+            this.updateTagSystemMenu();
+        });
+        const deleteCategoryButton = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-delete-category-button',
+        );
+        deleteCategoryButton.addEventListener('click', () => {
+            if (this.tagSystemMenuState.selectedCategory) {
+                if (
+                    confirm(
+                        `Are you sure you want to delete the category '${this.tagSystemMenuState.selectedCategory.name}'?`,
+                    )
+                ) {
+                    this.tagSystem.removeCategory(
+                        this.tagSystemMenuState.selectedCategory,
+                    );
+                    this.tagSystemMenuState.selectedCategory =
+                        this.tagSystem.categories[0];
+                    this.updateTagSystemMenu();
+                    this.writeMotionStudyData();
+                }
+            }
+        });
+
+        const addTagInput = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-add-tag-text-input',
+        );
+        const addTagButton = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-add-tag-button',
+        );
+        addTagButton.addEventListener('click', () => {
+            if (addTagInput.value.trim()) {
+                if (!this.tagSystemMenuState.selectedCategory) {
+                    console.log('No category');
+                    return;
+                }
+                const tag = new Tag(addTagInput.value.trim());
+                this.tagSystemMenuState.selectedCategory.addTag(tag);
+                this.updateTagSystemMenu();
+                this.writeMotionStudyData();
+                addTagInput.value = '';
+            }
+        });
+
+        this.tagSystemMenuState = {
+            selectedCategory: this.tagSystem.categories[0], // Might be undefined
+        };
+        this.updateTagSystemMenu();
+        this.tagSystemMenu.initialize();
+    }
+
+    updateTagSystemMenu() {
+        const categorySelect = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-category-select',
+        );
+        categorySelect.innerHTML = this.tagSystem.categories
+            .map(
+                (category) =>
+                    `<option value='${category.name}'>${category.name}</option>`,
+            )
+            .join('');
+
+        const tagContainer = this.tagSystemMenu.body.querySelector(
+            '#analytics-tag-system-tag-container',
+        );
+        tagContainer.innerHTML = '';
+
+        this.tagSystemMenu.body
+            .querySelector('#analytics-tag-system-tag-section')
+            .querySelector('.draggable-menu-section-title').innerText = this
+            .tagSystemMenuState.selectedCategory
+            ? `${this.tagSystemMenuState.selectedCategory.name} Tags`
+            : 'Tags';
+
+        if (this.tagSystemMenuState.selectedCategory) {
+            categorySelect.value =
+                this.tagSystemMenuState.selectedCategory.name;
+
+            const tagColumnLabels = document.createElement('div');
+            tagColumnLabels.classList.add(
+                'analytics-tag-system-tag-column-labels',
+            );
+            tagColumnLabels.innerHTML = `<div>Tag</div>
+<div class='analytics-tag-system-tag-right'>
+    <div>Text</div>
+    <div>BG</div>
+    <div>Delete</div>
+</div>`;
+            tagContainer.appendChild(tagColumnLabels);
+            for (const tag of this.tagSystemMenuState.selectedCategory.tags) {
+                const tagElement = document.createElement('div');
+                tagElement.classList.add('analytics-tag-system-tag-entry');
+                tagElement.innerHTML = `<div class='analytics-tag-system-tag-name' style='color: ${tag.colors.text}; background-color: ${tag.colors.background};'>${tag.name}</div>
+<div class='analytics-tag-system-tag-right'>
+    <input type='color' class='analytics-tag-system-tag-text-color-picker analytics-tag-system-tag-color-picker' name='text-color' value='${tag.colors.text}'>
+    <input type='color' class='analytics-tag-system-tag-background-color-picker analytics-tag-system-tag-color-picker' name='background-color' value='${tag.colors.background}'>
+    <button class='analytics-tag-system-delete-tag-button'>&times;</button>
+</div>`;
+                const textColorPicker = tagElement.querySelector(
+                    '.analytics-tag-system-tag-text-color-picker',
+                );
+                textColorPicker.addEventListener('change', (e) => {
+                    tag.colors.text = e.target.value;
+                    this.updateTagSystemMenu();
+                    this.writeMotionStudyData();
+                });
+
+                const backgroundColorPicker = tagElement.querySelector(
+                    '.analytics-tag-system-tag-background-color-picker',
+                );
+                backgroundColorPicker.addEventListener('change', (e) => {
+                    tag.colors.background = e.target.value;
+                    this.updateTagSystemMenu();
+                    this.writeMotionStudyData();
+                });
+
+                const deleteTagButton = tagElement.querySelector(
+                    '.analytics-tag-system-delete-tag-button',
+                );
+                deleteTagButton.addEventListener('click', () => {
+                    if (
+                        confirm(
+                            `Are you sure you want to delete the tag '${tag.name}'?`,
+                        )
+                    ) {
+                        this.tagSystemMenuState.selectedCategory.removeTag(tag);
+                        this.updateTagSystemMenu();
+                        this.writeMotionStudyData();
+                    }
+                });
+                tagContainer.appendChild(tagElement);
+            }
+        }
+    }
+
     createTableView() {
         this.tableViewMenu = new DraggableMenu('analytics-table-view-root', 'Table View', {});
         // const rowNames = ['Step 1', 'Step 2', 'Step 3', 'Step 4'];
@@ -121,7 +343,7 @@ export class MotionStudy {
         //     poses.map(pose => pose.)
         //     this.humanPoseAnalyzer.muriLens.getTableViewValue(joint)
         // })
-        
+
         this.tableViewMenu.body.innerHTML = ''; // Remove old table view if it exists
         const lens = this.humanPoseAnalyzer.activeLens;
         const jointNameMap = value => value.split('_').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
@@ -154,7 +376,7 @@ export class MotionStudy {
                 dataRow.forEach((val, i) => {
                     dataRow[i] = val / poses.length; // Average the values
                     dataRow[i] = Math.round(dataRow[i] * 10) / 10; // Round to tenth place
-                })
+                });
             }
             data.push(dataRow);
         });
@@ -712,9 +934,15 @@ export class MotionStudy {
             this.container.appendChild(colorVideo);
         }
 
+        if (data.tagSystem) {
+            this.tagSystem.deserialize(data.tagSystem);
+            this.tagSystemMenuState.selectedCategory = this.tagSystemMenuState.selectedCategory ?? this.tagSystem.categories[0];
+            this.updateTagSystemMenu();
+        }
+
         if (data.valueAddWasteTime) {
             this.valueAddWasteTimeManager.fromJSON(data.valueAddWasteTime);
-            let valueAddWasteTimeLens = this.humanPoseAnalyzer.getLensByName("Value Add/Waste Time");
+            let valueAddWasteTimeLens = this.humanPoseAnalyzer.getLensByName('Value Add/Waste Time');
             if (valueAddWasteTimeLens) {
                 this.humanPoseAnalyzer.reprocessLens(valueAddWasteTimeLens);
             }
@@ -986,7 +1214,8 @@ export class MotionStudy {
                         name: this.plan.name,
                     },
                     regionCards: allCards,
-                    valueAddWasteTime: this.valueAddWasteTimeManager.toJSON()
+                    valueAddWasteTime: this.valueAddWasteTimeManager.toJSON(),
+                    tagSystem: this.tagSystem.serialize(),
                 },
             );
             if (this.getTitle()) {
@@ -1060,7 +1289,7 @@ export class MotionStudy {
 
         let events = [];
         for (let sensorFrame of this.sensors.getSensorFrames()) {
-             events = events.concat(this.getSensorEvents(sensorFrame, allPoses));
+            events = events.concat(this.getSensorEvents(sensorFrame, allPoses));
         }
         events.sort((a, b) => {
             return a.time - b.time;
@@ -1084,9 +1313,9 @@ export class MotionStudy {
             }
 
             events.push({
-                 enter: poseActive,
-                 time: pose.timestamp,
-                 sensor: sensorFrame,
+                enter: poseActive,
+                time: pose.timestamp,
+                sensor: sensorFrame,
             });
 
             lastPoseActive = poseActive;
@@ -1188,7 +1417,7 @@ export class MotionStudy {
             }
             result.durationMs += regionCard.durationMs;
             result.distanceMm += regionCard.distanceMm;
-        
+
             ['Accel', 'REBA', 'MURI'].forEach(name => {
                 if (regionCard.graphSummaryValues[name].minimum < result.graphSummaryValues[name].minimum) {
                     result.graphSummaryValues[name].minimum = regionCard.graphSummaryValues[name].minimum;
@@ -1210,7 +1439,7 @@ export class MotionStudy {
                 }
                 result.graphSummaryValues[key].sum += regionCard.graphSummaryValues[key].sum;
                 result.graphSummaryValues[key].count += regionCard.graphSummaryValues[key].count;
-                
+
                 result.graphSummaryValues[key].levelCounts.forEach((count, index, arr) => {
                     arr[index] += regionCard.graphSummaryValues[key].levelCounts[index];
                 });
@@ -1223,7 +1452,7 @@ export class MotionStudy {
         });
 
         // compute averages and convert individual level counts to time durations and their percentages 
-        const singlePoseStandardTime =  1000 / HUMAN_TRACKING_FPS; // in ms
+        const singlePoseStandardTime = 1000 / HUMAN_TRACKING_FPS; // in ms
         Object.values(MURI_SCORES).forEach(scoreName => {
             let key = 'MURI ' + scoreName;
             result.graphSummaryValues[key].average = result.graphSummaryValues[key].sum / result.graphSummaryValues[key].count;
@@ -1242,16 +1471,16 @@ export class MotionStudy {
                 });
             }
             else {
-                 // calculate duration when the value is unknown
-                 result.graphSummaryValues[key].levelDurations[result.graphSummaryValues[key].levelDurations.length - 1] = result.durationMs - levelDurationSum;
+                // calculate duration when the value is unknown
+                result.graphSummaryValues[key].levelDurations[result.graphSummaryValues[key].levelDurations.length - 1] = result.durationMs - levelDurationSum;
             }
-            
+
             result.graphSummaryValues[key].levelDurationPercentages.forEach((count, index, arr) => {
                 arr[index] = (result.graphSummaryValues[key].levelDurations[index] / result.durationMs) * 100;
             }); 
         });
 
-        return result; 
+        return result;
     }
 
     updatePinnedRegionCardsExportLink() {
@@ -1393,7 +1622,7 @@ export class MotionStudy {
                 delete filteredPose.joints[jointKey].confidence;
             }
 
-            // export muri related data 
+            // export muri related data
             filteredPose.metadata.ergonomics = pose.metadata.ergonomics;
             filteredPose.metadata.muriScores = pose.metadata.muriScores;
             filteredPose.metadata.overallMuriScore = pose.metadata.overallMuriScore; 
@@ -1424,7 +1653,6 @@ export class MotionStudy {
         } else {
             window.location.hash = this.activeRegionCard.step.id;
         }
-
     }
 
     /**
@@ -1466,7 +1694,7 @@ export class MotionStudy {
             this.activeRegionCard.setPoses(timelineRegionCard.poses);
         }
     }
-    
+
     /**
      * @param {number} startTime
      * @param {number} endTime
@@ -1479,7 +1707,7 @@ export class MotionStudy {
         });
         this.writeMotionStudyData();
     }
-    
+
     /**
      * @param {number} startTime
      * @param {number} endTime
@@ -1504,5 +1732,4 @@ export class MotionStudy {
         this.updateExportLinks();
         //this.writeMotionStudyData();
     }
-
 }

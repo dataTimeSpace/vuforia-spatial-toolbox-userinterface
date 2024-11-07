@@ -2,6 +2,9 @@
 .idea
 .editorconfig
 
+# biome.js formatter settings
+biome.json
+
 # osx directory files
 .DS_Store
 
