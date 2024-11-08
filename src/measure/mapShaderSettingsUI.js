@@ -2,7 +2,7 @@ export class MapShaderSettingsUI {
     constructor() {
 
         this.root = document.createElement('div');
-        this.root.id = 'hpa-settings';
+        this.root.id = 'map-shader-settings';
 
         // Styled via css/humanPoseAnalyzerSettingsUi.css
         this.root.innerHTML = `
@@ -59,13 +59,13 @@ export class MapShaderSettingsUI {
     setInitialPosition() {
         const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
-        // const sessionMenuContainer = document.querySelector('#sessionMenuContainer');
-        // const sessionMenuLeft = sessionMenuContainer ? sessionMenuContainer.offsetLeft : 0;
-        // if (sessionMenuContainer) { // Avoid the top right menu
-        //     this.root.style.top = `calc(${navbarHeight}px + 2em)`;
-        //     this.root.style.left = `calc(${sessionMenuLeft - this.root.offsetWidth}px - 6em)`;
-        //     return;
-        // }
+        const sessionMenuContainer = document.querySelector('#sessionMenuContainer');
+        const sessionMenuLeft = sessionMenuContainer ? sessionMenuContainer.offsetLeft : 0;
+        if (sessionMenuContainer) { // Avoid the top right menu
+            this.root.style.top = `calc(${navbarHeight}px + 2em)`;
+            this.root.style.left = `calc(${sessionMenuLeft - this.root.offsetWidth}px - 6em)`;
+            return;
+        }
         this.root.style.top = `calc(${navbarHeight}px + 2em)`;
         this.root.style.left = `calc(${window.innerWidth - this.root.offsetWidth}px - 2em)`;
         this.snapToFitScreen();

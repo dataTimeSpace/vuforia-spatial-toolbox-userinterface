@@ -14,7 +14,8 @@ import AnchoredGroup from "./scene/AnchoredGroup.js";
 import { WebXRCamera, DefaultCamera, LayerConfig } from "./scene/Camera.js";
 import { Renderer } from "./scene/Renderer.js";
 import {setMatrixFromArray} from "./scene/utils.js";
-import { getPendingCapture } from './sceneCapture.js';
+import { getPendingCapture, getPendingCaptureMultiple } from './sceneCapture.js';
+import { RGBELoader } from "../../thirdPartyCode/three/RGBELoader.js";
 
 (function(exports) {
 
@@ -158,10 +159,73 @@ import { getPendingCapture } from './sceneCapture.js';
             customMaterials.updateCameraDirection(new THREE.Vector3(forwardVector[0], forwardVector[1], forwardVector[2]));
         }
     }
+    
+    function prepareForThingViewCapture() {
+        console.log('%c Prepared for ThingView capture.', 'color: orange');
+        
+        // change camera fov
+        let camera = mainRenderer.getCamera().getInternalObject();
+        camera.fov = 50; // original: 70
+        camera.updateProjectionMatrix();
+        
+        // change scene background to solid color, maybe not necessary
+        let scene = mainRenderer.getInternalScene();
+        scene.background = new THREE.Color(0xffffff);
+        
+        // change renderer tone mapping
+        let renderer = mainRenderer.getInternalRenderer();
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.6;
+
+        // add environment map, to add a bit of context
+        new RGBELoader().load('./png/environment.hdr', (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.background = texture;
+            scene.environment = texture;
+        })
+        
+        // hide ground plane visualizer
+        let gridHelper = mainRenderer.getObjectByName('groundPlaneVisualizer');
+        gridHelper.visible = false;
+        
+        // hide spatial cursor
+        let indicator1 = mainRenderer.getObjectByName('spatialCursor indicator1');
+        let indicator2 = mainRenderer.getObjectByName('spatialCursor indicator2');
+        indicator1.visible = false;
+        indicator2.visible = false;
+        
+        // hide GLTF mesh
+        let gltf = mainRenderer.getObjectByName('areaTargetMesh');
+        gltf.visible = false;
+        
+        // hide ThingView tool icon
+        let possibleToolIcons = Array.from(document.getElementsByClassName('minimizedEnvelopeIcon'));
+        for (let i = 0; i < possibleToolIcons.length; i++) {
+            let thingviewToolIcon = possibleToolIcons[i];
+            if (thingviewToolIcon.src.includes('thingview')) {
+                thingviewToolIcon.style.visibility = 'hidden';
+            }
+        }
+    }
 
     // adds an invisible plane to the ground that you can raycast against to fill in holes in the area target
     // this is different from the ground plane visualizer element
     function addGroundPlaneCollider() {
+        
+        // todo Steve: added this for capturing thingview CAD model, for GS training
+        setTimeout(() => {
+            // prepareForThingViewCapture();
+        }, 6000);
+        
+        // setInterval(() => {
+        //     if (allMeshes.length === 0) {
+        //         return;
+        //     }
+        //     allMeshes.forEach(mesh => {
+        //         console.log(mesh.material);
+        //     })
+        // }, 3000);
+        
         const sceneSizeInMeters = 100; // not actually infinite, but relative to any area target this should cover it
 
         isGroundPlanePositionSet = true;
@@ -190,7 +254,7 @@ import { getPendingCapture } from './sceneCapture.js';
         }
     }
 
-    function renderScene() {
+    async function renderScene() {
         const deltaTime = Date.now() - lastFrameTime; // In ms
         lastFrameTime = Date.now();
 
@@ -287,9 +351,15 @@ import { getPendingCapture } from './sceneCapture.js';
         if (isProjectionMatrixSet) {
             mainRenderer.render();
 
-            let pendingCapture = getPendingCapture('mainThreejsCanvas');
+            // original implementation
+            // let pendingCapture = getPendingCapture('mainThreejsCanvas');
+            // if (pendingCapture) {
+            //     pendingCapture.performCapture();
+            // }
+
+            let pendingCapture = getPendingCaptureMultiple(['mainThreejsCanvas', 'CreoViewWebGLDiv_CreoViewCanvas0']);
             if (pendingCapture) {
-                pendingCapture.performCapture();
+                await pendingCapture.performCaptureMultiple();
             }
         }
     }

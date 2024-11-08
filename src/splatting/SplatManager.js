@@ -14,6 +14,43 @@ let splatRegions = null;
 let splatRegionActiveIndex = 0;
 let totalBytesRead = null;
 
+let callbackHandler = null;
+let splatSettingsUI = null;
+
+function updateSplatSettingsUIRegions() {
+    if (splatSettingsUI === null) return;
+    splatSettingsUI.updateRegions();
+}
+
+function registerCallback(functionName, callback) {
+    console.log('registered in desktop camera');
+    if (!callbackHandler) {
+        callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('splatManager');
+    }
+    callbackHandler.registerCallback(functionName, callback);
+    console.log(callbackHandler);
+}
+
+function selectRegion(regionId) {
+    let activeSplatRegion = splatRegions.get(splatRegionActiveIndex);
+    activeSplatRegion.detachGizmo();
+    activeSplatRegion.hideBoundary();
+    
+    splatRegionActiveIndex = regionId;
+    activeSplatRegion = splatRegions.get(splatRegionActiveIndex);
+    activeSplatRegion.attachGizmo('transform');
+    activeSplatRegion.showBoundary();
+    
+    // focus camera
+    // let focusPosition = activeSplatRegion.world.positionOffset.clone().add(activeSplatRegion.boundary.center.clone().applyQuaternion(activeSplatRegion.world.quaternion));
+    // let floorOffset = realityEditor.gui.ar.areaCreator.calculateFloorOffset();
+    // focusPosition.y -= floorOffset;
+    // focusPosition.y += 1000;
+    // callbackHandler.triggerCallbacks('shouldFocusVirtualCamera', {
+    //     pos: {x: focusPosition.x, y: focusPosition.y, z: focusPosition.z}
+    // });
+}
+
 // todo Steve:
 //  1. somehow the splat region boundary doesn't include some of the furthest splats (done)
 //  2. splat region bounding box shader (done)
@@ -42,7 +79,7 @@ function initService() {
 
     initScene();
     
-    // let splatSettingsUI = new SplatSettingsUI();
+    splatSettingsUI = new SplatSettingsUI();
 }
 
 let renderer = null, scene = null, camera = null, raycaster = null;
@@ -130,11 +167,7 @@ function setupEventListeners() {
                 break;
             }
             case ' ': {
-                splatRegions.get(splatRegionActiveIndex).detachGizmo();
-                splatRegions.get(splatRegionActiveIndex).hideBoundary();
-                splatRegionActiveIndex = (splatRegionActiveIndex + 1) % splatRegions.size;
-                splatRegions.get(splatRegionActiveIndex).attachGizmo('transform');
-                splatRegions.get(splatRegionActiveIndex).showBoundary();
+                selectRegion((splatRegionActiveIndex + 1) % splatRegions.size);
                 break;
             }
             default: {
@@ -152,6 +185,7 @@ function initRender() {
 class SplatRegion {
     constructor(filePath, byteLength, regionId) {
         this.filePath = filePath;
+        this.fileName = filePath.split('/').at(-1);
         this.byteLength = byteLength;
         this.rowLength = null; // 32 or 36 bytes per splat
         this.vertexCount = null; // total number of splats, this.byteLength / this.rowLength
@@ -191,8 +225,7 @@ class SplatRegion {
     }
 
     makeRegionName() {
-        let fileName = this.filePath.split('/')[1];
-        this.regionName = `splat_region_${fileName}_${this.vertexCount}_${this.rowLength}`;
+        this.regionName = `splat_region_${this.vertexCount}_${this.rowLength}`; // assuming no two splat files have the same vertex count or row length
     }
 
     makeBoundaryPlane(size, offset, name, center) {
@@ -434,6 +467,7 @@ class SplatRegion {
                     }
                     
                     this.updateUniformsAndWorker(true, false, false); // when initializing, don't have to update local storage yet; also don't update worker yet, to avoid already-loaded splat region flickering once when updating boundary info from local storage
+                    updateSplatSettingsUIRegions();
 
                     resolve();
                     console.log(`Splat Region ${this.regionName} load complete.`);
@@ -502,7 +536,7 @@ class SplatRegion {
         // set local storage
         updateLocalStorage: {
             if (!isUpdateLocalStorage) break updateLocalStorage;
-            let key = `splat_region_${this.regionId}`;
+            let key = `${this.regionName}_storage`;
             let value = {
                 positionOffset: this.world.positionOffset.toArray(), // just save in mm
                 quaternion: this.world.quaternion.toArray(),
@@ -636,10 +670,15 @@ function getRowLengthArray() {
     return splatRegionRowLengthArray;
 }
 
+function getActiveIndex() {
+    return splatRegionActiveIndex;
+}
+
 // todo Steve: get & set region transform & boundary info from info.json
 function setRegionBoundaryFromStorageOrWorker(boundary_maps) {
     for (let [regionId, boundary] of boundary_maps.entries()) {
-        let regionStorage = window.localStorage.getItem(`splat_region_${regionId}`);
+        let key = `${getSplatRegions().get(regionId).regionName}_storage`;
+        let regionStorage = window.localStorage.getItem(key);
         if (regionStorage !== null) {
             splatRegions.get(regionId).transformAndUpdateBoundaryFromLocalStorage(regionStorage);
         } else {
@@ -748,8 +787,11 @@ export default {
     getSplatRegions,
     getRegionIdArray,
     getRowLengthArray,
+    getActiveIndex,
     setRegionBoundaryFromStorageOrWorker,
     showSplatRegions,
     hideSplatRegions,
     createLabels,
+    selectRegion,
+    registerCallback,
 };

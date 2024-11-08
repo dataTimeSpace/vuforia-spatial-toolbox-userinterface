@@ -138,6 +138,13 @@ realityEditor.network.addPostMessageHandler = function(messageName, callback) {
     });
 };
 
+export function addPostMessageHandler(messageName, callback) {
+    realityEditor.network.postMessageHandlers.push({
+        messageName: messageName,
+        callback: callback
+    });
+}
+
 realityEditor.network.nodeAddedCallbacks = {};
 
 realityEditor.network.getURL = function(server, identifier, route){

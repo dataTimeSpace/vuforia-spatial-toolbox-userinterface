@@ -307,7 +307,7 @@ import { remap } from "../utilities/MathUtils.js";
             colorLighter: new THREE.Color(colorLighter)
         };
         
-        camera = realityEditor.gui.threejsScene.getInternals().getCamera();
+        camera = realityEditor.gui.threejsScene.getInternals().getCamera(); // todo Steve: not correct, should do getInternals().getCamera().getInternalObject()
         
         update();
 

@@ -147,6 +147,15 @@
     right: 10px;
 }
 
+#gsSavedComp {
+    position: absolute;
+    bottom: 10px;
+    z-index: 999;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
 #gsCanvas {
     display: block;
     position: absolute;

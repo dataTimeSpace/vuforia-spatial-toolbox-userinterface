@@ -29,6 +29,33 @@ let vertexCount = null, lastVertexCount = null;
 let gl = null, program = null;
 let splatRegionCount = null;
 
+let uMode = 0;
+let modeCount = 3;
+function changeDisplayMode(mode) {
+    switch (mode) {
+        case 'color':
+            uMode = 0;
+            break;
+        case 'category':
+            uMode = 1;
+            break;
+        case 'flat':
+            uMode = 2;
+            break;
+        default:
+            break;
+    }
+    gl.uniform1f(gl.getUniformLocation(program, 'mode'), uMode);
+}
+
+let uRegion = -1;
+function changeDisplayRegion(regionId) {
+    uRegion = regionId;
+    const u_region = gl.getUniformLocation(program, "uRegion");
+    gl.uniform1f(u_region, uRegion);
+}
+let uLabel = -1;
+
 async function main(initialFilePath) {
 
     // const url = new URL('http://192.168.0.12:8080/obj/_WORLD_test/target/target_splats/target.splat');
@@ -71,6 +98,10 @@ async function main(initialFilePath) {
     })
 
     const fps = document.getElementById("gsFps");
+    const savedCompTotal = document.getElementById("gsSavedCompTotal");
+    const savedCompOF = document.getElementById("gsSavedCompOF");
+    const savedCompBC = document.getElementById("gsSavedCompBC");
+    const savedCompSaved = document.getElementById("gsSavedCompSaved");
     const gsCanvas = document.getElementById("gsCanvas");
 
     gl = gsCanvas.getContext("webgl2", {
@@ -120,8 +151,10 @@ async function main(initialFilePath) {
     const u_uIsGSRaycasting = gl.getUniformLocation(program, "uIsGSRaycasting");
     const u_toggleBoundary = gl.getUniformLocation(program, "uToggleBoundary");
     const u_worldLowAlpha = gl.getUniformLocation(program, "uWorldLowAlpha");
+    const u_normalMultiplier = gl.getUniformLocation(program, "uNormalMultiplier");
+    const u_expNumPos = gl.getUniformLocation(program, "uExpNumPos");
+    const u_expNumScale = gl.getUniformLocation(program, "uExpNumScale");
 
-    let uMode = 0;
     const u_mode = gl.getUniformLocation(program, "mode");
     gl.uniform1f(u_mode, uMode);
 
@@ -136,7 +169,7 @@ async function main(initialFilePath) {
 
     window.addEventListener("keydown", (e) => {
         if (e.key === 'j' || e.key === 'J') {
-            uMode = uMode === 1 ? 0 : 1;
+            uMode = (uMode + 1) % modeCount;
             gl.uniform1f(u_mode, uMode);
         } else if (e.key === 'y' || e.key === 'Y') {
             uEdit = uEdit === 1 ? 0 : 1;
@@ -184,11 +217,9 @@ async function main(initialFilePath) {
         gl.uniform1iv(u_pendingSplatIndices, Array.from(pendingHiddenSplatIndexSet));
     })
 
-    let uRegion = -1;
     const u_region = gl.getUniformLocation(program, "uRegion");
     gl.uniform1f(u_region, uRegion);
     
-    let uLabel = -1;
     const u_label = gl.getUniformLocation(program, "uLabel");
     gl.uniform1f(u_label, uLabel);
 
@@ -311,6 +342,7 @@ async function main(initialFilePath) {
     window.addEventListener('pointerdown', (e) => {
         if (!realityEditor.spatialCursor.isGSActive()) return;
         if (e.button !== 0) return;
+        console.log('pointer down triggered');
         if (e.target.id.includes('label_')) {
             uRegion = parseFloat(e.target.id.split('_')[1]);
             uLabel = parseFloat(e.target.id.split('_')[2]);
@@ -351,7 +383,7 @@ async function main(initialFilePath) {
 
     function loopThroughLabels() {
         // todo Steve: the entire looping through label is very slow. Definitely need to get rid of all the labels and replace them with either WebGL stuff, or something else
-        return;
+        // return;
         if (isGSRaycasting && !isFlying) return; 
         for (let [regionId, center_map] of center_maps_from_worker.entries()) {
             let minCount = Infinity, maxCount = 0;
@@ -570,7 +602,7 @@ async function main(initialFilePath) {
     function initLabels() {
         if (center_maps_from_worker.size === 0) return; // todo Steve: figure out why there is ONLY 245 instead of 265 clusters
         initLabelCurrent();
-        // realityEditor.gui.threejsScene.onAnimationFrame(loopThroughLabels);
+        realityEditor.gui.threejsScene.onAnimationFrame(loopThroughLabels);
         SplatManager.createLabels(center_maps_from_worker);
     }
     
@@ -636,6 +668,11 @@ async function main(initialFilePath) {
             outOfBoundaryAmount = e.data.outOfBoundaryAmount;
             // console.log(depthIndex.length, vertexCount, behindCameraAmount, outOfBoundaryAmount);
             // console.log(behindCameraAmount, outOfBoundaryAmount, vertexCount, (vertexCount - behindCameraAmount - outOfBoundaryAmount) / vertexCount * 100);
+            let totalSavedComputations = (behindCameraAmount + outOfBoundaryAmount) / vertexCount * 100;
+            savedCompTotal.innerHTML = `Total vertex count: ${vertexCount}`;
+            savedCompOF.innerHTML = `Out of boundary count: ${outOfBoundaryAmount}`;
+            savedCompBC.innerHTML = `Behind camera count: ${behindCameraAmount}`;
+            savedCompSaved.innerHTML = `Total saved calculations: ${totalSavedComputations}`;
             let forceSortDone = e.data.forceSortDone;
             if (forceSortDone) {
                 toggleGSRaycast(true);
@@ -837,13 +874,19 @@ async function main(initialFilePath) {
     // lil GUI settings
     gsSettingsPanel = new GUI({width: 300});
     gsSettingsPanel.domElement.style.zIndex = '10001';
-    gsSettingsPanel.domElement.style.display = 'none';
+    // gsSettingsPanel.domElement.style.display = 'none';
     let uToggleBoundary = true;
     let uWorldLowAlpha = 0.3;
+    let uNormalMultiplier = 0.00005;
+    let uTrimNumberPos = 10;
+    let uTrimNumberScale = 4;
     const folder = gsSettingsPanel.addFolder('Visibility');
     let settings = {
         "toggle boundary": uToggleBoundary,
         "world low alpha": uWorldLowAlpha,
+        "normal multiplier": uNormalMultiplier,
+        "position trim number": uTrimNumberPos,
+        "scale trim number": uTrimNumberScale,
     }
     folder.add(settings, 'toggle boundary').onChange((value) => {
         uToggleBoundary = value;
@@ -856,7 +899,28 @@ async function main(initialFilePath) {
     });
     d1.step(0.1);
     gl.uniform1f(u_worldLowAlpha, uWorldLowAlpha);
-    folder.close();
+    // normal multiplier
+    let d2 = folder.add(settings, 'normal multiplier', 0, 0.001).onChange((value) => {
+        uNormalMultiplier = value;
+        gl.uniform1f(u_normalMultiplier, uNormalMultiplier);
+    });
+    d2.step(0.000001);
+    gl.uniform1f(u_normalMultiplier, uNormalMultiplier);
+    // position float value trim down decimal digits
+    let d3 = folder.add(settings, 'position trim number', 1, 23).onChange((value) => {
+        uTrimNumberPos = value;
+        gl.uniform1f(u_expNumPos, uTrimNumberPos);
+    });
+    d3.step(1);
+    gl.uniform1f(u_expNumPos, uTrimNumberPos);
+    // scale float value trim down decimal digits
+    let d4 = folder.add(settings, 'scale trim number', 1, 10).onChange((value) => {
+        uTrimNumberScale = value;
+        gl.uniform1f(u_expNumScale, uTrimNumberScale);
+    });
+    d4.step(1);
+    gl.uniform1f(u_expNumScale, uTrimNumberScale);
+    // folder.close();
 
     const preventDefault = (e) => {
         e.preventDefault();
@@ -1003,6 +1067,8 @@ export default {
     getLastVertexCount, setLastVertexCount,
     toggleForceSort,
     toggleGSRaycast,
+    changeDisplayMode,
+    changeDisplayRegion,
     hideSplatRenderer,
     showSplatRenderer,
     onSplatShown(callback) {

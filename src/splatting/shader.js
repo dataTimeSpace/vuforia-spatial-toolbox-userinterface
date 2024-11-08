@@ -38,6 +38,11 @@ export function vertexShaderSource(splatRegionCount) {
     uniform float uLabel;
     uniform float uRegion;
     
+    uniform float uNormalMultiplier;
+    
+    uniform float uExpNumPos;
+    uniform float uExpNumScale;
+    
     // editing gaussian splatting, highlight, delete, revert
     uniform bool uEdit;
     uniform int pendingHiddenSplatIndices[${PENDING_SPLATS_MAX_SIZE}]; // dirty fix: a smaller fixed-size array
@@ -60,17 +65,83 @@ export function vertexShaderSource(splatRegionCount) {
     }
     
     mat3 quaternionToRotationMatrix(vec4 q) {
-            float l = length(q);
-            float x = -q.x / l; // need conjugate of this quaternion in the shader to work
-            float y = -q.y / l;
-            float z = -q.z / l;
-            float w = q.w / l;
-            return mat3(
-                1. - 2.*y*y - 2.*z*z, 2.*x*y - 2.*w*z, 2.*x*z + 2.*w*y,
-                2.*x*y + 2.*w*z, 1. - 2.*x*x - 2.*z*z, 2.*y*z - 2.*w*x,
-                2.*x*z - 2.*w*y, 2.*y*z + 2.*w*x, 1. - 2.*x*x - 2.*y*y
-            );
+        float l = length(q);
+        float x = -q.x / l; // need conjugate of this quaternion in the shader to work
+        float y = -q.y / l;
+        float z = -q.z / l;
+        float w = q.w / l;
+        return mat3(
+            1. - 2.*y*y - 2.*z*z, 2.*x*y - 2.*w*z, 2.*x*z + 2.*w*y,
+            2.*x*y + 2.*w*z, 1. - 2.*x*x - 2.*z*z, 2.*y*z - 2.*w*x,
+            2.*x*z - 2.*w*y, 2.*y*z + 2.*w*x, 1. - 2.*x*x - 2.*y*y
+        );
+    }
+    
+    vec3 getNormal(vec2 v1, vec2 v2, vec2 v3) {
+        float l1 = length(v1), l2 = length(v2), l3 = length(v3);
+        // float a = 1. / 1024. / 2.;
+        float a = uNormalMultiplier;
+        vec3 v = vec3(0.);
+        if (l1 < l2 && l1 < l3) { // very few of this branch, mostly red, little green
+            // v = vec3(v1.x, a, v1.y);
+            // return normalize(v);
+            // v = vec3(0.);
+            // return v;
+            
+            v = vec3(v1, a);
+            return normalize(v);
         }
+        else if (l2 < l1 && l2 < l3) { // a lot of this branch, a lot of green, some blue, little red
+            // v = vec3(v2.x, a, v2.y);
+            // return normalize(v);
+            // v = vec3(0.);
+            // return v;
+            
+            v = vec3(v2.x, a, v2.y);
+            return normalize(v);
+        }
+        else if (l3 < l1 && l3 < l2) { // very few of this branch, mostly blue, little green
+            // v = vec3(v3.x, a, v3.y);
+            // return normalize(v);
+            // v = vec3(0.);
+            // return v;
+            
+            v = vec3(a, v3);
+            return normalize(v);
+        }
+        // return normalize(v);
+    }
+    
+    float truncateToThreeDecimals(float value) {
+        return sign(value) * floor(abs(value) * 1000.0) / 1000.0;
+    }
+    
+    float trimBits(uint value) {
+        int bits = int(value);
+        int sign = bits >> 31;
+        int exponent = (bits >> 23) & 0xFF;
+        int significand = bits & 0x7FFFFF;
+    
+        if (exponent == 0 || exponent == 0xFF) {
+            // Handle zero, subnormal numbers, infinities, NaNs
+            return uintBitsToFloat(value);
+        }
+    
+        int e = exponent - 127;
+        int integerBits = max(e + 1, 0);
+        int fractionalBits = max(23 - integerBits, 0);
+    
+        int desiredFractionalBits = int(uExpNumPos); // Approximate bits for three decimal places
+    
+        if (fractionalBits > desiredFractionalBits) {
+            int bitsToTruncate = fractionalBits - desiredFractionalBits;
+            int mask = ~((1 << bitsToTruncate) - 1);
+            significand &= mask;
+        }
+    
+        int newBits = (sign << 31) | ((exponent & 0xFF) << 23) | significand;
+        return intBitsToFloat(newBits);
+    }
     
     void main () {
         uvec4 cen = texelFetch(u_texture, ivec2((uint(index) & 0x3ffu) << 1, uint(index) >> 10), 0);
@@ -81,6 +152,13 @@ export function vertexShaderSource(splatRegionCount) {
         }
         int regionId = int((cen.w >> 16) & 0xffu);
         vec3 pos = uintBitsToFloat(cen.xyz);
+        // float expNum = uExpNumPos;
+        // float divNum = pow(10., expNum);
+        // pos = sign(pos) * floor(abs(pos) * divNum) / divNum;
+        float posX = trimBits(cen.x);
+        float posY = trimBits(cen.y);
+        float posZ = trimBits(cen.z);
+        pos = vec3(posX, posY, posZ);
         vec3 bMin = splatRegionInfos[regionId].boundaryMin;
         vec3 bMax = splatRegionInfos[regionId].boundaryMax;
         if (pos.x < bMin.x || pos.y < bMin.y || pos.z < bMin.z || pos.x > bMax.x || pos.y > bMax.y || pos.z > bMax.z) { // out of boundary
@@ -127,25 +205,38 @@ export function vertexShaderSource(splatRegionCount) {
     
         // vColor = clamp(pos2d.z/pos2d.w+1.0, 0.0, 1.0) * vec4((cov.w) & 0xffu, (cov.w >> 8) & 0xffu, (cov.w >> 16) & 0xffu, (cov.w >> 24) & 0xffu) / 255.0;
         float label = float((cen.w >> 24) & 0xffu);
-        // (uLabel == -1.) && (uRegion == -1.) ---> render everything
-        // (uLabel != -1.) && (uRegion != -1.) && 
-        bool dont_render = (uLabel != -1.) && (uRegion != -1.) && !( (uLabel == label) && (uRegion == float(regionId)) );
+        // (uRegion == -1.) && (uLabel == -1.) ---> render everything
+        // (uRegion != -1.) && (uLabel != -1.) ---> render only uRegion's uLabel
+        // (uRegion != -1.) && (uLabel == -1.) ---> render only uRegion's everything
+        // todo Steve: change logic a bit here, b/c we support solo the entire region now
+        // bool dont_render = (uLabel != -1.) && (uRegion != -1.) && !( (uLabel == label) && (uRegion == float(regionId)) );
         // dont_render = false;
-        if (mode == 0.) { // normal color mode
-            vec3 color = vec3((cov.w) & 0xffu, (cov.w >> 8) & 0xffu, (cov.w >> 16) & 0xffu) / 255.0;
-            float opacity = float((cov.w >> 24) & 0xffu) / 255.0;
-            if (dont_render) {
+        bool render_this_region = (uRegion == -1.) || (uRegion == float(regionId));
+        bool render_this_label = (uLabel == -1.) || (uLabel == label);
+        bool render_this_splat = render_this_region && render_this_label;
+        vec3 color;
+        float opacity;
+        if (mode == 0. || mode == 2.) { // normal color mode
+            if (!render_this_splat) {
                 color = vec3(0.);
                 opacity = 0.;
+            } else {
+                color = vec3((cov.w) & 0xffu, (cov.w >> 8) & 0xffu, (cov.w >> 16) & 0xffu) / 255.0;
+                opacity = float((cov.w >> 24) & 0xffu) / 255.0;
             }
             vColor = clamp(pos2d.z/pos2d.w+1.0, 0.0, 1.0) * vec4(color, opacity);
         } else if (mode == 1.) { // label color mode
-            // vColor = clamp(pos2d.z/pos2d.w+1.0, 0.0, 1.0) * vec4((cen.w) & 0xffu, (cen.w >> 8) & 0xffu, (cen.w >> 16) & 0xffu, (cen.w >> 24) & 0xffu) / 255.0;
-            vec3 color = randomNoiseVec3(float(regionId), label);
-            float opacity = float((cov.w >> 24) & 0xffu) / 255.0;
-            if (dont_render) {
+            if (!render_this_splat) {
                 color = vec3(0.);
                 opacity = 0.;
+            } else {
+                // vColor = clamp(pos2d.z/pos2d.w+1.0, 0.0, 1.0) * vec4((cen.w) & 0xffu, (cen.w >> 8) & 0xffu, (cen.w >> 16) & 0xffu, (cen.w >> 24) & 0xffu) / 255.0;
+                
+                // color = randomNoiseVec3(float(regionId), label);
+                // opacity = float((cov.w >> 24) & 0xffu) / 255.0;
+                
+                color = getNormal(u1, u2, u3);
+                opacity = 1.;
             }
             vColor = clamp(pos2d.z/pos2d.w+1.0, 0.0, 1.0) * vec4(color, opacity);
         }
@@ -198,6 +289,8 @@ export function fragmentShaderSource() {
     
     uniform bool uEdit;
     
+    uniform float mode;
+    
     in vec4 vColor;
     in vec4 vFBOPosColor;
     in vec2 vPosition;
@@ -222,8 +315,11 @@ export function fragmentShaderSource() {
         float a = vShouldDisplay > 0.5 ? B : 0.; // original alpha
         
         // visualize splat geometry with while outlines
-        // col = vColor.rgb;
-        // a = 1.;
+        if (mode == 2.) {
+            col = vColor.rgb;
+            a = 1.;
+        }
+        
         // float blur = fwidth(A) * 5.;
         // float border = smoothstep(blur, -blur, A + 4.0);
         // col = mix(col, vec3(1.), border);
@@ -242,8 +338,13 @@ export function fragmentShaderSource() {
             }
         }
     
-        fragColor = vec4(col, a);
-        return;
+        if (gl_FrontFacing) {
+            fragColor = vec4(0.);
+            return;
+        } else {
+            fragColor = vec4(col, a);
+            return;
+        }
     }
     `.trim();
 }

@@ -1,4 +1,4 @@
-#hpa-settings, #profiler-settings {
+#hpa-settings, #profiler-settings, #map-shader-settings, #splat-settings {
     position: fixed;
     top: 0;
     left: 0;
@@ -71,6 +71,7 @@
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    gap: 5px;
 }
 
 .hpa-settings-section-row:last-child {
@@ -119,6 +120,16 @@
     width: 200px;
     font-size: 14px;
     cursor: pointer;
+}
+
+input[type=range].hpa-settings-slider {
+    width: 200px;
+}
+
+input[type=number].hpa-settings-slider-number {
+    /*width: 30px;*/
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .profiler-settings-section-row-tall {
