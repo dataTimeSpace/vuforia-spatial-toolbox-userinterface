@@ -1,8 +1,8 @@
 export class DraggableMenu {
     constructor(id, title, config) {
-        this.root = document.createElement("div");
+        this.root = document.createElement('div');
         this.root.id = id;
-        this.root.classList.add("draggable-menu");
+        this.root.classList.add('draggable-menu');
 
         this.root.innerHTML = `
             <div class="draggable-menu-header">
@@ -17,7 +17,7 @@ export class DraggableMenu {
 
         this.setUpEventListeners();
         this.enableDrag();
-        this.body = this.root.querySelector(".draggable-menu-body");
+        this.body = this.root.querySelector('.draggable-menu-body');
         this.buildMenuBody(config);
         this.callbacks = {
             show: [],
@@ -41,7 +41,7 @@ export class DraggableMenu {
     }
 
     setInitialPosition() {
-        const navbar = document.querySelector(".desktopMenuBar");
+        const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
         this.root.style.top = `calc(${navbarHeight}px + 2em)`;
         this.root.style.left = `calc(${window.innerWidth - this.root.offsetWidth}px - 2em)`;
@@ -50,33 +50,31 @@ export class DraggableMenu {
 
     setUpEventListeners() {
         // Prevent camera control from stealing attempts to scroll the container
-        this.root.addEventListener("wheel", (event) => {
+        this.root.addEventListener('wheel', (event) => {
             event.stopPropagation();
         });
 
-        this.root
-            .querySelector(".draggable-menu-header")
-            .addEventListener("mousedown", (event) => {
-                let mouseDownX = event.clientX;
-                let mouseDownY = event.clientY;
-                const mouseUpListener = (event) => {
-                    const mouseUpX = event.clientX;
-                    const mouseUpY = event.clientY;
-                    if (mouseDownX === mouseUpX && mouseDownY === mouseUpY) {
-                        this.toggleMinimized();
-                    }
-                    this.root
-                        .querySelector(".draggable-menu-header")
-                        .removeEventListener("mouseup", mouseUpListener);
-                };
+        this.root.querySelector('.draggable-menu-header').addEventListener('mousedown', (event) => {
+            let mouseDownX = event.clientX;
+            let mouseDownY = event.clientY;
+            const mouseUpListener = (event) => {
+                const mouseUpX = event.clientX;
+                const mouseUpY = event.clientY;
+                if (mouseDownX === mouseUpX && mouseDownY === mouseUpY) {
+                    this.toggleMinimized();
+                }
                 this.root
-                    .querySelector(".draggable-menu-header")
-                    .addEventListener("mouseup", mouseUpListener);
-            });
+                    .querySelector('.draggable-menu-header')
+                    .removeEventListener('mouseup', mouseUpListener);
+            };
+            this.root
+                .querySelector('.draggable-menu-header')
+                .addEventListener('mouseup', mouseUpListener);
+        });
 
         this.root
-            .querySelector(".draggable-menu-fullscreen-icon")
-            .addEventListener("mousedown", (event) => {
+            .querySelector('.draggable-menu-fullscreen-icon')
+            .addEventListener('mousedown', (event) => {
                 this.toggleFullscreen();
                 event.stopPropagation();
             });
@@ -88,33 +86,28 @@ export class DraggableMenu {
         let dragStartLeft = 0;
         let dragStartTop = 0;
 
-        this.root
-            .querySelector(".draggable-menu-header")
-            .addEventListener("mousedown", (event) => {
-                dragStartX = event.clientX;
-                dragStartY = event.clientY;
-                dragStartLeft = this.root.offsetLeft;
-                dragStartTop = this.root.offsetTop;
+        this.root.querySelector('.draggable-menu-header').addEventListener('mousedown', (event) => {
+            dragStartX = event.clientX;
+            dragStartY = event.clientY;
+            dragStartLeft = this.root.offsetLeft;
+            dragStartTop = this.root.offsetTop;
 
-                const mouseMoveListener = (event) => {
-                    this.root.style.left = `${dragStartLeft + event.clientX - dragStartX}px`;
-                    this.root.style.top = `${dragStartTop + event.clientY - dragStartY}px`;
-                    this.snapToFitScreen();
-                };
-                const mouseUpListener = () => {
-                    document.removeEventListener(
-                        "mousemove",
-                        mouseMoveListener,
-                    );
-                    document.removeEventListener("mouseup", mouseUpListener);
-                };
-                document.addEventListener("mousemove", mouseMoveListener);
-                document.addEventListener("mouseup", mouseUpListener);
-            });
+            const mouseMoveListener = (event) => {
+                this.root.style.left = `${dragStartLeft + event.clientX - dragStartX}px`;
+                this.root.style.top = `${dragStartTop + event.clientY - dragStartY}px`;
+                this.snapToFitScreen();
+            };
+            const mouseUpListener = () => {
+                document.removeEventListener('mousemove', mouseMoveListener);
+                document.removeEventListener('mouseup', mouseUpListener);
+            };
+            document.addEventListener('mousemove', mouseMoveListener);
+            document.addEventListener('mouseup', mouseUpListener);
+        });
     }
 
     isOutOfBounds() {
-        const navbar = document.querySelector(".desktopMenuBar");
+        const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
         if (this.root.offsetTop < navbarHeight) {
             return true;
@@ -126,8 +119,7 @@ export class DraggableMenu {
             return true;
         }
         if (
-            this.root.offsetTop +
-            this.root.querySelector(".draggable-menu-header").offsetHeight >
+            this.root.offsetTop + this.root.querySelector('.draggable-menu-header').offsetHeight >
             window.innerHeight
         ) {
             return true;
@@ -136,23 +128,22 @@ export class DraggableMenu {
     }
 
     snapToFitScreen() {
-        const navbar = document.querySelector(".desktopMenuBar");
+        const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
         if (this.root.offsetTop < navbarHeight) {
             this.root.style.top = `${navbarHeight}px`;
         }
         if (this.root.offsetLeft < 0) {
-            this.root.style.left = "0px";
+            this.root.style.left = '0px';
         }
         if (this.root.offsetLeft + this.root.offsetWidth > window.innerWidth) {
             this.root.style.left = `${window.innerWidth - this.root.offsetWidth}px`;
         }
         if (
-            this.root.offsetTop +
-            this.root.querySelector(".draggable-menu-header").offsetHeight >
+            this.root.offsetTop + this.root.querySelector('.draggable-menu-header').offsetHeight >
             window.innerHeight
         ) {
-            this.root.style.top = `${window.innerHeight - this.root.querySelector(".draggable-menu-header").offsetHeight}px`;
+            this.root.style.top = `${window.innerHeight - this.root.querySelector('.draggable-menu-header').offsetHeight}px`;
         }
     }
 
@@ -172,7 +163,7 @@ export class DraggableMenu {
 
     show() {
         this.showing = true;
-        this.root.classList.remove("hidden");
+        this.root.classList.remove('hidden');
         if (this.isOutOfBounds()) {
             this.setInitialPosition();
         }
@@ -181,12 +172,12 @@ export class DraggableMenu {
 
     hide() {
         this.showing = false;
-        this.root.classList.add("hidden");
+        this.root.classList.add('hidden');
         this.callbacks.hide.forEach((cb) => cb());
     }
 
     toggle() {
-        if (this.root.classList.contains("hidden")) {
+        if (this.root.classList.contains('hidden')) {
             this.show();
         } else {
             this.hide();
@@ -196,29 +187,24 @@ export class DraggableMenu {
     minimize() {
         this.maximized = false;
         const previousWidth = this.root.offsetWidth;
-        this.root.classList.add("draggable-menu-minimized");
+        this.root.classList.add('draggable-menu-minimized');
         this.root.style.width = `${previousWidth}px`;
-        this.root.querySelector(".draggable-menu-minimize-icon").innerText =
-            "+";
-        this.root
-            .querySelector(".draggable-menu-fullscreen-icon")
-            .classList.add("hidden");
+        this.root.querySelector('.draggable-menu-minimize-icon').innerText = '+';
+        this.root.querySelector('.draggable-menu-fullscreen-icon').classList.add('hidden');
         this.callbacks.minimize.forEach((cb) => cb());
     }
 
     maximize() {
         this.maximized = true;
-        this.root.classList.remove("draggable-menu-minimized");
-        this.root.style.width = "";
+        this.root.classList.remove('draggable-menu-minimized');
+        this.root.style.width = '';
         this.root.querySelector('.draggable-menu-minimize-icon').innerHTML = '&ndash;';
-        this.root
-            .querySelector(".draggable-menu-fullscreen-icon")
-            .classList.remove("hidden");
+        this.root.querySelector('.draggable-menu-fullscreen-icon').classList.remove('hidden');
         this.callbacks.maximize.forEach((cb) => cb());
     }
 
     toggleMinimized() {
-        if (this.root.classList.contains("draggable-menu-minimized")) {
+        if (this.root.classList.contains('draggable-menu-minimized')) {
             this.maximize();
         } else {
             this.minimize();
@@ -226,26 +212,22 @@ export class DraggableMenu {
     }
 
     enterFullscreen() {
-        this.root.style.zIndex = "3000";
-        const navbar = document.querySelector(".desktopMenuBar");
+        this.root.style.zIndex = '3000';
+        const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
-        const headerHeight = this.root.querySelector(
-            ".draggable-menu-header",
-        ).offsetHeight;
+        const headerHeight = this.root.querySelector('.draggable-menu-header').offsetHeight;
         this.body.style.maxHeight = `calc(100vh - ${navbarHeight + headerHeight}px)`;
         this.root.style.maxWidth = `${window.innerWidth}px`;
-        this.root.querySelector(".draggable-menu-fullscreen-icon").innerText =
-            "⇲";
+        this.root.querySelector('.draggable-menu-fullscreen-icon').innerText = '⇲';
         this.isFullscreen = true;
         this.snapToFitScreen();
     }
 
     exitFullscreen() {
-        this.root.style.zIndex = "";
-        this.body.style.maxHeight = "";
-        this.root.style.maxWidth = "";
-        this.root.querySelector(".draggable-menu-fullscreen-icon").innerText =
-            "⇱";
+        this.root.style.zIndex = '';
+        this.body.style.maxHeight = '';
+        this.root.style.maxWidth = '';
+        this.root.querySelector('.draggable-menu-fullscreen-icon').innerText = '⇱';
         this.isFullscreen = false;
         this.snapToFitScreen();
     }
@@ -263,15 +245,15 @@ export class DraggableMenu {
             return;
         }
 
-        const body = this.root.querySelector(".draggable-menu-body");
+        const body = this.root.querySelector('.draggable-menu-body');
 
         if (config.sections === undefined) {
             return;
         }
         for (const section of config.sections) {
-            const sectionElement = document.createElement("div");
-            sectionElement.classList.add("draggable-menu-section");
-            sectionElement.id = section.id === undefined ? "" : section.id;
+            const sectionElement = document.createElement('div');
+            sectionElement.classList.add('draggable-menu-section');
+            sectionElement.id = section.id === undefined ? '' : section.id;
             sectionElement.innerHTML = `
                 <div class="draggable-menu-section-title">${section.title}</div>
                 <div class="draggable-menu-section-body"></div>
@@ -281,24 +263,24 @@ export class DraggableMenu {
                 continue;
             }
             for (const item of section.items) {
-                let itemHtml = "";
+                let itemHtml = '';
                 switch (item.type) {
-                    case "div":
+                    case 'div':
                         itemHtml = `
                             <div class="draggable-menu-section-row" id="${item.id}"></div>
                         `;
                         break;
-                    case "select":
+                    case 'select':
                         itemHtml = `
                             <div class="draggable-menu-section-row">
                                 <div class="draggable-menu-section-row-label">${item.label}</div>
                                 <select class="draggable-menu-section-row-select" id="${item.id}">
-                                    ${item.options.map((option) => `<option value="${option.value}">${option.label}</option>`).join("")}
+                                    ${item.options.map((option) => `<option value="${option.value}">${option.label}</option>`).join('')}
                                 </select>
                             </div>
                         `;
                         break;
-                    case "checkbox":
+                    case 'checkbox':
                         itemHtml = `
                             <div class="draggable-menu-section-row draggable-menu-section-row-checkbox-container">
                                 <div class="draggable-menu-section-row-label">${item.label}</div>
@@ -306,14 +288,14 @@ export class DraggableMenu {
                             </div>
                         `;
                         break;
-                    case "button":
+                    case 'button':
                         itemHtml = `
                             <div class="draggable-menu-section-row">
                                 <div class="draggable-menu-section-row-button" id="${item.id}">${item.label}</div>
                             </div>
                         `;
                         break;
-                    case "textInput":
+                    case 'textInput':
                         itemHtml = `
                             <div class="draggable-menu-section-row">
                                 <div class="draggable-menu-section-row-label">${item.label}</div>
@@ -325,8 +307,8 @@ export class DraggableMenu {
                         break;
                 }
                 sectionElement
-                    .querySelector(".draggable-menu-section-body")
-                    .insertAdjacentHTML("beforeend", itemHtml);
+                    .querySelector('.draggable-menu-section-body')
+                    .insertAdjacentHTML('beforeend', itemHtml);
             }
 
             body.appendChild(sectionElement);

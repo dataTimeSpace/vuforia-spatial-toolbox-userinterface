@@ -1,22 +1,21 @@
 /*
-* Created by Ben Reynolds on 07/13/20.
-*
-* Copyright (c) 2020 PTC Inc
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Created by Ben Reynolds on 07/13/20.
+ *
+ * Copyright (c) 2020 PTC Inc
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-createNameSpace("realityEditor.sceneGraph");
+createNameSpace('realityEditor.sceneGraph');
 
 /**
  * This is the new positioning API for objects, tools, and nodes
  * Scene Graph implementation was inspired by:
  * https://webglfundamentals.org/webgl/lessons/webgl-scene-graph.html
  */
-(function(exports) {
-
+(function (exports) {
     let utils = realityEditor.gui.ar.utilities;
 
     /**
@@ -42,7 +41,7 @@ createNameSpace("realityEditor.sceneGraph");
 
         // if a vehicle is linked, updating the sceneNode position will set the linkedVehicle position?
         this.linkedVehicle = null;
-        
+
         // this can be set true when sceneGraph is updated as a result of remote activity
         this.dontBroadcastNext = false;
     }
@@ -51,7 +50,7 @@ createNameSpace("realityEditor.sceneGraph");
      * Sets the parent node of this node, so that it is positioned relative to that
      * @param {SceneNode} parent
      */
-    SceneNode.prototype.setParent = function(parent) {
+    SceneNode.prototype.setParent = function (parent) {
         if (parent && this.parent && parent === this.parent) {
             return; // ignore duplicate function calls
         }
@@ -74,8 +73,10 @@ createNameSpace("realityEditor.sceneGraph");
         this.flagForRecompute();
     };
 
-    SceneNode.prototype.getVehicleX = function() {
-        if (!this.linkedVehicle) { return 0; }
+    SceneNode.prototype.getVehicleX = function () {
+        if (!this.linkedVehicle) {
+            return 0;
+        }
         if (typeof this.linkedVehicle.ar !== 'undefined') {
             return this.linkedVehicle.ar.x || 0;
         }
@@ -85,8 +86,10 @@ createNameSpace("realityEditor.sceneGraph");
         return 0;
     };
 
-    SceneNode.prototype.getVehicleY = function() {
-        if (!this.linkedVehicle) { return 0; }
+    SceneNode.prototype.getVehicleY = function () {
+        if (!this.linkedVehicle) {
+            return 0;
+        }
         if (typeof this.linkedVehicle.ar !== 'undefined') {
             return this.linkedVehicle.ar.y || 0;
         }
@@ -96,8 +99,10 @@ createNameSpace("realityEditor.sceneGraph");
         return 0;
     };
 
-    SceneNode.prototype.getVehicleScale = function(includeParentScale) {
-        if (!this.linkedVehicle) { return 1; }
+    SceneNode.prototype.getVehicleScale = function (includeParentScale) {
+        if (!this.linkedVehicle) {
+            return 1;
+        }
 
         // parent scale is multiplied in by default - keep this at 1 to include it
         let parentScaleRemoval = 1;
@@ -108,15 +113,15 @@ createNameSpace("realityEditor.sceneGraph");
         }
 
         if (typeof this.linkedVehicle.ar !== 'undefined') {
-            return this.linkedVehicle.ar.scale / parentScaleRemoval * globalFrameScaleAdjustment;
+            return (this.linkedVehicle.ar.scale / parentScaleRemoval) * globalFrameScaleAdjustment;
         }
         if (typeof this.linkedVehicle.scale !== 'undefined') {
-            return this.linkedVehicle.scale / parentScaleRemoval * globalNodeScaleAdjustment;
+            return (this.linkedVehicle.scale / parentScaleRemoval) * globalNodeScaleAdjustment;
         }
         return 1;
     };
 
-    SceneNode.prototype.getAccumulatedParentScale = function() {
+    SceneNode.prototype.getAccumulatedParentScale = function () {
         let totalParentScale = 1;
         let parentPointer = this.parent;
         while (parentPointer) {
@@ -127,22 +132,19 @@ createNameSpace("realityEditor.sceneGraph");
         return totalParentScale;
     };
 
-    SceneNode.prototype.getTransformMatrix = function() {
+    SceneNode.prototype.getTransformMatrix = function () {
         // extracts correctly for frames or nodes
         let x = this.getVehicleX();
         let y = this.getVehicleY();
         let scale = this.getVehicleScale();
-        return [scale, 0, 0, 0,
-            0, scale, 0, 0,
-            0, 0, scale, 0,
-            x, y, 0, 1];
+        return [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, x, y, 0, 1];
     };
 
     /**
      * Compute where this node is relative to the scene origin
      * @param {Array.<number>} [parentWorldMatrix] - optional
      */
-    SceneNode.prototype.updateWorldMatrix = function(parentWorldMatrix) {
+    SceneNode.prototype.updateWorldMatrix = function (parentWorldMatrix) {
         if (this.needsRecompute) {
             if (parentWorldMatrix) {
                 // this.worldMatrix stores fully-multiplied position relative to origin
@@ -165,30 +167,55 @@ createNameSpace("realityEditor.sceneGraph");
 
         // process all of its children to update entire subtree
         if (this.anythingInSubtreeNeedsRecompute) {
-            this.children.forEach(function(childNode) {
-                childNode.updateWorldMatrix(this.worldMatrix);
-            }.bind(this));
+            this.children.forEach(
+                function (childNode) {
+                    childNode.updateWorldMatrix(this.worldMatrix);
+                }.bind(this)
+            );
         }
 
         this.anythingInSubtreeNeedsRecompute = false;
     };
 
-    SceneNode.prototype.setLocalMatrix = function(matrix, options = { recomputeImmediately: false } ) {
-        if (!matrix || matrix.length !== 16) { return; } // ignore malformed/empty input
+    SceneNode.prototype.setLocalMatrix = function (
+        matrix,
+        options = { recomputeImmediately: false }
+    ) {
+        if (!matrix || matrix.length !== 16) {
+            return;
+        } // ignore malformed/empty input
         utils.copyMatrixInPlace(matrix, this.localMatrix);
 
         if (this.linkedVehicle) {
-            let vehicleParentId = realityEditor.isVehicleAFrame(this.linkedVehicle) ? this.linkedVehicle.objectId : this.linkedVehicle.frameId;
+            let vehicleParentId = realityEditor.isVehicleAFrame(this.linkedVehicle)
+                ? this.linkedVehicle.objectId
+                : this.linkedVehicle.frameId;
             if (this.parent.id === vehicleParentId) {
-                realityEditor.gui.ar.positioning.setPositionDataMatrix(this.linkedVehicle, matrix, this.dontBroadcastNext);
+                realityEditor.gui.ar.positioning.setPositionDataMatrix(
+                    this.linkedVehicle,
+                    matrix,
+                    this.dontBroadcastNext
+                );
             } else {
                 // if tool is parented to CAMERA or other, broadcast its matrix relative to its linkedVehicle's parent
                 let objectSceneNode = realityEditor.sceneGraph.getSceneNodeById(vehicleParentId);
-                let matrixRelativeToObject = realityEditor.sceneGraph.convertToNewCoordSystem(matrix, this.parent, objectSceneNode);
+                let matrixRelativeToObject = realityEditor.sceneGraph.convertToNewCoordSystem(
+                    matrix,
+                    this.parent,
+                    objectSceneNode
+                );
                 if (!this.dontBroadcastNext) {
                     let keys = realityEditor.getKeysFromVehicle(this.linkedVehicle);
-                    let propertyPath = this.linkedVehicle.hasOwnProperty('visualization') ? 'ar.matrix' : 'matrix';
-                    realityEditor.network.realtime.broadcastUpdate(keys.objectKey, keys.frameKey, keys.nodeKey, propertyPath, matrixRelativeToObject);
+                    let propertyPath = this.linkedVehicle.hasOwnProperty('visualization')
+                        ? 'ar.matrix'
+                        : 'matrix';
+                    realityEditor.network.realtime.broadcastUpdate(
+                        keys.objectKey,
+                        keys.frameKey,
+                        keys.nodeKey,
+                        propertyPath,
+                        matrixRelativeToObject
+                    );
                 }
             }
             this.dontBroadcastNext = false; // gets set true when receiving an update from another client
@@ -206,36 +233,38 @@ createNameSpace("realityEditor.sceneGraph");
         }
     };
 
-    SceneNode.prototype.flagForRerender = function() {
+    SceneNode.prototype.flagForRerender = function () {
         this.needsRerender = true;
         this.flagContainingSubtreeForRerender();
     };
 
-    SceneNode.prototype.flagContainingSubtreeForRerender = function() {
+    SceneNode.prototype.flagContainingSubtreeForRerender = function () {
         this.anythingInSubtreeNeedsRerender = true;
         if (this.parent) {
             this.parent.flagContainingSubtreeForRerender();
         }
     };
 
-    SceneNode.prototype.flagForRecompute = function() {
+    SceneNode.prototype.flagForRecompute = function () {
         this.needsRecompute = true;
         this.flagContainingSubtreeForRecompute();
 
         // make sure all children get recomputed too, because they are relative to this
-        this.children.forEach(function(childNode) {
-            childNode.flagForRecompute();
-        }.bind(this));
+        this.children.forEach(
+            function (childNode) {
+                childNode.flagForRecompute();
+            }.bind(this)
+        );
     };
 
-    SceneNode.prototype.flagContainingSubtreeForRecompute = function() {
+    SceneNode.prototype.flagContainingSubtreeForRecompute = function () {
         this.anythingInSubtreeNeedsRecompute = true;
         if (this.parent && !this.parent.anythingInSubtreeNeedsRecompute) {
             this.parent.flagContainingSubtreeForRecompute();
         }
     };
 
-    SceneNode.prototype.getMatrixRelativeTo = function(otherNode) {
+    SceneNode.prototype.getMatrixRelativeTo = function (otherNode) {
         // note that this could be one frame out-of-date if this is flaggedForRecompute
         let thisWorldMatrix = this.worldMatrix;
         let thatWorldMatrix = otherNode.worldMatrix;
@@ -247,12 +276,12 @@ createNameSpace("realityEditor.sceneGraph");
         return relativeMatrix;
     };
 
-    SceneNode.prototype.getDistanceTo = function(otherNode) {
+    SceneNode.prototype.getDistanceTo = function (otherNode) {
         return realityEditor.gui.ar.utilities.distance(this.getMatrixRelativeTo(otherNode));
     };
 
     // figures out what local matrix this node would need to position it globally at the provided world matrix
-    SceneNode.prototype.calculateLocalMatrix = function(worldMatrix) {
+    SceneNode.prototype.calculateLocalMatrix = function (worldMatrix) {
         // get the world matrix of the node's parent = parentWorldMatrix
         let parentWorldMatrix = this.parent.worldMatrix;
         // compute the difference between desired worldMatrix and parentWorldMatrix
@@ -263,8 +292,10 @@ createNameSpace("realityEditor.sceneGraph");
         return relativeMatrix;
     };
 
-    SceneNode.prototype.setPositionRelativeTo = function(otherSceneNode, relativeMatrix) {
-        if (typeof relativeMatrix === 'undefined') { relativeMatrix = realityEditor.gui.ar.utilities.newIdentityMatrix(); }
+    SceneNode.prototype.setPositionRelativeTo = function (otherSceneNode, relativeMatrix) {
+        if (typeof relativeMatrix === 'undefined') {
+            relativeMatrix = realityEditor.gui.ar.utilities.newIdentityMatrix();
+        }
 
         // compute new localMatrix so that
         // this.localMatrix * parentNode.worldMatrix = relativeMatrix * otherSceneNode.worldMatrix
@@ -273,17 +304,21 @@ createNameSpace("realityEditor.sceneGraph");
 
         let temp = [];
         let result = [];
-        utils.multiplyMatrix(otherSceneNode.worldMatrix, utils.invertMatrix(this.parent.worldMatrix), temp);
+        utils.multiplyMatrix(
+            otherSceneNode.worldMatrix,
+            utils.invertMatrix(this.parent.worldMatrix),
+            temp
+        );
         utils.multiplyMatrix(relativeMatrix, temp, result);
 
         this.setLocalMatrix(result);
     };
 
-    SceneNode.prototype.addTag = function(tagName) {
+    SceneNode.prototype.addTag = function (tagName) {
         this.tags[tagName] = true;
     };
 
-    SceneNode.prototype.removeTag = function(tagName) {
+    SceneNode.prototype.removeTag = function (tagName) {
         delete this.tags[tagName];
     };
 

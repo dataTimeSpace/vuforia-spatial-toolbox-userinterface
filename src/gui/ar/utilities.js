@@ -47,7 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.ar.utilities");
+createNameSpace('realityEditor.gui.ar.utilities');
 
 /**
  * @fileOverview realityEditor.gui.ar.utilities.js
@@ -60,7 +60,7 @@ createNameSpace("realityEditor.gui.ar.utilities");
  * Updates the timing object with the current timestamp and delta since last frame.
  * @param {{delta: number, now: number, then: number}} timing - reference to the timing object to modify
  */
-realityEditor.gui.ar.utilities.timeSynchronizer = function(timing) {
+realityEditor.gui.ar.utilities.timeSynchronizer = function (timing) {
     timing.now = Date.now();
     timing.delta = (timing.now - timing.then) / 198;
     timing.then = timing.now;
@@ -69,7 +69,7 @@ realityEditor.gui.ar.utilities.timeSynchronizer = function(timing) {
 /**
  * Rescales x from the original range (in_min, in_max) to the new range (out_min, out_max)
  * @example map(5, 0, 10, 100, 200) would return 150, because 5 is halfway between 0 and 10, so it finds the number halfway between 100 and 200
- * 
+ *
  * @param {number} x
  * @param {number} in_min
  * @param {number} in_max
@@ -77,10 +77,10 @@ realityEditor.gui.ar.utilities.timeSynchronizer = function(timing) {
  * @param {number} out_max
  * @return {number}
  */
-realityEditor.gui.ar.utilities.map = function(x, in_min, in_max, out_min, out_max) {
-	if (x > in_max) x = in_max;
-	if (x < in_min) x = in_min;
-	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+realityEditor.gui.ar.utilities.map = function (x, in_min, in_max, out_min, out_max) {
+    if (x > in_max) x = in_max;
+    if (x < in_min) x = in_min;
+    return ((x - in_min) * (out_max - out_min)) / (in_max - in_min) + out_min;
 };
 
 /**
@@ -89,29 +89,29 @@ realityEditor.gui.ar.utilities.map = function(x, in_min, in_max, out_min, out_ma
  * @param {Array.<number>} m1 - second matrix that multiplies.
  * @return {Array.<number>} m16 matrix result of the multiplication
  */
-realityEditor.gui.ar.utilities.multiplyMatrix = function(m2, m1, r) {
-	// var r = [];
-	// Cm1che only the current line of the second mm1trix
-	r[0] = m2[0] * m1[0] + m2[1] * m1[4] + m2[2] * m1[8] + m2[3] * m1[12];
-	r[1] = m2[0] * m1[1] + m2[1] * m1[5] + m2[2] * m1[9] + m2[3] * m1[13];
-	r[2] = m2[0] * m1[2] + m2[1] * m1[6] + m2[2] * m1[10] + m2[3] * m1[14];
-	r[3] = m2[0] * m1[3] + m2[1] * m1[7] + m2[2] * m1[11] + m2[3] * m1[15];
+realityEditor.gui.ar.utilities.multiplyMatrix = function (m2, m1, r) {
+    // var r = [];
+    // Cm1che only the current line of the second mm1trix
+    r[0] = m2[0] * m1[0] + m2[1] * m1[4] + m2[2] * m1[8] + m2[3] * m1[12];
+    r[1] = m2[0] * m1[1] + m2[1] * m1[5] + m2[2] * m1[9] + m2[3] * m1[13];
+    r[2] = m2[0] * m1[2] + m2[1] * m1[6] + m2[2] * m1[10] + m2[3] * m1[14];
+    r[3] = m2[0] * m1[3] + m2[1] * m1[7] + m2[2] * m1[11] + m2[3] * m1[15];
 
-	r[4] = m2[4] * m1[0] + m2[5] * m1[4] + m2[6] * m1[8] + m2[7] * m1[12];
-	r[5] = m2[4] * m1[1] + m2[5] * m1[5] + m2[6] * m1[9] + m2[7] * m1[13];
-	r[6] = m2[4] * m1[2] + m2[5] * m1[6] + m2[6] * m1[10] + m2[7] * m1[14];
-	r[7] = m2[4] * m1[3] + m2[5] * m1[7] + m2[6] * m1[11] + m2[7] * m1[15];
+    r[4] = m2[4] * m1[0] + m2[5] * m1[4] + m2[6] * m1[8] + m2[7] * m1[12];
+    r[5] = m2[4] * m1[1] + m2[5] * m1[5] + m2[6] * m1[9] + m2[7] * m1[13];
+    r[6] = m2[4] * m1[2] + m2[5] * m1[6] + m2[6] * m1[10] + m2[7] * m1[14];
+    r[7] = m2[4] * m1[3] + m2[5] * m1[7] + m2[6] * m1[11] + m2[7] * m1[15];
 
-	r[8] = m2[8] * m1[0] + m2[9] * m1[4] + m2[10] * m1[8] + m2[11] * m1[12];
-	r[9] = m2[8] * m1[1] + m2[9] * m1[5] + m2[10] * m1[9] + m2[11] * m1[13];
-	r[10] = m2[8] * m1[2] + m2[9] * m1[6] + m2[10] * m1[10] + m2[11] * m1[14];
-	r[11] = m2[8] * m1[3] + m2[9] * m1[7] + m2[10] * m1[11] + m2[11] * m1[15];
+    r[8] = m2[8] * m1[0] + m2[9] * m1[4] + m2[10] * m1[8] + m2[11] * m1[12];
+    r[9] = m2[8] * m1[1] + m2[9] * m1[5] + m2[10] * m1[9] + m2[11] * m1[13];
+    r[10] = m2[8] * m1[2] + m2[9] * m1[6] + m2[10] * m1[10] + m2[11] * m1[14];
+    r[11] = m2[8] * m1[3] + m2[9] * m1[7] + m2[10] * m1[11] + m2[11] * m1[15];
 
-	r[12] = m2[12] * m1[0] + m2[13] * m1[4] + m2[14] * m1[8] + m2[15] * m1[12];
-	r[13] = m2[12] * m1[1] + m2[13] * m1[5] + m2[14] * m1[9] + m2[15] * m1[13];
-	r[14] = m2[12] * m1[2] + m2[13] * m1[6] + m2[14] * m1[10] + m2[15] * m1[14];
-	r[15] = m2[12] * m1[3] + m2[13] * m1[7] + m2[14] * m1[11] + m2[15] * m1[15];
-	// return r;
+    r[12] = m2[12] * m1[0] + m2[13] * m1[4] + m2[14] * m1[8] + m2[15] * m1[12];
+    r[13] = m2[12] * m1[1] + m2[13] * m1[5] + m2[14] * m1[9] + m2[15] * m1[13];
+    r[14] = m2[12] * m1[2] + m2[13] * m1[6] + m2[14] * m1[10] + m2[15] * m1[14];
+    r[15] = m2[12] * m1[3] + m2[13] * m1[7] + m2[14] * m1[11] + m2[15] * m1[15];
+    // return r;
 };
 
 /**
@@ -120,7 +120,7 @@ realityEditor.gui.ar.utilities.multiplyMatrix = function(m2, m1, r) {
  * @param {Array.<number>} m2
  * @return {Array.<number>} = m1 - m2
  */
-realityEditor.gui.ar.utilities.subtractMatrix = function(m1, m2) {
+realityEditor.gui.ar.utilities.subtractMatrix = function (m1, m2) {
     var r = [];
     r[0] = m1[0] - m2[0];
     r[1] = m1[1] - m2[1];
@@ -147,14 +147,17 @@ realityEditor.gui.ar.utilities.subtractMatrix = function(m1, m2) {
  * @param {Array.<number>} m2 - m16 matrix to multiply with
  * @return {Array.<number>} is m16 matrix
  */
-realityEditor.gui.ar.utilities.multiplyMatrix4 = function(m1, m2) {
-	var r = [];
-	var x = m1[0], y = m1[1], z = m1[2], w = m1[3];
-	r[0] = m2[0] * x + m2[4] * y + m2[8] * z + m2[12] * w;
-	r[1] = m2[1] * x + m2[5] * y + m2[9] * z + m2[13] * w;
-	r[2] = m2[2] * x + m2[6] * y + m2[10] * z + m2[14] * w;
-	r[3] = m2[3] * x + m2[7] * y + m2[11] * z + m2[15] * w;
-	return r;
+realityEditor.gui.ar.utilities.multiplyMatrix4 = function (m1, m2) {
+    var r = [];
+    var x = m1[0],
+        y = m1[1],
+        z = m1[2],
+        w = m1[3];
+    r[0] = m2[0] * x + m2[4] * y + m2[8] * z + m2[12] * w;
+    r[1] = m2[1] * x + m2[5] * y + m2[9] * z + m2[13] * w;
+    r[2] = m2[2] * x + m2[6] * y + m2[10] * z + m2[14] * w;
+    r[3] = m2[3] * x + m2[7] * y + m2[11] * z + m2[15] * w;
+    return r;
 };
 
 /**
@@ -162,7 +165,7 @@ realityEditor.gui.ar.utilities.multiplyMatrix4 = function(m1, m2) {
  * @param {Array.<number>}matrix - source matrix
  * @return {Array.<number>} resulting copy of the matrix
  */
-realityEditor.gui.ar.utilities.copyMatrix = function(matrix) {
+realityEditor.gui.ar.utilities.copyMatrix = function (matrix) {
     if (matrix.length === 0) return [];
 
     var r = []; //new Array(16);
@@ -191,7 +194,7 @@ realityEditor.gui.ar.utilities.copyMatrix = function(matrix) {
  * @param {Array.<number>} m1 - source matrix
  * @param {Array.<number>} m2 - resulting copy of the matrix
  */
-realityEditor.gui.ar.utilities.copyMatrixInPlace = function(m1, m2) {
+realityEditor.gui.ar.utilities.copyMatrixInPlace = function (m1, m2) {
     m2[0] = m1[0];
     m2[1] = m1[1];
     m2[2] = m1[2];
@@ -217,7 +220,7 @@ realityEditor.gui.ar.utilities.copyMatrixInPlace = function(m1, m2) {
  * @param {number} alpha - if 0, sets to existing matrix, if 1, sets to new matrix, if 0.5, averages the two
  * @return {Array.<number>} resulting interpolated matrix
  */
-realityEditor.gui.ar.utilities.lerpMatrices = function(existingMatrix, newMatrix, alpha) {
+realityEditor.gui.ar.utilities.lerpMatrices = function (existingMatrix, newMatrix, alpha) {
     if (existingMatrix.length !== newMatrix.length) {
         console.warn('trying to lerp incompatible matrices');
         return;
@@ -253,24 +256,52 @@ realityEditor.gui.ar.utilities.lerpMatrices = function(existingMatrix, newMatrix
  */
 realityEditor.gui.ar.utilities.invertMatrix = function (a) {
     var b = [];
-	var c = a[0], d = a[1], e = a[2], g = a[3], f = a[4], h = a[5], i = a[6], j = a[7], k = a[8], l = a[9], o = a[10], m = a[11], n = a[12], p = a[13], r = a[14], s = a[15], A = c * h - d * f, B = c * i - e * f, t = c * j - g * f, u = d * i - e * h, v = d * j - g * h, w = e * j - g * i, x = k * p - l * n, y = k * r - o * n, z = k * s - m * n, C = l * r - o * p, D = l * s - m * p, E = o * s - m * r, q = 1 / (A * E - B * D + t * C + u * z - v * y + w * x);
-	b[0] = (h * E - i * D + j * C) * q;
-	b[1] = ( -d * E + e * D - g * C) * q;
-	b[2] = (p * w - r * v + s * u) * q;
-	b[3] = ( -l * w + o * v - m * u) * q;
-	b[4] = ( -f * E + i * z - j * y) * q;
-	b[5] = (c * E - e * z + g * y) * q;
-	b[6] = ( -n * w + r * t - s * B) * q;
-	b[7] = (k * w - o * t + m * B) * q;
-	b[8] = (f * D - h * z + j * x) * q;
-	b[9] = ( -c * D + d * z - g * x) * q;
-	b[10] = (n * v - p * t + s * A) * q;
-	b[11] = ( -k * v + l * t - m * A) * q;
-	b[12] = ( -f * C + h * y - i * x) * q;
-	b[13] = (c * C - d * y + e * x) * q;
-	b[14] = ( -n * u + p * B - r * A) * q;
-	b[15] = (k * u - l * B + o * A) * q;
-	return b;
+    var c = a[0],
+        d = a[1],
+        e = a[2],
+        g = a[3],
+        f = a[4],
+        h = a[5],
+        i = a[6],
+        j = a[7],
+        k = a[8],
+        l = a[9],
+        o = a[10],
+        m = a[11],
+        n = a[12],
+        p = a[13],
+        r = a[14],
+        s = a[15],
+        A = c * h - d * f,
+        B = c * i - e * f,
+        t = c * j - g * f,
+        u = d * i - e * h,
+        v = d * j - g * h,
+        w = e * j - g * i,
+        x = k * p - l * n,
+        y = k * r - o * n,
+        z = k * s - m * n,
+        C = l * r - o * p,
+        D = l * s - m * p,
+        E = o * s - m * r,
+        q = 1 / (A * E - B * D + t * C + u * z - v * y + w * x);
+    b[0] = (h * E - i * D + j * C) * q;
+    b[1] = (-d * E + e * D - g * C) * q;
+    b[2] = (p * w - r * v + s * u) * q;
+    b[3] = (-l * w + o * v - m * u) * q;
+    b[4] = (-f * E + i * z - j * y) * q;
+    b[5] = (c * E - e * z + g * y) * q;
+    b[6] = (-n * w + r * t - s * B) * q;
+    b[7] = (k * w - o * t + m * B) * q;
+    b[8] = (f * D - h * z + j * x) * q;
+    b[9] = (-c * D + d * z - g * x) * q;
+    b[10] = (n * v - p * t + s * A) * q;
+    b[11] = (-k * v + l * t - m * A) * q;
+    b[12] = (-f * C + h * y - i * x) * q;
+    b[13] = (c * C - d * y + e * x) * q;
+    b[14] = (-n * u + p * B - r * A) * q;
+    b[15] = (k * u - l * B + o * A) * q;
+    return b;
 };
 
 /**
@@ -278,7 +309,7 @@ realityEditor.gui.ar.utilities.invertMatrix = function (a) {
  * @param {Array.<number>} matrix
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.transposeMatrix = function(matrix) {
+realityEditor.gui.ar.utilities.transposeMatrix = function (matrix) {
     var r = [];
     r[0] = matrix[0];
     r[1] = matrix[4];
@@ -305,7 +336,7 @@ realityEditor.gui.ar.utilities.transposeMatrix = function(matrix) {
  * @param {number} scalar
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.scalarMultiplyVector = function(vector4, scalar) {
+realityEditor.gui.ar.utilities.scalarMultiplyVector = function (vector4, scalar) {
     var r = [];
     r[0] = vector4[0] * scalar;
     r[1] = vector4[1] * scalar;
@@ -320,7 +351,7 @@ realityEditor.gui.ar.utilities.scalarMultiplyVector = function(vector4, scalar) 
  * @param {number} scalar
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.scalarMultiplyMatrix = function(matrix, scalar) {
+realityEditor.gui.ar.utilities.scalarMultiplyMatrix = function (matrix, scalar) {
     var r = [];
     r[0] = matrix[0] * scalar;
     r[1] = matrix[1] * scalar;
@@ -347,8 +378,8 @@ realityEditor.gui.ar.utilities.scalarMultiplyMatrix = function(matrix, scalar) {
  * @param {Array.<number>} matrix - can have any length (so it works for vectors and matrices)
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.perspectiveDivide = function(matrix) {
-    var lastElement = matrix[matrix.length-1];
+realityEditor.gui.ar.utilities.perspectiveDivide = function (matrix) {
+    var lastElement = matrix[matrix.length - 1];
     var r = [];
     for (var i = 0; i < matrix.length; i++) {
         r[i] = matrix[i] / lastElement;
@@ -365,21 +396,58 @@ realityEditor.gui.ar.utilities.perspectiveDivide = function(matrix) {
  * @param {boolean} htmlLineBreaks - use html line breaks instead of newline characters
  * @return {string}
  */
-realityEditor.gui.ar.utilities.prettyPrintMatrix = function(matrix, precision, htmlLineBreaks) {
+realityEditor.gui.ar.utilities.prettyPrintMatrix = function (matrix, precision, htmlLineBreaks) {
     if (typeof precision === 'undefined') precision = 3;
-    
+
     var lineBreakSymbol = htmlLineBreaks ? '<br>' : '\n';
-    
-    return "[ " + matrix[0].toFixed(precision) + ", " + matrix[1].toFixed(precision) + ", " + matrix[2].toFixed(precision) + ", " + matrix[3].toFixed(precision) + ", " + lineBreakSymbol +
-                "  " + matrix[4].toFixed(precision) + ", " + matrix[5].toFixed(precision) + ", " + matrix[6].toFixed(precision) + ", " + matrix[7].toFixed(precision) + ", " + lineBreakSymbol +
-                "  " + matrix[8].toFixed(precision) + ", " + matrix[9].toFixed(precision) + ", " + matrix[10].toFixed(precision) + ", " + matrix[11].toFixed(precision) + ", " + lineBreakSymbol +
-                "  " + matrix[12].toFixed(precision) + ", " + matrix[13].toFixed(precision) + ", " + matrix[14].toFixed(precision) + ", " + matrix[15].toFixed(precision) + " ]";
+
+    return (
+        '[ ' +
+        matrix[0].toFixed(precision) +
+        ', ' +
+        matrix[1].toFixed(precision) +
+        ', ' +
+        matrix[2].toFixed(precision) +
+        ', ' +
+        matrix[3].toFixed(precision) +
+        ', ' +
+        lineBreakSymbol +
+        '  ' +
+        matrix[4].toFixed(precision) +
+        ', ' +
+        matrix[5].toFixed(precision) +
+        ', ' +
+        matrix[6].toFixed(precision) +
+        ', ' +
+        matrix[7].toFixed(precision) +
+        ', ' +
+        lineBreakSymbol +
+        '  ' +
+        matrix[8].toFixed(precision) +
+        ', ' +
+        matrix[9].toFixed(precision) +
+        ', ' +
+        matrix[10].toFixed(precision) +
+        ', ' +
+        matrix[11].toFixed(precision) +
+        ', ' +
+        lineBreakSymbol +
+        '  ' +
+        matrix[12].toFixed(precision) +
+        ', ' +
+        matrix[13].toFixed(precision) +
+        ', ' +
+        matrix[14].toFixed(precision) +
+        ', ' +
+        matrix[15].toFixed(precision) +
+        ' ]'
+    );
 };
 
 /**
  * Returns the dot product of the two vectors
  */
-realityEditor.gui.ar.utilities.dotProduct = function(v1, v2) {
+realityEditor.gui.ar.utilities.dotProduct = function (v1, v2) {
     if (v1.length !== v2.length) {
         console.warn('trying to dot two vectors of different lengths');
         return 0;
@@ -394,37 +462,41 @@ realityEditor.gui.ar.utilities.dotProduct = function(v1, v2) {
 /**
  * Utility that returns true if the rectangle formed by topLeft and bottomRight A overlaps B
  * https://www.geeksforgeeks.org/find-two-rectangles-overlap/
- * 
+ *
  *  topLeftA ----------------
  *  |                       |
  *  |                       |
  *  |                       |
  *  ------------ bottomRightA
- *  
+ *
  * topLeftB -----------------
  *  |                       |
  *  |                       |
  *  |                       |
  *  ------------ bottomRightB
- * 
+ *
  * @param {{x: number, y: number}} topLeftA
  * @param {{x: number, y: number}} bottomRightA
  * @param {{x: number, y: number}} topLeftB
  * @param {{x: number, y: number}} bottomRightB
  * @return {boolean}
  */
-realityEditor.gui.ar.utilities.areRectsOverlapping = function(topLeftA, bottomRightA, topLeftB, bottomRightB) {
-
+realityEditor.gui.ar.utilities.areRectsOverlapping = function (
+    topLeftA,
+    bottomRightA,
+    topLeftB,
+    bottomRightB
+) {
     // can't overlap if one is completely to the left of the other
     if (topLeftA.x > bottomRightB.x || topLeftB.x > bottomRightA.x) {
         return false;
     }
-    
+
     // can't overlap is one is completely above the other
     if (topLeftA.y > bottomRightB.y || topLeftB.y > bottomRightA.y) {
         return false;
     }
-    
+
     // must overlap if neither of the above conditions are true
     return true;
 };
@@ -435,23 +507,25 @@ realityEditor.gui.ar.utilities.areRectsOverlapping = function(topLeftA, bottomRi
  * @param {Array.<Array.<number>>} vertices - [[x0, y0], [x1, y1], ... ]
  * @return {boolean}
  */
-realityEditor.gui.ar.utilities.insidePoly = function(point, vertices) {
+realityEditor.gui.ar.utilities.insidePoly = function (point, vertices) {
     // ray-casting algorithm based on
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
     // Copyright (c) 2016 James Halliday
     // The MIT License (MIT)
 
-    var x = point[0], y = point[1];
+    var x = point[0],
+        y = point[1];
 
-    if(x <=0 || y <= 0) return false;
+    if (x <= 0 || y <= 0) return false;
 
     var inside = false;
     for (var i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-        var xi = vertices[i][0], yi = vertices[i][1];
-        var xj = vertices[j][0], yj = vertices[j][1];
+        var xi = vertices[i][0],
+            yi = vertices[i][1];
+        var xj = vertices[j][0],
+            yj = vertices[j][1];
 
-        var intersect = ((yi > y) !== (yj > y))
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        var intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
         if (intersect) inside = !inside;
     }
 
@@ -464,7 +538,7 @@ realityEditor.gui.ar.utilities.insidePoly = function(point, vertices) {
  * @param {string} nodeKey
  * @return {boolean}
  */
-realityEditor.gui.ar.utilities.isNodeWithinScreen = function(thisObject, nodeKey) {
+realityEditor.gui.ar.utilities.isNodeWithinScreen = function (thisObject, nodeKey) {
     var thisNode = thisObject.nodes[nodeKey];
 
     // This is correct, globalStates.height is actually the width (568), while globalStates.width is the height (320)
@@ -472,22 +546,21 @@ realityEditor.gui.ar.utilities.isNodeWithinScreen = function(thisObject, nodeKey
     var screenWidth = globalStates.height;
     // noinspection JSSuspiciousNameCombination
     var screenHeight = globalStates.width;
-    
+
     var screenCorners = [
-        [0,0],
-        [screenWidth,0],
-        [screenWidth,screenHeight],
-        [0,screenHeight]
+        [0, 0],
+        [screenWidth, 0],
+        [screenWidth, screenHeight],
+        [0, screenHeight],
     ];
-    return this.insidePoly([thisNode.screenX, thisNode.screenY],screenCorners);
+    return this.insidePoly([thisNode.screenX, thisNode.screenY], screenCorners);
 };
 
 /**
  * Uses isOutsideViewport to determine which frames are currently visible across all visible objects
  * @return {Array.<string>} - returns frameKeys of all visible frames
  */
-realityEditor.gui.ar.utilities.getAllVisibleFramesFast = function() {
-    
+realityEditor.gui.ar.utilities.getAllVisibleFramesFast = function () {
     var visibleFrameKeys = [];
 
     var visibleObjects = realityEditor.gui.ar.draw.visibleObjects;
@@ -496,16 +569,17 @@ realityEditor.gui.ar.utilities.getAllVisibleFramesFast = function() {
             for (var frameKey in objects[objectKey].frames) {
                 var frame = realityEditor.getFrame(objectKey, frameKey);
                 if (frame) {
-                    if (frame.visualization !== 'ar') { continue; }
+                    if (frame.visualization !== 'ar') {
+                        continue;
+                    }
                     if (!frame.isOutsideViewport) {
                         visibleFrameKeys.push(frameKey);
                     }
                 }
             }
         }
-
     }
-    
+
     return visibleFrameKeys;
 };
 
@@ -515,62 +589,66 @@ realityEditor.gui.ar.utilities.getAllVisibleFramesFast = function() {
  * 3d-transformed div overlaps with the screen bounds at all.
  * @return {Array.<Frame>}
  */
-realityEditor.gui.ar.utilities.getAllVisibleFrames = function() {
+realityEditor.gui.ar.utilities.getAllVisibleFrames = function () {
     // TODO currently this function requires to many resources. It can take up to 5ms to just calculate if frames are visible
-   // return true;
-    
+    // return true;
+
     var visibleFrames = [];
-    
+
     var visibleObjects = realityEditor.gui.ar.draw.visibleObjects;
     for (var objectKey in visibleObjects) {
         if (!visibleObjects.hasOwnProperty(objectKey)) continue;
-        realityEditor.forEachFrameInObject(objectKey, function(objectKey, frameKey) {
-            
+        realityEditor.forEachFrameInObject(objectKey, function (objectKey, frameKey) {
             var thisFrame = realityEditor.getFrame(objectKey, frameKey);
-            
+
             if (thisFrame.visualization !== 'ar') {
                 return;
             }
-            
+
             if (globalDOMCache['iframe' + frameKey]) {
-                
                 // Use the getBoundingClientRect to check approximate overlap between frame bounds and screen bounds
 
                 var upperLeftScreen = {
                     x: 0,
-                    y: 0
+                    y: 0,
                 };
 
                 // noinspection JSSuspiciousNameCombination - This is correct, globalStates.height is actually the width
                 var bottomRightScreen = {
                     x: globalStates.height,
-                    y: globalStates.width
+                    y: globalStates.width,
                 };
 
                 var frameClientRect = globalDOMCache['iframe' + frameKey].getBoundingClientRect();
 
                 var upperLeftFrame = {
                     x: frameClientRect.left,
-                    y: frameClientRect.top
+                    y: frameClientRect.top,
                 };
 
                 var bottomRightFrame = {
                     x: frameClientRect.right,
-                    y: frameClientRect.bottom
+                    y: frameClientRect.bottom,
                 };
 
-                if (realityEditor.gui.ar.utilities.areRectsOverlapping(upperLeftScreen, bottomRightScreen, upperLeftFrame, bottomRightFrame)) {
+                if (
+                    realityEditor.gui.ar.utilities.areRectsOverlapping(
+                        upperLeftScreen,
+                        bottomRightScreen,
+                        upperLeftFrame,
+                        bottomRightFrame
+                    )
+                ) {
                     visibleFrames.push(frameKey);
                 }
             }
-
         });
     }
-    
+
     return visibleFrames;
 };
 
-realityEditor.gui.ar.utilities.isValidMatrix4x4 = function(mat) {
+realityEditor.gui.ar.utilities.isValidMatrix4x4 = function (mat) {
     if (!mat) return false;
     if (typeof mat !== 'object') return false;
     if (typeof mat.length !== 'number') return false;
@@ -580,19 +658,14 @@ realityEditor.gui.ar.utilities.isValidMatrix4x4 = function(mat) {
         if (isNaN(mat[i])) return false;
     }
     return true;
-}
+};
 
 /**
  * Helper method for creating a new 4x4 identity matrix
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.newIdentityMatrix = function() {
-    return [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ];
+realityEditor.gui.ar.utilities.newIdentityMatrix = function () {
+    return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 };
 
 /**
@@ -602,7 +675,7 @@ realityEditor.gui.ar.utilities.newIdentityMatrix = function() {
  * @param {number|undefined} precision - how many digits  to when checking (to prevent small rounding errors)
  * @return {boolean}
  */
-realityEditor.gui.ar.utilities.isIdentityMatrix = function(matrix, precision) {
+realityEditor.gui.ar.utilities.isIdentityMatrix = function (matrix, precision) {
     precision = precision || 3; // defaults to 3 digits of precision
     // unrolled loop to be faster at expense of longer function body
     if (parseFloat(matrix[0].toFixed(precision)) !== 1) {
@@ -659,40 +732,40 @@ realityEditor.gui.ar.utilities.isIdentityMatrix = function(matrix, precision) {
  * @param {Array.<number>} m2
  * @return {boolean}
  */
-realityEditor.gui.ar.utilities.isEqualStrict = function(m1, m2) {
+realityEditor.gui.ar.utilities.isEqualStrict = function (m1, m2) {
     if (m1.length !== m2.length) return false;
     return m1.every((val, index) => val === m2[index]);
-}
+};
 
 /**
  * Updates the averageScale property of the object by averaging the scale properties of all its frames and nodes
  * @todo move to another file
  * @param object
  */
-realityEditor.gui.ar.utilities.setAverageScale = function(object) {
-  var amount = 0;
-  var sum = 0;
-//  if(!object.frames) return;
-    
+realityEditor.gui.ar.utilities.setAverageScale = function (object) {
+    var amount = 0;
+    var sum = 0;
+    //  if(!object.frames) return;
+
     if (Object.keys(object.frames).length === 0) {
         object.averageScale = globalStates.defaultScale;
         return; // use default scale if there are no existing frames
     }
-    
-  for(var frameKey in object.frames){
-      if(!object.frames.hasOwnProperty(frameKey)) continue;
-     // if(!object.frames[frameKey].ar.size) continue;
-      amount++;
-      sum = sum+ object.frames[frameKey].ar.scale;
-     // if(!object.frames[frameKey].nodes) continue;
-      for(var nodeKey in object.frames[frameKey].nodes){
-          if(!object.frames[frameKey].nodes.hasOwnProperty(nodeKey)) continue;
-        //  if(!object.frames[frameKey].nodes) continue;
-          amount++;
-          sum = sum+ object.frames[frameKey].nodes[nodeKey].scale; 
-      }
-  }
-    object.averageScale = Math.max(0.01, sum/amount); // TODO: put more thought into minimum scale
+
+    for (var frameKey in object.frames) {
+        if (!object.frames.hasOwnProperty(frameKey)) continue;
+        // if(!object.frames[frameKey].ar.size) continue;
+        amount++;
+        sum = sum + object.frames[frameKey].ar.scale;
+        // if(!object.frames[frameKey].nodes) continue;
+        for (var nodeKey in object.frames[frameKey].nodes) {
+            if (!object.frames[frameKey].nodes.hasOwnProperty(nodeKey)) continue;
+            //  if(!object.frames[frameKey].nodes) continue;
+            amount++;
+            sum = sum + object.frames[frameKey].nodes[nodeKey].scale;
+        }
+    }
+    object.averageScale = Math.max(0.01, sum / amount); // TODO: put more thought into minimum scale
 };
 
 /**
@@ -700,8 +773,7 @@ realityEditor.gui.ar.utilities.setAverageScale = function(object) {
  * @param {string} objectKey
  * @return {HTMLElement}
  */
-realityEditor.gui.ar.utilities.getDivWithTargetTransformation = function(objectKey) {
-
+realityEditor.gui.ar.utilities.getDivWithTargetTransformation = function (objectKey) {
     let matrixComputationDiv = globalDOMCache['matrixComputationDivForObjects'];
     if (!matrixComputationDiv) {
         // create it if needed
@@ -736,23 +808,28 @@ realityEditor.gui.ar.utilities.getDivWithTargetTransformation = function(objectK
  * @param {number} screenY
  * @return {{x: number, y: number}}
  */
-realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY = function(objectKey, screenX, screenY) {
-
+realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY = function (
+    objectKey,
+    screenX,
+    screenY
+) {
     // set dummy div transform to iframe without x,y,scale
     let matrixComputationDiv = this.getDivWithTargetTransformation(objectKey);
-    let newPosition = webkitConvertPointFromPageToNode(matrixComputationDiv, new WebKitPoint(screenX, screenY));
+    let newPosition = webkitConvertPointFromPageToNode(
+        matrixComputationDiv,
+        new WebKitPoint(screenX, screenY)
+    );
 
     return {
         x: newPosition.x - window.innerWidth / 2,
-        y: newPosition.y - window.innerHeight / 2
-    }
+        y: newPosition.y - window.innerHeight / 2,
+    };
 };
 
 /**********************************************************************************************************************
  **********************************************************************************************************************/
 
-(function(exports) {
-
+(function (exports) {
     /**
      * Helper function that extracts a 4x4 matrix from the element's CSS matrix3d
      * @param {HTMLElement} ele
@@ -773,7 +850,7 @@ realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY = function(objectKey,
 
         var values = tr.split('(')[1].split(')')[0].split(',');
 
-        var out = [ 0, 0, 0, 1 ];
+        var out = [0, 0, 0, 1];
         for (var i = 0; i < values.length; ++i) {
             out[i] = parseFloat(values[i]);
         }
@@ -782,8 +859,7 @@ realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY = function(objectKey,
     }
 
     exports.getTransform = getTransform;
-
-}(realityEditor.gui.ar.utilities));
+})(realityEditor.gui.ar.utilities);
 
 /**********************************************************************************************************************
  **********************************************************************************************************************/
@@ -799,10 +875,16 @@ realityEditor.gui.ar.utilities.distance = function (matrix) {
         if (realityEditor.device.environment.distanceRequiresCameraTransform()) {
             // calculate distance to camera
             var matrixToCamera = [];
-            realityEditor.gui.ar.utilities.multiplyMatrix(matrix, realityEditor.sceneGraph.getViewMatrix(), matrixToCamera);
+            realityEditor.gui.ar.utilities.multiplyMatrix(
+                matrix,
+                realityEditor.sceneGraph.getViewMatrix(),
+                matrixToCamera
+            );
             matrix = matrixToCamera;
         }
-        distance = Math.sqrt(Math.pow(matrix[12], 2) + Math.pow(matrix[13], 2) + Math.pow(matrix[14], 2));
+        distance = Math.sqrt(
+            Math.pow(matrix[12], 2) + Math.pow(matrix[13], 2) + Math.pow(matrix[14], 2)
+        );
     } catch (e) {
         console.warn('trying to calculate distance of ', matrix);
     }
@@ -814,9 +896,9 @@ realityEditor.gui.ar.utilities.distance = function (matrix) {
  * @param {Array.<number>} m
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.invertRotationMatrix = function(m) {
+realityEditor.gui.ar.utilities.invertRotationMatrix = function (m) {
     var mInv = [];
-    
+
     // transpose the first 3x3, identity for the rest
     mInv[0] = m[0];
     mInv[1] = m[4];
@@ -834,7 +916,7 @@ realityEditor.gui.ar.utilities.invertRotationMatrix = function(m) {
     mInv[13] = 0;
     mInv[14] = 0;
     mInv[15] = 1;
-    
+
     return mInv;
 };
 
@@ -843,25 +925,26 @@ realityEditor.gui.ar.utilities.invertRotationMatrix = function(m) {
  * @param {Array.<number>} m - a 4x4 transformation matrix
  * @author https://answers.unity.com/questions/11363/converting-matrix4x4-to-quaternion-vector3.html
  */
-realityEditor.gui.ar.utilities.getQuaternionFromMatrix = function(m) {
-
+realityEditor.gui.ar.utilities.getQuaternionFromMatrix = function (m) {
     // create identity Quaternion structure as a placeholder
     var q = { x: 0, y: 0, z: 0, w: 1 };
-    
-    if (m.length === 0) { return q; } // also works to set m = this.newIdentityMatrix();
 
-    q.w = Math.sqrt( Math.max( 0, 1 + m[0] + m[5] + m[10] ) ) / 2;
-    q.x = Math.sqrt( Math.max( 0, 1 + m[0] - m[5] - m[10] ) ) / 2;
-    q.y = Math.sqrt( Math.max( 0, 1 - m[0] + m[5] - m[10] ) ) / 2;
-    q.z = Math.sqrt( Math.max( 0, 1 - m[0] - m[5] + m[10] ) ) / 2;
-    q.x *= Math.sign( q.x * ( m[6] - m[9] ) );
-    q.y *= Math.sign( q.y * ( m[8] - m[2] ) );
-    q.z *= Math.sign( q.z * ( m[1] - m[4] ) );
-    
+    if (m.length === 0) {
+        return q;
+    } // also works to set m = this.newIdentityMatrix();
+
+    q.w = Math.sqrt(Math.max(0, 1 + m[0] + m[5] + m[10])) / 2;
+    q.x = Math.sqrt(Math.max(0, 1 + m[0] - m[5] - m[10])) / 2;
+    q.y = Math.sqrt(Math.max(0, 1 - m[0] + m[5] - m[10])) / 2;
+    q.z = Math.sqrt(Math.max(0, 1 - m[0] - m[5] + m[10])) / 2;
+    q.x *= Math.sign(q.x * (m[6] - m[9]));
+    q.y *= Math.sign(q.y * (m[8] - m[2]));
+    q.z *= Math.sign(q.z * (m[1] - m[4]));
+
     return q;
 };
 
-realityEditor.gui.ar.utilities.convertQuaternionHandedness = function(q) {
+realityEditor.gui.ar.utilities.convertQuaternionHandedness = function (q) {
     q.x *= -1;
     q.y *= -1;
     q.z *= -1;
@@ -878,15 +961,16 @@ realityEditor.gui.ar.utilities.convertQuaternionHandedness = function(q) {
 //     // return Math.sqrt( Math.max(0, Math.min(1, (mappedMagnitude - 1.0) * 4)) );
 // };
 
-realityEditor.gui.ar.utilities.quaternionToEulerAngles = function(q) { // TODO: rename to getEulerAnglesFromQuaternion to be consistent
+realityEditor.gui.ar.utilities.quaternionToEulerAngles = function (q) {
+    // TODO: rename to getEulerAnglesFromQuaternion to be consistent
     var phi = Math.atan2(q.z * q.w + q.x * q.y, 0.5 - (q.y * q.y + q.z * q.z));
     var theta = Math.asin(-2 * (q.y * q.w - q.x * q.z));
     var psi = Math.atan2(q.y * q.z + q.x * q.w, 0.5 - (q.z * q.z + q.w * q.w));
     return {
         phi: phi,
         theta: theta,
-        psi: psi
-    }
+        psi: psi,
+    };
 };
 
 /**
@@ -894,7 +978,7 @@ realityEditor.gui.ar.utilities.quaternionToEulerAngles = function(q) { // TODO: 
  * @param m
  * @return {number}
  */
-realityEditor.gui.ar.utilities.getRotationAboutAxisX = function(m) {
+realityEditor.gui.ar.utilities.getRotationAboutAxisX = function (m) {
     var q = this.getQuaternionFromMatrix(m);
     var angles = this.quaternionToEulerAngles(q);
     return angles.theta;
@@ -905,7 +989,7 @@ realityEditor.gui.ar.utilities.getRotationAboutAxisX = function(m) {
  * @param m
  * @return {number}
  */
-realityEditor.gui.ar.utilities.getRotationAboutAxisY = function(m) {
+realityEditor.gui.ar.utilities.getRotationAboutAxisY = function (m) {
     var q = this.getQuaternionFromMatrix(m);
     var angles = this.quaternionToEulerAngles(q);
     return angles.psi;
@@ -916,15 +1000,13 @@ realityEditor.gui.ar.utilities.getRotationAboutAxisY = function(m) {
  * @param m
  * @return {number}
  */
-realityEditor.gui.ar.utilities.getRotationAboutAxisZ = function(m) {
+realityEditor.gui.ar.utilities.getRotationAboutAxisZ = function (m) {
     var q = this.getQuaternionFromMatrix(m);
     var angles = this.quaternionToEulerAngles(q);
     return angles.phi;
 };
 
-
-realityEditor.gui.ar.utilities.getMatrixFromQuaternion = function(q) {
-
+realityEditor.gui.ar.utilities.getMatrixFromQuaternion = function (q) {
     // Matrix<float, 4>(
     //     1.0f - 2.0f*qy*qy - 2.0f*qz*qz, 2.0f*qx*qy - 2.0f*qz*qw, 2.0f*qx*qz + 2.0f*qy*qw, 0.0f,
     //     2.0f*qx*qy + 2.0f*qz*qw, 1.0f - 2.0f*qx*qx - 2.0f*qz*qz, 2.0f*qy*qz - 2.0f*qx*qw, 0.0f,
@@ -936,12 +1018,12 @@ realityEditor.gui.ar.utilities.getMatrixFromQuaternion = function(q) {
     m[1] = 2.0 * q.x * q.y - 2.0 * q.z * q.w;
     m[2] = 2.0 * q.x * q.z + 2.0 * q.y * q.w;
     m[3] = 0;
-    
+
     m[4] = 2.0 * q.x * q.y + 2.0 * q.z * q.w;
     m[5] = 1.0 - 2.0 * q.x * q.x - 2.0 * q.z * q.z;
     m[6] = 2.0 * q.y * q.z - 2.0 * q.x * q.w;
     m[7] = 0;
-    
+
     m[8] = 2.0 * q.x * q.z - 2.0 * q.y * q.w;
     m[9] = 2.0 * q.y * q.z + 2.0 * q.x * q.w;
     m[10] = 1.0 - 2.0 * q.x * q.x - 2.0 * q.y * q.y;
@@ -955,8 +1037,8 @@ realityEditor.gui.ar.utilities.getMatrixFromQuaternion = function(q) {
     return m;
 };
 
-realityEditor.gui.ar.utilities.normalizeQuaternion = function(q) {
-    var n = 1.0 / Math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+realityEditor.gui.ar.utilities.normalizeQuaternion = function (q) {
+    var n = 1.0 / Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
     q.x *= n;
     q.y *= n;
     q.z *= n;
@@ -964,14 +1046,14 @@ realityEditor.gui.ar.utilities.normalizeQuaternion = function(q) {
     return q;
 };
 
-realityEditor.gui.ar.utilities.invertQuaternion = function(q) {
-    var d = q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w;
+realityEditor.gui.ar.utilities.invertQuaternion = function (q) {
+    var d = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
     return {
-        x: q.x/d,
-        y: -q.y/d,
-        z: -q.z/d,
-        w: -q.w/d
-    }
+        x: q.x / d,
+        y: -q.y / d,
+        z: -q.z / d,
+        w: -q.w / d,
+    };
 };
 
 /**
@@ -981,11 +1063,10 @@ realityEditor.gui.ar.utilities.invertQuaternion = function(q) {
  * @param {number} yaw
  * @return {q}
  */
-realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw = function(pitch, roll, yaw) {
-
+realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw = function (pitch, roll, yaw) {
     // create identity Quaternion structure as a placeholder
     var q = { x: 0, y: 0, z: 0, w: 1 };
-    
+
     // Abbreviations for the various angular functions
     var cy = Math.cos(yaw * 0.5);
     var sy = Math.sin(yaw * 0.5);
@@ -1006,9 +1087,9 @@ realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw = function(pitch, r
  * @param m
  * @return {Array<number>}
  */
-realityEditor.gui.ar.utilities.normalizeMatrix = function(m) {
+realityEditor.gui.ar.utilities.normalizeMatrix = function (m) {
     var divisor = m[15];
-    return this.scalarMultiplyMatrix(m, (1.0/divisor));
+    return this.scalarMultiplyMatrix(m, 1.0 / divisor);
 };
 
 /**
@@ -1020,7 +1101,7 @@ realityEditor.gui.ar.utilities.normalizeMatrix = function(m) {
  * @param {boolean} flipZ
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.extractRotation = function(matrix, flipX, flipY, flipZ) {
+realityEditor.gui.ar.utilities.extractRotation = function (matrix, flipX, flipY, flipZ) {
     var q = realityEditor.gui.ar.utilities.getQuaternionFromMatrix(matrix);
     if (flipX || flipY || flipZ) {
         var eulerAngles = realityEditor.gui.ar.utilities.quaternionToEulerAngles(q);
@@ -1033,7 +1114,11 @@ realityEditor.gui.ar.utilities.extractRotation = function(matrix, flipX, flipY, 
         if (flipZ) {
             eulerAngles.phi *= -1; // flips third axis of rotation (roll)
         }
-        q = realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw(eulerAngles.theta, eulerAngles.psi, eulerAngles.phi);
+        q = realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw(
+            eulerAngles.theta,
+            eulerAngles.psi,
+            eulerAngles.phi
+        );
     }
     return realityEditor.gui.ar.utilities.getMatrixFromQuaternion(q);
 };
@@ -1044,9 +1129,11 @@ realityEditor.gui.ar.utilities.extractRotation = function(matrix, flipX, flipY, 
  * @param {Array.<number>} matrix
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.extractRotationTemp = function(matrix) {
+realityEditor.gui.ar.utilities.extractRotationTemp = function (matrix) {
     var q = realityEditor.gui.ar.utilities.getQuaternionFromMatrix(matrix);
-    return realityEditor.gui.ar.utilities.getMatrixFromQuaternion(this.convertQuaternionHandedness(q));
+    return realityEditor.gui.ar.utilities.getMatrixFromQuaternion(
+        this.convertQuaternionHandedness(q)
+    );
 };
 
 /**
@@ -1058,7 +1145,7 @@ realityEditor.gui.ar.utilities.extractRotationTemp = function(matrix) {
  * @param {boolean} flipZ
  * @return {Array.<number>}
  */
-realityEditor.gui.ar.utilities.extractTranslation = function(matrix, flipX, flipY, flipZ) {
+realityEditor.gui.ar.utilities.extractTranslation = function (matrix, flipX, flipY, flipZ) {
     var translationMatrix = realityEditor.gui.ar.utilities.newIdentityMatrix();
     translationMatrix[12] = matrix[12];
     translationMatrix[13] = matrix[13];
@@ -1073,52 +1160,43 @@ realityEditor.gui.ar.utilities.extractTranslation = function(matrix, flipX, flip
     if (flipZ) {
         translationMatrix[14] *= -1; // flips third axis of translation
     }
-    
+
     return translationMatrix;
 };
 
-realityEditor.gui.ar.utilities.mToggle_YZ = [
-    1, 0, 0, 0,
-    0, 0, 1, 0,
-    0, 1, 0, 0,
-    0, 0, 0, 1
-];
+realityEditor.gui.ar.utilities.mToggle_YZ = [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
 
 /**
  * @param matrix
  * @return {*}
  */
-realityEditor.gui.ar.utilities.convertMatrixHandedness = function(matrix) {
+realityEditor.gui.ar.utilities.convertMatrixHandedness = function (matrix) {
     var m2 = [];
     this.multiplyMatrix(this.mToggle_YZ, matrix, m2);
     return m2;
 };
 
-realityEditor.gui.ar.utilities.makeGroundPlaneRotationX = function(theta) {
-    let c = Math.cos(theta), s = Math.sin(theta);
-    return [
-        1, 0, 0, 0,
-        0, c, -s, 0,
-        0, s, c, 0,
-        0, 0, 0, 1
-    ];
+realityEditor.gui.ar.utilities.makeGroundPlaneRotationX = function (theta) {
+    let c = Math.cos(theta),
+        s = Math.sin(theta);
+    return [1, 0, 0, 0, 0, c, -s, 0, 0, s, c, 0, 0, 0, 0, 1];
 };
 
-realityEditor.gui.ar.utilities.makeGroundPlaneRotationY = function(theta) {
-    let c = Math.cos(theta), s = Math.sin(theta);
-    return [
-        c, 0, s, 0,
-        0, 1, 0, 0,
-        -s, 0, c, 0,
-        0, 0, 0, 1
-    ];
+realityEditor.gui.ar.utilities.makeGroundPlaneRotationY = function (theta) {
+    let c = Math.cos(theta),
+        s = Math.sin(theta);
+    return [c, 0, s, 0, 0, 1, 0, 0, -s, 0, c, 0, 0, 0, 0, 1];
 };
 
-realityEditor.gui.ar.utilities.tweenMatrix = function(currentMatrix, destination, tweenSpeed) {
-    if (typeof tweenSpeed === 'undefined') { tweenSpeed = 0.5; } // default value
+realityEditor.gui.ar.utilities.tweenMatrix = function (currentMatrix, destination, tweenSpeed) {
+    if (typeof tweenSpeed === 'undefined') {
+        tweenSpeed = 0.5;
+    } // default value
 
     if (currentMatrix.length !== destination.length) {
-        console.warn('matrices are inequal lengths. cannot be tweened so just assigning current=destination');
+        console.warn(
+            'matrices are inequal lengths. cannot be tweened so just assigning current=destination'
+        );
         return realityEditor.gui.ar.utilities.copyMatrix(destination);
     }
     if (tweenSpeed <= 0 || tweenSpeed >= 1) {
@@ -1130,13 +1208,21 @@ realityEditor.gui.ar.utilities.tweenMatrix = function(currentMatrix, destination
         m[i] = destination[i] * tweenSpeed + currentMatrix[i] * (1.0 - tweenSpeed);
     }
     return m;
-}
+};
 
-realityEditor.gui.ar.utilities.animationVectorLinear = function(currentVector, newVector, maxSpeed) {
-    if (typeof maxSpeed === 'undefined') { maxSpeed = 100; } // default value
+realityEditor.gui.ar.utilities.animationVectorLinear = function (
+    currentVector,
+    newVector,
+    maxSpeed
+) {
+    if (typeof maxSpeed === 'undefined') {
+        maxSpeed = 100;
+    } // default value
 
     if (currentVector.length !== newVector.length) {
-        console.warn('matrices are inequal lengths. cannot be tweened so just assigning current=destination');
+        console.warn(
+            'matrices are inequal lengths. cannot be tweened so just assigning current=destination'
+        );
         return JSON.parse(JSON.stringify(newVector));
     }
     if (maxSpeed <= 0) {
@@ -1155,18 +1241,18 @@ realityEditor.gui.ar.utilities.animationVectorLinear = function(currentVector, n
     if (distance === 0) {
         return JSON.parse(JSON.stringify(currentVector));
     }
-    
+
     let percentMotion = Math.max(0, Math.min(1, maxSpeed / distance));
     let result = [];
     for (let i = 0; i < currentVector.length; i++) {
         result[i] = newVector[i] * percentMotion + currentVector[i] * (1.0 - percentMotion);
     }
     return result;
-}
+};
 
 /**
  * Simple, custom made Matrix data structure for working with transformation matrices
- * 
+ *
  * @param {Array.<number>} array
  * @param {number|undefined} numRows - can be omitted if matrix is square
  * @param {number|undefined} numCols - can be omitted if matrix is square
@@ -1174,7 +1260,6 @@ realityEditor.gui.ar.utilities.animationVectorLinear = function(currentVector, n
  * @constructor
  */
 function Matrix(array, numRows, numCols, isRowMajor) {
-    
     if (typeof numRows === 'undefined' && typeof numCols === 'undefined') {
         if (array.length > 0 && Math.sqrt(array.length) % 1 === 0) {
             numRows = Math.sqrt(array.length);
@@ -1183,16 +1268,23 @@ function Matrix(array, numRows, numCols, isRowMajor) {
             throw new Error('cannot create non-square Matrix without specifying shape!');
         }
     } else if (numRows * numCols !== array.length) {
-        throw new Error('invalid shape (' + numRows + ' x ' + numCols + ') to form Matrix from array of length ' + array.length);
+        throw new Error(
+            'invalid shape (' +
+                numRows +
+                ' x ' +
+                numCols +
+                ') to form Matrix from array of length ' +
+                array.length
+        );
     }
-    
+
     this.array = array;
     this.numRows = numRows;
     this.numCols = numCols;
     this.isRowMajor = isRowMajor;
-    
+
     this.isSquare = numRows === numCols;
-    
+
     // create un-flattened representation of the matrix from the flattened array
     this.mat = [];
     if (isRowMajor) {
@@ -1214,16 +1306,18 @@ function Matrix(array, numRows, numCols, isRowMajor) {
     }
 }
 
-Matrix.prototype.determinant = function() {
-    if (!this.isSquare) { throw new Error('cannot calculate determinant of non-square Matrix'); }
-    
+Matrix.prototype.determinant = function () {
+    if (!this.isSquare) {
+        throw new Error('cannot calculate determinant of non-square Matrix');
+    }
+
     // base case
     if (this.numRows === 2) {
         return this.mat[0][0] * this.mat[1][1] - this.mat[0][1] * this.mat[1][0];
     }
 };
 
-Matrix.prototype.arrayIndex = function(row, col) {
+Matrix.prototype.arrayIndex = function (row, col) {
     if (this.isRowMajor) {
         return row * this.numCols + col;
     } else {
@@ -1231,11 +1325,11 @@ Matrix.prototype.arrayIndex = function(row, col) {
     }
 };
 
-Matrix.prototype.clone = function() {
+Matrix.prototype.clone = function () {
     return new Matrix(this.array, this.numRows, this.numCols, this.isRowMajor);
 };
 
-Matrix.prototype.unflattened = function() {
+Matrix.prototype.unflattened = function () {
     return this.mat;
 };
 
@@ -1244,11 +1338,12 @@ if (typeof window.webkitConvertPointFromPageToNode === 'undefined') {
     polyfillWebkitConvertPointFromPageToNode();
 
     var ssEl = document.createElement('style'),
-        css = '.or{position:absolute;opacity:0;height:33.333%;width:33.333%;top:0;left:0}.or.r-2{left:33.333%}.or.r-3{left:66.666%}.or.r-4{top:33.333%}.or.r-5{top:33.333%;left:33.333%}.or.r-6{top:33.333%;left:66.666%}.or.r-7{top:66.666%}.or.r-8{top:66.666%;left:33.333%}.or.r-9{top:66.666%;left:66.666%}';
+        css =
+            '.or{position:absolute;opacity:0;height:33.333%;width:33.333%;top:0;left:0}.or.r-2{left:33.333%}.or.r-3{left:66.666%}.or.r-4{top:33.333%}.or.r-5{top:33.333%;left:33.333%}.or.r-6{top:33.333%;left:66.666%}.or.r-7{top:66.666%}.or.r-8{top:66.666%;left:33.333%}.or.r-9{top:66.666%;left:66.666%}';
     ssEl.type = 'text/css';
-    (ssEl.styleSheet) ?
-        ssEl.styleSheet.cssText = css :
-        ssEl.appendChild(document.createTextNode(css));
+    ssEl.styleSheet
+        ? (ssEl.styleSheet.cssText = css)
+        : ssEl.appendChild(document.createTextNode(css));
     document.getElementsByTagName('head')[0].appendChild(ssEl);
 }
 
@@ -1257,12 +1352,7 @@ if (typeof window.webkitConvertPointFromPageToNode === 'undefined') {
  * support more complex matrices
  */
 function polyfillWebkitConvertPointFromPageToNode() {
-    const identity = new DOMMatrix([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ]);
+    const identity = new DOMMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 
     if (!window.WebKitPoint) {
         window.WebKitPoint = DOMPoint;
@@ -1274,8 +1364,8 @@ function polyfillWebkitConvertPointFromPageToNode() {
 
         while (x !== undefined && x !== x.ownerDocument.documentElement) {
             var computedStyle = window.getComputedStyle(x);
-            var transform = computedStyle.transform || "none";
-            var c = transform === "none" ? identity : new DOMMatrix(transform);
+            var transform = computedStyle.transform || 'none';
+            var c = transform === 'none' ? identity : new DOMMatrix(transform);
 
             transformationMatrix = c.multiply(transformationMatrix);
             x = x.parentNode;
@@ -1284,7 +1374,7 @@ function polyfillWebkitConvertPointFromPageToNode() {
         // Normalize current matrix to have m44=1 (w = 1). Math does not work
         // otherwise because nothing knows how to scale based on w
         let baseArr = transformationMatrix.toFloat64Array();
-        baseArr = baseArr.map(b => b / baseArr[15]);
+        baseArr = baseArr.map((b) => b / baseArr[15]);
         transformationMatrix = new DOMMatrix(baseArr);
 
         var w = element.offsetWidth;
@@ -1293,7 +1383,9 @@ function polyfillWebkitConvertPointFromPageToNode() {
         var left = +Infinity;
         var top = +Infinity;
         while (--i >= 0) {
-            var p = transformationMatrix.transformPoint(new DOMPoint(i === 0 || i === 1 ? 0 : w, i === 0 || i === 3 ? 0 : h, 0));
+            var p = transformationMatrix.transformPoint(
+                new DOMPoint(i === 0 || i === 1 ? 0 : w, i === 0 || i === 3 ? 0 : h, 0)
+            );
             if (p.x < left) {
                 left = p.x;
             }
@@ -1302,11 +1394,20 @@ function polyfillWebkitConvertPointFromPageToNode() {
             }
         }
         var rect = element.getBoundingClientRect();
-        transformationMatrix = identity.translate(window.pageXOffset + rect.left - left, window.pageYOffset + rect.top - top, 0).multiply(transformationMatrix);
+        transformationMatrix = identity
+            .translate(
+                window.pageXOffset + rect.left - left,
+                window.pageYOffset + rect.top - top,
+                0
+            )
+            .multiply(transformationMatrix);
         return transformationMatrix;
     }
 
-    window.convertPointFromPageToNode = window.webkitConvertPointFromPageToNode = function (element, point) {
+    window.convertPointFromPageToNode = window.webkitConvertPointFromPageToNode = function (
+        element,
+        point
+    ) {
         let mati = getTransformationMatrix(element).inverse();
         // This involves a lot of math, sorry.
         // Given $v = M^{-1}p$ we have p.x, p.y, p.w, M^{-1}, and know that v.z
@@ -1321,7 +1422,7 @@ function polyfillWebkitConvertPointFromPageToNode() {
     };
 }
 
-(function(exports) {
+(function (exports) {
     function lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
         var ev = [eyeX, eyeY, eyeZ];
         var cv = [centerX, centerY, centerZ];
@@ -1331,10 +1432,24 @@ function polyfillWebkitConvertPointFromPageToNode() {
         var u = normalize(crossProduct(uv, n)); // a "right" vector, orthogonal to n and the lookup vector
         var v = crossProduct(n, u); // resulting orthogonal vector to n and u, as the up vector isn't necessarily one anymore
 
-        return [u[0], v[0], n[0], 0,
-            u[1], v[1], n[1], 0,
-            u[2], v[2], n[2], 0,
-            dotProduct(negate(u), ev), dotProduct(negate(v), ev), dotProduct(negate(n), ev), 1];
+        return [
+            u[0],
+            v[0],
+            n[0],
+            0,
+            u[1],
+            v[1],
+            n[1],
+            0,
+            u[2],
+            v[2],
+            n[2],
+            0,
+            dotProduct(negate(u), ev),
+            dotProduct(negate(v), ev),
+            dotProduct(negate(n), ev),
+            1,
+        ];
     }
 
     function scalarMultiply(A, x) {
@@ -1407,18 +1522,29 @@ function polyfillWebkitConvertPointFromPageToNode() {
      * @returns {{x: number, y: number, z: number}}
      */
     function getPointOnPlaneFromScreenXY(planeOrigin, planeNormal, cameraNode, screenX, screenY) {
-        let rootCoordinateSystem = cameraNode.parent || realityEditor.sceneGraph.getSceneNodeById('ROOT');
+        let rootCoordinateSystem =
+            cameraNode.parent || realityEditor.sceneGraph.getSceneNodeById('ROOT');
         const SEGMENT_LENGTH = 1000; // arbitrary, just need to calculate one point, so we can compute rayDirection
-        let testPoint = realityEditor.sceneGraph.getPointAtDistanceFromCamera(screenX, screenY, SEGMENT_LENGTH, rootCoordinateSystem);
+        let testPoint = realityEditor.sceneGraph.getPointAtDistanceFromCamera(
+            screenX,
+            screenY,
+            SEGMENT_LENGTH,
+            rootCoordinateSystem
+        );
 
         let cameraPoint = realityEditor.sceneGraph.getWorldPosition(cameraNode.id);
         let rayOrigin = [cameraPoint.x, cameraPoint.y, cameraPoint.z];
         let rayDirection = normalize(subtract([testPoint.x, testPoint.y, testPoint.z], rayOrigin));
 
-        let planeIntersection = rayPlaneIntersect(planeOrigin, planeNormal, rayOrigin, rayDirection);
+        let planeIntersection = rayPlaneIntersect(
+            planeOrigin,
+            planeNormal,
+            rayOrigin,
+            rayDirection
+        );
         if (!planeIntersection) return undefined; // if plane is parallel to ray
 
-        return {x: planeIntersection[0], y: planeIntersection[1], z: planeIntersection[2]};
+        return { x: planeIntersection[0], y: planeIntersection[1], z: planeIntersection[2] };
     }
 
     exports.lookAt = lookAt;

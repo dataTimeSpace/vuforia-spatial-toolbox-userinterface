@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.avatar");
+createNameSpace('realityEditor.avatar');
 
 /**
  * @fileOverview realityEditor.avatar
@@ -8,17 +8,17 @@ createNameSpace("realityEditor.avatar");
  * touchState to other clients via the avatar's node's publicData, and renders laser beams coming from other avatars.
  */
 
-(function(exports) {
-
+(function (exports) {
     let network, draw, iconMenu, utils; // shortcuts to access realityEditor.avatar._____
 
     const KEEP_ALIVE_HEARTBEAT_INTERVAL = 3 * 1000; // should be a small fraction of the keep-alive timeout on the server (currently 15 seconds)
     const AVATAR_CREATION_TIMEOUT_LENGTH = 10 * 1000; // handle if avatar takes longer than 10 seconds to load
     const RAYCAST_AGAINST_GROUNDPLANE = true;
 
-    let linkCanvas = null, linkCanvasCtx = null;
+    let linkCanvas = null,
+        linkCanvasCtx = null;
     let linkCanvasNeedsClear = true;
-    
+
     let myAvatarId = null;
     let myAvatarObject = null;
     let avatarObjects = {}; // avatar objects are stored here, so that we know which ones we've discovered/initialized
@@ -31,7 +31,7 @@ createNameSpace("realityEditor.avatar");
     let lastPointerState = {
         position: null,
         timestamp: Date.now(),
-        viewMatrixChecksum: null
+        viewMatrixChecksum: null,
     };
     let lastBeamOnTimestamp = null;
 
@@ -52,7 +52,7 @@ createNameSpace("realityEditor.avatar");
         isMyAvatarInitialized: false,
         isWorldOcclusionObjectAdded: false,
         didCreationFail: false,
-        isConnectionAttemptInProgress: false
+        isConnectionAttemptInProgress: false,
     };
 
     // these are just used for debugging purposes
@@ -64,11 +64,11 @@ createNameSpace("realityEditor.avatar");
         didReceiveAnything: false,
         didRecentlyReceive: false,
         didSendAnything: false,
-        didRecentlySend: false
+        didRecentlySend: false,
     };
 
     let callbacks = {
-        onMyAvatarInitialized: []
+        onMyAvatarInitialized: [],
     };
 
     let isDesktop = false;
@@ -78,7 +78,7 @@ createNameSpace("realityEditor.avatar");
             if (e.key === 'g' || e.key === 'G') {
                 console.log(connectedAvatarUserProfiles);
             }
-        })
+        });
         network = realityEditor.avatar.network;
         draw = realityEditor.avatar.draw;
         iconMenu = realityEditor.avatar.iconMenu;
@@ -87,8 +87,10 @@ createNameSpace("realityEditor.avatar");
         iconMenu.initService();
 
         // begin creating our own avatar object when we localize within a world object
-        realityEditor.worldObjects.onLocalizedWithinWorld(function(worldObjectKey) {
-            if (worldObjectKey === realityEditor.worldObjects.getLocalWorldId()) { return; }
+        realityEditor.worldObjects.onLocalizedWithinWorld(function (worldObjectKey) {
+            if (worldObjectKey === realityEditor.worldObjects.getLocalWorldId()) {
+                return;
+            }
 
             if (!cachedWorldObject) {
                 // ensure we keep a reference to the world object even if no mesh file loads
@@ -97,11 +99,17 @@ createNameSpace("realityEditor.avatar");
 
             // todo: for now, we don't create a new avatar object for each world we see, but in future we may want to
             //       migrate our existing avatar to the server hosting the current world object that we're looking at
-            if (myAvatarObject || myAvatarId) { return; }
+            if (myAvatarObject || myAvatarId) {
+                return;
+            }
 
             connectionStatus.isLocalized = true;
             refreshStatusUI();
-            network.processPendingAvatarInitializations(connectionStatus, cachedWorldObject, onOtherAvatarInitialized);
+            network.processPendingAvatarInitializations(
+                connectionStatus,
+                cachedWorldObject,
+                onOtherAvatarInitialized
+            );
 
             attemptToCreateAvatarOnServer(worldObjectKey);
 
@@ -161,12 +169,17 @@ createNameSpace("realityEditor.avatar");
             draw.renderOtherAvatars(avatarTouchStates, avatarNames, avatarCursorStates);
             draw.renderMyAvatar(myAvatarObject, myAvatarTouchState);
 
-            if (!myAvatarObject || globalStates.freezeButtonState) { return; }
+            if (!myAvatarObject || globalStates.freezeButtonState) {
+                return;
+            }
 
             try {
                 // rate limit your avatar updates when you are following someone else, so as not to congest the network
                 let myAvatarFPS = 10;
-                if (connectedAvatarUserProfiles[myAvatarId] && connectedAvatarUserProfiles[myAvatarId].lockOnMode) {
+                if (
+                    connectedAvatarUserProfiles[myAvatarId] &&
+                    connectedAvatarUserProfiles[myAvatarId].lockOnMode
+                ) {
                     myAvatarFPS = 1;
                 }
                 updateMyAvatar({ broadcastFps: myAvatarFPS });
@@ -176,13 +189,16 @@ createNameSpace("realityEditor.avatar");
                 // send updated ray even if the touch doesn't move, because the camera might have moved
                 // Limit to 10 FPS because this is a bit CPU-intensive
                 if (isPointerDown) {
-                    let needsUpdate = lastPointerState.position &&
+                    let needsUpdate =
+                        lastPointerState.position &&
                         Date.now() - lastPointerState.timestamp > 100 &&
                         Date.now() - lastBeamOnTimestamp > 100;
                     if (!needsUpdate) return;
                     // this is a quick way to check for changes to the camera - in very rare instances this can be incorrect
                     // but because this is just for performance optimizations that is an ok tradeoff
-                    let checksum = realityEditor.sceneGraph.getCameraNode().worldMatrix.reduce((sum, a) => sum + a, 0);
+                    let checksum = realityEditor.sceneGraph
+                        .getCameraNode()
+                        .worldMatrix.reduce((sum, a) => sum + a, 0);
                     needsUpdate = lastPointerState.viewMatrixChecksum !== checksum;
                     if (!needsUpdate) return;
                     setBeamOn(lastPointerState.position.x, lastPointerState.position.y);
@@ -202,7 +218,11 @@ createNameSpace("realityEditor.avatar");
             refreshStatusUI();
 
             // we have a cachedWorldObject here, so it's also a good point to check pending subscriptions for that world
-            network.processPendingAvatarInitializations(connectionStatus, cachedWorldObject, onOtherAvatarInitialized);
+            network.processPendingAvatarInitializations(
+                connectionStatus,
+                cachedWorldObject,
+                onOtherAvatarInitialized
+            );
         });
 
         setInterval(() => {
@@ -211,7 +231,7 @@ createNameSpace("realityEditor.avatar");
             }
         }, KEEP_ALIVE_HEARTBEAT_INTERVAL);
 
-        realityEditor.app.promises.getProviderId().then(providerId => {
+        realityEditor.app.promises.getProviderId().then((providerId) => {
             myProviderId = providerId;
             // write user name will also persist providerId
             writeUsername(myUsername);
@@ -222,18 +242,18 @@ createNameSpace("realityEditor.avatar");
                 userDetails: {
                     name: myUsername,
                     providerId: myProviderId,
-                    sessionId: globalStates.tempUuid
-                }
+                    sessionId: globalStates.tempUuid,
+                },
             });
         });
     }
-    
+
     // todo Steve: a function that subscribes to different users, so that whenever me / another user perform some actions, the user info should be included as part of the info in the action message,
     //  eg: when added a frame, realityEditor.gui.pocket.callbackHandler.triggerCallbacks('frameAdded', callback) should include who added the frame in the callback parameter.
     //  very similar to the function above 'getUserDetails'
-    
+
     // todo Steve: object.json, last editor
-    
+
     function addLinkCanvas() {
         let linkCanvasContainer = document.createElement('div');
         linkCanvasContainer.className = 'link-canvas-container';
@@ -254,7 +274,7 @@ createNameSpace("realityEditor.avatar");
         linkCanvas.style.transform = 'translateZ(3001px)';
         linkCanvasContainer.appendChild(linkCanvas);
 
-        linkCanvasCtx = linkCanvas.getContext("2d");
+        linkCanvasCtx = linkCanvas.getContext('2d');
     }
 
     function resizeLinkCanvas() {
@@ -273,7 +293,8 @@ createNameSpace("realityEditor.avatar");
         if (myAvatarId || myAvatarObject) return;
         if (connectionStatus.isConnectionAttemptInProgress) return;
         let worldObject = realityEditor.worldObjects.getBestWorldObject();
-        if (!worldObject || worldObject.objectId === realityEditor.worldObjects.getLocalWorldId()) return;
+        if (!worldObject || worldObject.objectId === realityEditor.worldObjects.getLocalWorldId())
+            return;
 
         attemptToCreateAvatarOnServer(worldObject.objectId);
     }
@@ -290,45 +311,71 @@ createNameSpace("realityEditor.avatar");
         connectionStatus.isConnectionAttemptInProgress = true;
 
         // cachedWorldObject = worldObject;
-        realityEditor.network.utilities.verifyObjectNameNotOnWorldServer(worldObject, thisAvatarName, () => {
-            network.addAvatarObject(worldObjectKey, thisAvatarName, (data) => {
-                myAvatarId = data.id;
-                connectionStatus.isMyAvatarCreated = true;
-                connectionStatus.isConnectionAttemptInProgress = false;
-                refreshStatusUI();
+        realityEditor.network.utilities.verifyObjectNameNotOnWorldServer(
+            worldObject,
+            thisAvatarName,
+            () => {
+                network.addAvatarObject(
+                    worldObjectKey,
+                    thisAvatarName,
+                    (data) => {
+                        myAvatarId = data.id;
+                        connectionStatus.isMyAvatarCreated = true;
+                        connectionStatus.isConnectionAttemptInProgress = false;
+                        refreshStatusUI();
 
-                // ping the server to discover the object more quickly
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => realityEditor.app.sendUDPMessage({action: 'ping'}), 300 * i * i);
-                }
-            }, (err) => {
-                console.warn('unable to add avatar object to server', err);
+                        // ping the server to discover the object more quickly
+                        for (let i = 0; i < 3; i++) {
+                            setTimeout(
+                                () => realityEditor.app.sendUDPMessage({ action: 'ping' }),
+                                300 * i * i
+                            );
+                        }
+                    },
+                    (err) => {
+                        console.warn('unable to add avatar object to server', err);
+                        connectionStatus.didCreationFail = true;
+                        connectionStatus.isConnectionAttemptInProgress = false;
+                        refreshStatusUI();
+                    }
+                );
+            },
+            () => {
+                console.warn('avatar already exists on server');
                 connectionStatus.didCreationFail = true;
                 connectionStatus.isConnectionAttemptInProgress = false;
                 refreshStatusUI();
-            });
-        }, () => {
-            console.warn('avatar already exists on server');
-            connectionStatus.didCreationFail = true;
-            connectionStatus.isConnectionAttemptInProgress = false;
-            refreshStatusUI();
-        });
+            }
+        );
     }
 
     // initialize the avatar object representing my own device, and those representing other devices
     function handleDiscoveredObject(object, objectKey) {
-        if (!utils.isAvatarObject(object)) { return; }
-
-        // ignore objects from other worlds if we have a primaryWorld set
-        let primaryWorldInfo = realityEditor.network.discovery.getPrimaryWorldInfo();
-        if (primaryWorldInfo && primaryWorldInfo.id &&
-            object.worldId && object.worldId !== primaryWorldInfo.id) {
+        if (!utils.isAvatarObject(object)) {
             return;
         }
 
-        if (typeof avatarObjects[objectKey] !== 'undefined') { return; }
+        // ignore objects from other worlds if we have a primaryWorld set
+        let primaryWorldInfo = realityEditor.network.discovery.getPrimaryWorldInfo();
+        if (
+            primaryWorldInfo &&
+            primaryWorldInfo.id &&
+            object.worldId &&
+            object.worldId !== primaryWorldInfo.id
+        ) {
+            return;
+        }
+
+        if (typeof avatarObjects[objectKey] !== 'undefined') {
+            return;
+        }
         avatarObjects[objectKey] = object; // keep track of which avatar objects we've processed so far
-        connectedAvatarUserProfiles[objectKey] = new utils.UserProfile(null, '', null, globalStates.tempUuid);
+        connectedAvatarUserProfiles[objectKey] = new utils.UserProfile(
+            null,
+            '',
+            null,
+            globalStates.tempUuid
+        );
 
         function finalizeAvatar() {
             // There is a race between object discovery here and object
@@ -350,11 +397,18 @@ createNameSpace("realityEditor.avatar");
     // update the avatar object to match the camera position each frame (if it exists), and realtime broadcast to others
     function updateMyAvatar(options = { broadcastFps: 10 }) {
         let avatarSceneNode = realityEditor.sceneGraph.getSceneNodeById(myAvatarId);
-        let cameraNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.CAMERA);
-        if (!avatarSceneNode || !cameraNode) { return; }
+        let cameraNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.NAMES.CAMERA
+        );
+        if (!avatarSceneNode || !cameraNode) {
+            return;
+        }
 
         // my avatar should always be positioned exactly at the camera
-        avatarSceneNode.setPositionRelativeTo(cameraNode, realityEditor.gui.ar.utilities.newIdentityMatrix());
+        avatarSceneNode.setPositionRelativeTo(
+            cameraNode,
+            realityEditor.gui.ar.utilities.newIdentityMatrix()
+        );
         avatarSceneNode.updateWorldMatrix(); // immediately process instead of waiting for next frame
 
         let worldObjectId = realityEditor.sceneGraph.getWorldId();
@@ -363,25 +417,34 @@ createNameSpace("realityEditor.avatar");
 
         network.realtimeSendAvatarPosition(myAvatarObject, relativeMatrix, options.broadcastFps);
     }
-    
+
     function sendMySpatialCursorPosition() {
         if (!myAvatarObject) return;
 
         let avatarSceneNode = realityEditor.sceneGraph.getSceneNodeById(myAvatarId);
-        let cameraNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.CAMERA);
-        if (!avatarSceneNode || !cameraNode) { return; }
+        let cameraNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.NAMES.CAMERA
+        );
+        if (!avatarSceneNode || !cameraNode) {
+            return;
+        }
 
         let spatialCursorMatrix = realityEditor.spatialCursor.getCursorRelativeToWorldObject();
         let worldId = realityEditor.sceneGraph.getWorldId();
-        
-        if (!spatialCursorMatrix || !worldId || worldId === realityEditor.worldObjects.getLocalWorldId()) return;
-        
+
+        if (
+            !spatialCursorMatrix ||
+            !worldId ||
+            worldId === realityEditor.worldObjects.getLocalWorldId()
+        )
+            return;
+
         let cursorState = {
             matrix: spatialCursorMatrix,
             colorHSL: utils.getColor(myAvatarObject),
             isColored: realityEditor.spatialCursor.isSpatialCursorOnGroundPlane(),
-            worldId: worldId
-        }
+            worldId: worldId,
+        };
 
         let info = utils.getAvatarNodeInfo(myAvatarObject);
         if (info) {
@@ -394,7 +457,10 @@ createNameSpace("realityEditor.avatar");
     // subscribe to the node's public data of a newly discovered avatar
     function onOtherAvatarInitialized(thatAvatarObject) {
         if (!connectionStatus.isLocalized || !cachedWorldObject) {
-            network.addPendingAvatarInitialization(thatAvatarObject.worldId, thatAvatarObject.objectId);
+            network.addPendingAvatarInitialization(
+                thatAvatarObject.worldId,
+                thatAvatarObject.objectId
+            );
             return;
         }
 
@@ -404,7 +470,7 @@ createNameSpace("realityEditor.avatar");
             avatarTouchStates[msgContent.object] = msgContent.publicData.touchState;
             debugDataReceived();
         };
-        
+
         subscriptionCallbacks[utils.PUBLIC_DATA_KEYS.cursorState] = (msgContent) => {
             avatarCursorStates[msgContent.object] = msgContent.publicData.cursorState;
             debugDataReceived();
@@ -414,11 +480,17 @@ createNameSpace("realityEditor.avatar");
             const userProfile = msgContent.publicData.userProfile;
             if (avatarNames[msgContent.object] !== userProfile.name) {
                 // realityEditor.ai.onAvatarChangeName(avatarNames[msgContent.object], userProfile.name);
-                console.log('TODO: refactor realityEditor.ai.onAvatarChangeName(connectedAvatarUserProfiles[myAvatarId].name, name)');
+                console.log(
+                    'TODO: refactor realityEditor.ai.onAvatarChangeName(connectedAvatarUserProfiles[myAvatarId].name, name)'
+                );
             }
             avatarNames[msgContent.object] = userProfile.name;
             if (!connectedAvatarUserProfiles[msgContent.object]) {
-                connectedAvatarUserProfiles[msgContent.object] = new utils.UserProfile(null, '', null);
+                connectedAvatarUserProfiles[msgContent.object] = new utils.UserProfile(
+                    null,
+                    '',
+                    null
+                );
             }
 
             // Copy over any present keys
@@ -428,13 +500,16 @@ createNameSpace("realityEditor.avatar");
             iconMenu.renderAvatarIconList(connectedAvatarUserProfiles);
             debugDataReceived();
         };
-        
+
         subscriptionCallbacks[utils.PUBLIC_DATA_KEYS.aiDialogue] = (msgContent) => {
             // console.log(msgContent.publicData.aiDialogue);
             console.log("push other's ai dialogue");
-            console.log('TODO: refactor realityEditor.ai.pushDialogueFromOtherUser(msgContent.publicData.aiDialogue)', msgContent);
+            console.log(
+                'TODO: refactor realityEditor.ai.pushDialogueFromOtherUser(msgContent.publicData.aiDialogue)',
+                msgContent
+            );
             // realityEditor.ai.pushDialogueFromOtherUser(msgContent.publicData.aiDialogue);
-        }
+        };
 
         network.subscribeToAvatarPublicData(thatAvatarObject, subscriptionCallbacks);
 
@@ -447,13 +522,30 @@ createNameSpace("realityEditor.avatar");
         if (!realityEditor.sceneGraph.getWorldId()) return null;
 
         let cameraNode = realityEditor.sceneGraph.getCameraNode();
-        let worldObjectNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+        let worldObjectNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.getWorldId()
+        );
         const SEGMENT_LENGTH = 1000; // arbitrary, just need to calculate one point so we can solve parametric equation
-        let testPoint = realityEditor.sceneGraph.getPointAtDistanceFromCamera(screenX, screenY, SEGMENT_LENGTH, worldObjectNode);
-        let cameraRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem({x: 0, y: 0, z: 9}, cameraNode, worldObjectNode);
-        let rayOrigin = [cameraRelativeToWorldObject.x, cameraRelativeToWorldObject.y, cameraRelativeToWorldObject.z];
+        let testPoint = realityEditor.sceneGraph.getPointAtDistanceFromCamera(
+            screenX,
+            screenY,
+            SEGMENT_LENGTH,
+            worldObjectNode
+        );
+        let cameraRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem(
+            { x: 0, y: 0, z: 9 },
+            cameraNode,
+            worldObjectNode
+        );
+        let rayOrigin = [
+            cameraRelativeToWorldObject.x,
+            cameraRelativeToWorldObject.y,
+            cameraRelativeToWorldObject.z,
+        ];
         let arUtils = realityEditor.gui.ar.utilities;
-        return arUtils.normalize(arUtils.subtract([testPoint.x, testPoint.y, testPoint.z], rayOrigin));
+        return arUtils.normalize(
+            arUtils.subtract([testPoint.x, testPoint.y, testPoint.z], rayOrigin)
+        );
     }
 
     /**
@@ -474,23 +566,44 @@ createNameSpace("realityEditor.avatar");
         if (cachedWorldObject) {
             // 1. first raycast against the scene (mesh model or splat, and also the tools with 3D content)
             // 2. if no hit yet, then raycast against the ground plane
-            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(screenX, screenY, objectsToCheck);
+            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                screenX,
+                screenY,
+                objectsToCheck
+            );
             if (raycastIntersects.length > 0) {
-                worldIntersectPoint = await realityEditor.spatialCursor.getRaycastCoordinates(screenX, screenY, false, false);
+                worldIntersectPoint = await realityEditor.spatialCursor.getRaycastCoordinates(
+                    screenX,
+                    screenY,
+                    false,
+                    false
+                );
             } else if (RAYCAST_AGAINST_GROUNDPLANE) {
                 // happens afterwards because in AR, invisible ground plane can be above parts of tools or scene mesh, but shouldn't block the pointer
-                worldIntersectPoint = await realityEditor.spatialCursor.getRaycastCoordinates(screenX, screenY, true, false);
+                worldIntersectPoint = await realityEditor.spatialCursor.getRaycastCoordinates(
+                    screenX,
+                    screenY,
+                    true,
+                    false
+                );
             }
 
             // if we hit something, convert into the world object coordinate system
             if (worldIntersectPoint && worldIntersectPoint.point) {
-                let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+                let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                    realityEditor.sceneGraph.getWorldId()
+                );
                 let groundPlaneSceneNode = realityEditor.sceneGraph.getGroundPlaneNode();
 
                 // requires inverse ground plane because scene mesh is relative to ground plane
-                let groundPlaneRelativeToWorldToolbox = worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode);
-                let groundPlaneRelativeToWorldThree = new realityEditor.gui.threejsScene.THREE.Matrix4();
-                realityEditor.gui.threejsScene.setMatrixFromArray(groundPlaneRelativeToWorldThree, groundPlaneRelativeToWorldToolbox);
+                let groundPlaneRelativeToWorldToolbox =
+                    worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode);
+                let groundPlaneRelativeToWorldThree =
+                    new realityEditor.gui.threejsScene.THREE.Matrix4();
+                realityEditor.gui.threejsScene.setMatrixFromArray(
+                    groundPlaneRelativeToWorldThree,
+                    groundPlaneRelativeToWorldToolbox
+                );
                 groundPlaneRelativeToWorldThree.invert();
                 worldIntersectPoint.point.applyMatrix4(groundPlaneRelativeToWorldThree);
             }
@@ -507,12 +620,14 @@ createNameSpace("realityEditor.avatar");
         writeUsername(myUsername);
 
         document.body.addEventListener('pointerdown', (e) => {
-            if (realityEditor.device.isMouseEventCameraControl(e)) { return; }
+            if (realityEditor.device.isMouseEventCameraControl(e)) {
+                return;
+            }
             if (realityEditor.device.utilities.isEventHittingBackground(e)) {
                 setBeamOn(e.pageX, e.pageY);
                 lastPointerState.position = {
                     x: e.pageX,
-                    y: e.pageY
+                    y: e.pageY,
                 };
                 lastPointerState.timestamp = Date.now();
 
@@ -521,9 +636,11 @@ createNameSpace("realityEditor.avatar");
             }
         });
 
-        ['pointerup', 'pointercancel', 'pointerleave'].forEach(eventName => {
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach((eventName) => {
             document.body.addEventListener(eventName, (e) => {
-                if (realityEditor.device.isMouseEventCameraControl(e)) { return; }
+                if (realityEditor.device.isMouseEventCameraControl(e)) {
+                    return;
+                }
                 setBeamOff();
                 lastPointerState.position = null;
 
@@ -532,7 +649,9 @@ createNameSpace("realityEditor.avatar");
         });
 
         document.body.addEventListener('pointermove', (e) => {
-            if (!isPointerDown || realityEditor.device.isMouseEventCameraControl(e)) { return; }
+            if (!isPointerDown || realityEditor.device.isMouseEventCameraControl(e)) {
+                return;
+            }
             if (network.isTouchStateFpsLimited()) {
                 return;
             }
@@ -541,12 +660,12 @@ createNameSpace("realityEditor.avatar");
 
             lastPointerState.position = {
                 x: e.pageX,
-                y: e.pageY
+                y: e.pageY,
             };
             lastPointerState.timestamp = Date.now();
         });
-        
-        callbacks.onMyAvatarInitialized.forEach(cb => {
+
+        callbacks.onMyAvatarInitialized.forEach((cb) => {
             cb(myAvatarObject);
         });
     }
@@ -563,9 +682,13 @@ createNameSpace("realityEditor.avatar");
      * @param name
      */
     function writeUsername(name) {
-        if (!myAvatarObject) { return; }
+        if (!myAvatarObject) {
+            return;
+        }
         // realityEditor.ai.onAvatarChangeName(connectedAvatarUserProfiles[myAvatarId].name, name);
-        console.log('TODO: refactor realityEditor.ai.onAvatarChangeName(connectedAvatarUserProfiles[myAvatarId].name, name)');
+        console.log(
+            'TODO: refactor realityEditor.ai.onAvatarChangeName(connectedAvatarUserProfiles[myAvatarId].name, name)'
+        );
 
         connectedAvatarUserProfiles[myAvatarId].name = name;
         let sessionId = globalStates.tempUuid;
@@ -583,7 +706,9 @@ createNameSpace("realityEditor.avatar");
      * @param {string} objectId
      */
     function writeMyLockOnMode(objectId) {
-        if (!myAvatarObject) { return; }
+        if (!myAvatarObject) {
+            return;
+        }
         writeLockOnMode(myAvatarId, objectId);
     }
     /**
@@ -592,7 +717,9 @@ createNameSpace("realityEditor.avatar");
      * @param {boolean} doLockOn - true to lock on, false to stop that user from locking on to you
      */
     function writeLockOnToMe(otherAvatarId, doLockOn = true) {
-        if (!myAvatarId) { return; }
+        if (!myAvatarId) {
+            return;
+        }
         if (doLockOn) {
             writeLockOnMode(otherAvatarId, myAvatarId);
         } else {
@@ -608,7 +735,9 @@ createNameSpace("realityEditor.avatar");
     function writeLockOnMode(avatarId, targetAvatarId) {
         try {
             let object = realityEditor.getObject(avatarId);
-            if (!object) { return; }
+            if (!object) {
+                return;
+            }
             connectedAvatarUserProfiles[avatarId].lockOnMode = targetAvatarId;
             iconMenu.renderAvatarIconList(connectedAvatarUserProfiles); // refresh the UI
             let info = utils.getAvatarNodeInfo(object);
@@ -633,10 +762,15 @@ createNameSpace("realityEditor.avatar");
         let callId = realityEditor.device.utilities.uuidTimeShort();
         pendingBeamOnCalls[callId] = true;
 
-        prepareBeamToSend(screenX, screenY).then(touchState => {
+        prepareBeamToSend(screenX, screenY).then((touchState) => {
             lastBeamOnTimestamp = Date.now();
 
-            if (touchState.isPointerDown && !(touchState.worldIntersectPoint || touchState.rayDirection)) { return; } // don't send if click on nothing
+            if (
+                touchState.isPointerDown &&
+                !(touchState.worldIntersectPoint || touchState.rayDirection)
+            ) {
+                return;
+            } // don't send if click on nothing
 
             if (!pendingBeamOnCalls[callId]) {
                 console.log('cancel pending beam on - we got a beam off after initiating it');
@@ -673,7 +807,7 @@ createNameSpace("realityEditor.avatar");
             screenY: screenY,
             worldIntersectPoint: await getRaycastCoordinates(screenX, screenY),
             rayDirection: getRayDirection(screenX, screenY),
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 
@@ -687,8 +821,8 @@ createNameSpace("realityEditor.avatar");
             screenY: screenY,
             worldIntersectPoint: null,
             rayDirection: null,
-            timestamp: Date.now()
-        }
+            timestamp: Date.now(),
+        };
 
         let info = utils.getAvatarNodeInfo(myAvatarObject);
         if (info) {
@@ -754,13 +888,20 @@ createNameSpace("realityEditor.avatar");
 
     // update the simple UI that shows "connecting..." --> "connected!" (and update debug text if DEBUG_MODE is true)
     function refreshStatusUI() {
-        draw.renderConnectionDebugInfo(connectionStatus, debugConnectionStatus, myAvatarId, DEBUG_MODE);
+        draw.renderConnectionDebugInfo(
+            connectionStatus,
+            debugConnectionStatus,
+            myAvatarId,
+            DEBUG_MODE
+        );
 
         // render a simple UI to show while we establish the avatar (only show after we've connected to a world)
         if (connectionStatus.isLocalized) {
-            let isConnectionReady = connectionStatus.isLocalized &&
+            let isConnectionReady =
+                connectionStatus.isLocalized &&
                 connectionStatus.isMyAvatarCreated &&
-                connectionStatus.isMyAvatarInitialized && myAvatarId;
+                connectionStatus.isMyAvatarInitialized &&
+                myAvatarId;
             // && connectionStatus.isWorldOcclusionObjectAdded;
             draw.renderConnectionFeedback(isConnectionReady);
         }
@@ -769,7 +910,7 @@ createNameSpace("realityEditor.avatar");
             draw.renderConnectionFeedback(false, connectionStatus.didCreationFail);
         }
     }
-    
+
     function getMyAvatarColor() {
         return new Promise((resolve) => {
             let id = setInterval(() => {
@@ -777,7 +918,7 @@ createNameSpace("realityEditor.avatar");
                     clearInterval(id);
                     resolve({
                         color: utils.getColor(myAvatarObject),
-                        colorLighter: utils.getColorLighter(myAvatarObject)
+                        colorLighter: utils.getColorLighter(myAvatarObject),
                     });
                 }
             }, 100);
@@ -813,18 +954,18 @@ createNameSpace("realityEditor.avatar");
             return objectKey;
         }
     }
-    
+
     function getAvatarNameFromObjectKey(objectKey) {
         if (!connectedAvatarUserProfiles[objectKey]) {
             return;
         }
         return connectedAvatarUserProfiles[objectKey].name;
     }
-    
+
     function getMyAvatarNodeInfo() {
         return utils.getAvatarNodeInfo(myAvatarObject);
     }
-    
+
     function getLinkCanvasInfo() {
         return {
             canvas: linkCanvas,
@@ -832,7 +973,7 @@ createNameSpace("realityEditor.avatar");
             // linkObject: linkObject
         };
     }
-    
+
     function registerOnMyAvatarInitializedCallback(callback) {
         callbacks.onMyAvatarInitialized.push(callback);
         if (myAvatarObject) {
@@ -855,10 +996,17 @@ createNameSpace("realityEditor.avatar");
     exports.writeLockOnToMe = writeLockOnToMe;
     exports.clearLinkCanvas = clearLinkCanvas;
     exports.getLinkCanvasInfo = getLinkCanvasInfo;
-    exports.isDesktop = function() {return isDesktop};
-    exports.getConnectedAvatarList = () => { return connectedAvatarUserProfiles; };
-    exports.setLinkCanvasNeedsClear = (value) => { linkCanvasNeedsClear = value; };
-    exports.getMyAvatarId = () => {  return myAvatarId; };
+    exports.isDesktop = function () {
+        return isDesktop;
+    };
+    exports.getConnectedAvatarList = () => {
+        return connectedAvatarUserProfiles;
+    };
+    exports.setLinkCanvasNeedsClear = (value) => {
+        linkCanvasNeedsClear = value;
+    };
+    exports.getMyAvatarId = () => {
+        return myAvatarId;
+    };
     exports.getMyAvatarNodeInfo = getMyAvatarNodeInfo;
-
-}(realityEditor.avatar));
+})(realityEditor.avatar);

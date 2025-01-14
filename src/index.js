@@ -61,7 +61,7 @@ window.realityEditor = {
         callbacks: {},
         promises: {},
         targetDownloader: {},
-        pathfinding: {}
+        pathfinding: {},
     },
     device: {
         distanceScaling: {},
@@ -75,7 +75,7 @@ window.realityEditor = {
         touchPropagation: {},
         tracking: {},
         utilities: {},
-        videoRecording: {}
+        videoRecording: {},
     },
     gui: {
         ar: {
@@ -92,7 +92,7 @@ window.realityEditor = {
             moveabilityOverlay: {},
             positioning: {},
             utilities: {},
-            videoPlayback: {}
+            videoPlayback: {},
         },
         spatial: {
             whereIs: {},
@@ -104,31 +104,32 @@ window.realityEditor = {
             eventHandlers: {},
             eventHelper: {},
             grid: {},
-            utilities: {}
+            utilities: {},
         },
         memory: {
             nodeMemories: {},
-            pointer: {}
+            pointer: {},
         },
-        settings: { // todo: combine gui/settings/index.js with gui/settings.js
+        settings: {
+            // todo: combine gui/settings/index.js with gui/settings.js
             logo: {},
             states: {},
-            setupSettingsMenu: {}
+            setupSettingsMenu: {},
         },
         buttons: {},
         dropdown: {},
         glRenderer: {},
-        menus:{},
+        menus: {},
         modal: {},
         moveabilityCorners: {},
         navigation: {},
         pocket: {},
-        screenExtension : {},
+        screenExtension: {},
         shaders: {},
         threejsScene: {},
         spatialIndicator: {},
         spatialArrow: {},
-        utilities: {}
+        utilities: {},
     },
     measure: {
         clothSimulation: {},
@@ -139,11 +140,11 @@ window.realityEditor = {
         availableFrames: {},
         realtime: {},
         search: {},
-        utilities: {}
+        utilities: {},
     },
     sceneGraph: {
         sceneNode: {},
-        network: {}
+        network: {},
     },
     envelopeManager: {},
     moduleCallbacks: {},
@@ -153,7 +154,7 @@ window.realityEditor = {
             normalCursorFragmentShader: {},
             colorCursorFragmentShader: {},
             vertexShader: {},
-        }
+        },
     },
     statusPage: {},
     spatialCapture: {},
@@ -161,15 +162,15 @@ window.realityEditor = {
         network: {},
         draw: {},
         iconMenu: {},
-        utils: {}
+        utils: {},
     },
     humanPose: {
         network: {},
         draw: {},
         rebaScore: {},
-        utils: {}
+        utils: {},
     },
-    oauth: {}
+    oauth: {},
 };
 
 /**
@@ -183,7 +184,9 @@ window.realityEditor = {
  * @return {*} object that presents the actual used namespace
  **/
 window.createNameSpace = function createNameSpace(namespace) {
-    var splitNameSpace = namespace.split("."), object = this, object2;
+    var splitNameSpace = namespace.split('.'),
+        object = this,
+        object2;
     for (var i = 0; i < splitNameSpace.length; i++) {
         object = object[splitNameSpace[i]] = object[splitNameSpace[i]] || {};
         object2 = this;
@@ -196,59 +199,59 @@ window.createNameSpace = function createNameSpace(namespace) {
     return object;
 };
 
-createNameSpace("realityEditor");
+createNameSpace('realityEditor');
 
 realityEditor.objects = objects;
 
-if (typeof shadowObjects !== "undefined") {
+if (typeof shadowObjects !== 'undefined') {
     realityEditor.shadowObjects = shadowObjects;
 }
 
-realityEditor.getShadowObject = function (objectKey){
-    if(!objectKey) return null;
+realityEditor.getShadowObject = function (objectKey) {
+    if (!objectKey) return null;
 
-    if(!this.shadowObjects[objectKey]){
+    if (!this.shadowObjects[objectKey]) {
         this.shadowObjects[objectKey] = {};
         this.shadowObjects[objectKey].frames = {};
     }
-    return  this.shadowObjects[objectKey];
+    return this.shadowObjects[objectKey];
 };
 
-realityEditor.getShadowFrame = function (objectKey, frameKey){
-    if(!objectKey) return null;
-    if(!frameKey) return null;
+realityEditor.getShadowFrame = function (objectKey, frameKey) {
+    if (!objectKey) return null;
+    if (!frameKey) return null;
 
-    if(!this.shadowObjects[objectKey]){
+    if (!this.shadowObjects[objectKey]) {
         this.shadowObjects[objectKey] = {};
         this.shadowObjects[objectKey].frames = {};
     }
-    if(!this.shadowObjects[objectKey].frames[frameKey]){
+    if (!this.shadowObjects[objectKey].frames[frameKey]) {
         this.shadowObjects[objectKey].frames[frameKey] = {};
         this.shadowObjects[objectKey].links = {};
         this.shadowObjects[objectKey].nodes = {};
     }
-    return  this.shadowObjects[objectKey].frames[frameKey];
+    return this.shadowObjects[objectKey].frames[frameKey];
 };
 
-realityEditor.getShadowNode = function (objectKey, frameKey, nodeKey){
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!nodeKey) return null;
+realityEditor.getShadowNode = function (objectKey, frameKey, nodeKey) {
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!nodeKey) return null;
 
-    if(!this.shadowObjects[objectKey]){
+    if (!this.shadowObjects[objectKey]) {
         this.shadowObjects[objectKey] = {};
         this.shadowObjects[objectKey].frames = {};
     }
-    if(!this.shadowObjects[objectKey].frames[frameKey]){
+    if (!this.shadowObjects[objectKey].frames[frameKey]) {
         this.shadowObjects[objectKey].frames[frameKey] = {};
         this.shadowObjects[objectKey].links = {};
         this.shadowObjects[objectKey].nodes = {};
     }
 
-    if(!this.shadowObjects[objectKey].frames[frameKey].nodes[nodeKey]){
+    if (!this.shadowObjects[objectKey].frames[frameKey].nodes[nodeKey]) {
         this.shadowObjects[objectKey].frames[frameKey].nodes[nodeKey] = {};
     }
-    return  this.shadowObjects[objectKey].frames[frameKey].nodes[nodeKey] ;
+    return this.shadowObjects[objectKey].frames[frameKey].nodes[nodeKey];
 };
 
 /**
@@ -257,8 +260,8 @@ realityEditor.getShadowNode = function (objectKey, frameKey, nodeKey){
  * @return {Objects|null}
  */
 realityEditor.getObject = function (objectKey) {
-    if(!objectKey) return null;
-    if(!(objectKey in this.objects)) return null;
+    if (!objectKey) return null;
+    if (!(objectKey in this.objects)) return null;
     return this.objects[objectKey];
 };
 
@@ -269,10 +272,10 @@ realityEditor.getObject = function (objectKey) {
  * @return {Frame|null}
  */
 realityEditor.getFrame = function (objectKey, frameKey) {
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!(objectKey in this.objects)) return null;
-    if(!(frameKey in this.objects[objectKey].frames)) return null;
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!(objectKey in this.objects)) return null;
+    if (!(frameKey in this.objects[objectKey].frames)) return null;
     return this.objects[objectKey].frames[frameKey];
 };
 
@@ -284,12 +287,12 @@ realityEditor.getFrame = function (objectKey, frameKey) {
  * @return {Node|null}
  */
 realityEditor.getNode = function (objectKey, frameKey, nodeKey) {
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!nodeKey) return null;
-    if(!(objectKey in this.objects)) return null;
-    if(!(frameKey in this.objects[objectKey].frames)) return null;
-    if(!(nodeKey in this.objects[objectKey].frames[frameKey].nodes)) return null;
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!nodeKey) return null;
+    if (!(objectKey in this.objects)) return null;
+    if (!(frameKey in this.objects[objectKey].frames)) return null;
+    if (!(nodeKey in this.objects[objectKey].frames[frameKey].nodes)) return null;
     return this.objects[objectKey].frames[frameKey].nodes[nodeKey];
 };
 
@@ -301,7 +304,7 @@ realityEditor.getNode = function (objectKey, frameKey, nodeKey) {
  * @param {string|undefined} nodeKey
  * @return {Frame|Node|null}
  */
-realityEditor.getVehicle = function(objectKey, frameKey, nodeKey) {
+realityEditor.getVehicle = function (objectKey, frameKey, nodeKey) {
     if (nodeKey) {
         return realityEditor.getNode(objectKey, frameKey, nodeKey);
     } else {
@@ -316,13 +319,13 @@ realityEditor.getVehicle = function(objectKey, frameKey, nodeKey) {
  * @param {string} linkKey
  * @return {Link|null}
  */
-realityEditor.getLink = function (objectKey, frameKey, linkKey){
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!linkKey) return null;
-    if(!(objectKey in this.objects)) return null;
-    if(!(frameKey in this.objects[objectKey].frames)) return null;
-    if(!(linkKey in this.objects[objectKey].frames[frameKey].links)) return null;
+realityEditor.getLink = function (objectKey, frameKey, linkKey) {
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!linkKey) return null;
+    if (!(objectKey in this.objects)) return null;
+    if (!(frameKey in this.objects[objectKey].frames)) return null;
+    if (!(linkKey in this.objects[objectKey].frames[frameKey].links)) return null;
     return this.objects[objectKey].frames[frameKey].links[linkKey];
 };
 
@@ -334,15 +337,15 @@ realityEditor.getLink = function (objectKey, frameKey, linkKey){
  * @param {Block} block
  * @return {Block|null}
  */
-realityEditor.getBlock = function (objectKey, frameKey, nodeKey, block){
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!nodeKey) return null;
-    if(!block) return null;
-    if(!(objectKey in this.objects)) return null;
-    if(!(frameKey in this.objects[objectKey].frames)) return null;
-    if(!(nodeKey in this.objects[objectKey].frames[frameKey].nodeKey)) return null;
-    if(!(block in this.objects[objectKey].frames[frameKey].nodes[nodeKey].blocks)) return null;
+realityEditor.getBlock = function (objectKey, frameKey, nodeKey, block) {
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!nodeKey) return null;
+    if (!block) return null;
+    if (!(objectKey in this.objects)) return null;
+    if (!(frameKey in this.objects[objectKey].frames)) return null;
+    if (!(nodeKey in this.objects[objectKey].frames[frameKey].nodeKey)) return null;
+    if (!(block in this.objects[objectKey].frames[frameKey].nodes[nodeKey].blocks)) return null;
     return this.objects[objectKey].frames[frameKey].nodes[nodeKey].blocks[block];
 };
 
@@ -354,15 +357,15 @@ realityEditor.getBlock = function (objectKey, frameKey, nodeKey, block){
  * @param {string} linkKey
  * @return {BlockLink|null}
  */
-realityEditor.getBlockLink = function (objectKey, frameKey, nodeKey, linkKey){
-    if(!objectKey) return null;
-    if(!frameKey) return null;
-    if(!nodeKey) return null;
-    if(!linkKey) return null;
-    if(!(objectKey in this.objects)) return null;
-    if(!(frameKey in this.objects[objectKey].frames)) return null;
-    if(!(nodeKey in this.objects[objectKey].frames[frameKey].nodeKey)) return null;
-    if(!(linkKey in this.objects[objectKey].frames[frameKey].nodes[nodeKey].links)) return null;
+realityEditor.getBlockLink = function (objectKey, frameKey, nodeKey, linkKey) {
+    if (!objectKey) return null;
+    if (!frameKey) return null;
+    if (!nodeKey) return null;
+    if (!linkKey) return null;
+    if (!(objectKey in this.objects)) return null;
+    if (!(frameKey in this.objects[objectKey].frames)) return null;
+    if (!(nodeKey in this.objects[objectKey].frames[frameKey].nodeKey)) return null;
+    if (!(linkKey in this.objects[objectKey].frames[frameKey].nodes[nodeKey].links)) return null;
     return this.objects[objectKey].frames[frameKey].nodes[nodeKey].links[linkKey];
 };
 
@@ -372,7 +375,7 @@ realityEditor.getBlockLink = function (objectKey, frameKey, nodeKey, linkKey){
  * Perform the callback with each (object, objectKey) pair for all objects
  * @param {function} callback
  */
-realityEditor.forEachObject = function(callback){
+realityEditor.forEachObject = function (callback) {
     for (var objectKey in objects) {
         var object = realityEditor.getObject(objectKey);
         if (object) {
@@ -385,7 +388,7 @@ realityEditor.forEachObject = function(callback){
  * Perform the callback on each (objectKey, frameKey, nodeKey) pair for all objects, frames, and nodes
  * @param {function} callback
  */
-realityEditor.forEachNodeInAllObjects = function(callback) {
+realityEditor.forEachNodeInAllObjects = function (callback) {
     for (var objectKey in objects) {
         realityEditor.forEachNodeInObject(objectKey, callback);
     }
@@ -396,7 +399,7 @@ realityEditor.forEachNodeInAllObjects = function(callback) {
  * @param {string} objectKey
  * @param {function} callback
  */
-realityEditor.forEachNodeInObject = function(objectKey, callback) {
+realityEditor.forEachNodeInObject = function (objectKey, callback) {
     var object = realityEditor.getObject(objectKey);
     if (!object) return;
     for (var frameKey in object.frames) {
@@ -411,7 +414,7 @@ realityEditor.forEachNodeInObject = function(objectKey, callback) {
  * @param {string} frameKey
  * @param {function} callback
  */
-realityEditor.forEachNodeInFrame = function(objectKey, frameKey, callback) {
+realityEditor.forEachNodeInFrame = function (objectKey, frameKey, callback) {
     var frame = realityEditor.getFrame(objectKey, frameKey);
     if (!frame) return;
     for (var nodeKey in frame.nodes) {
@@ -424,7 +427,7 @@ realityEditor.forEachNodeInFrame = function(objectKey, frameKey, callback) {
  * Perform the callback on each (objectKey, frameKey, nodeKey) pair for all objects, frames, and nodes
  * @param {function} callback
  */
-realityEditor.forEachFrameInAllObjects = function(callback) {
+realityEditor.forEachFrameInAllObjects = function (callback) {
     for (var objectKey in objects) {
         realityEditor.forEachFrameInObject(objectKey, callback);
     }
@@ -436,7 +439,7 @@ realityEditor.forEachFrameInAllObjects = function(callback) {
  * @param {function} callback
  * @todo: simplify signature: doesnt need to include objectKey in callback since its an arg
  */
-realityEditor.forEachFrameInObject = function(objectKey, callback) {
+realityEditor.forEachFrameInObject = function (objectKey, callback) {
     var object = realityEditor.getObject(objectKey);
     if (!object) return;
     for (var frameKey in object.frames) {
@@ -452,8 +455,7 @@ realityEditor.vehicleKeyCache = {}; // improves efficiency of getKeysFromVehicle
  * @param {Objects|Frame|Node} vehicle
  * @return {{objectKey: string|null, frameKey: string|null, nodeKey: string|null}}
  */
-realityEditor.getKeysFromVehicle = function(vehicle) {
-
+realityEditor.getKeysFromVehicle = function (vehicle) {
     // load from cache if possible
     if (typeof vehicle.uuid !== 'undefined') {
         if (typeof this.vehicleKeyCache[vehicle.uuid] !== 'undefined') {
@@ -471,7 +473,10 @@ realityEditor.getKeysFromVehicle = function(vehicle) {
     if (typeof vehicle.frameId !== 'undefined') {
         frameKey = vehicle.frameId;
     }
-    if (typeof vehicle.uuid !== 'undefined' || (typeof vehicle.type !== 'undefined' && vehicle.type !== 'ui')) {
+    if (
+        typeof vehicle.uuid !== 'undefined' ||
+        (typeof vehicle.type !== 'undefined' && vehicle.type !== 'ui')
+    ) {
         if (objectKey && frameKey) {
             if (typeof vehicle.uuid === 'undefined') {
                 vehicle.uuid = frameKey + vehicle.name;
@@ -487,7 +492,7 @@ realityEditor.getKeysFromVehicle = function(vehicle) {
     this.vehicleKeyCache[vehicle.uuid] = {
         objectKey: objectKey,
         frameKey: frameKey,
-        nodeKey: nodeKey
+        nodeKey: nodeKey,
     };
 
     return this.vehicleKeyCache[vehicle.uuid];
@@ -498,8 +503,8 @@ realityEditor.getKeysFromVehicle = function(vehicle) {
  * @param {Frame|Node} vehicle
  * @return {boolean}
  */
-realityEditor.isVehicleAFrame = function(vehicle) {
-    return (vehicle.type === 'ui' || typeof vehicle.type === 'undefined');
+realityEditor.isVehicleAFrame = function (vehicle) {
+    return vehicle.type === 'ui' || typeof vehicle.type === 'undefined';
 };
 
 /**
@@ -507,12 +512,12 @@ realityEditor.isVehicleAFrame = function(vehicle) {
  * @param {string} nodeKey
  * @return {{linksToNode: Array.<Link>, linksFromNode: Array.<Link>}}
  */
-realityEditor.getLinksToAndFromNode = function(nodeKey) {
+realityEditor.getLinksToAndFromNode = function (nodeKey) {
     let linksToNode = [];
     let linksFromNode = [];
 
     // loop through all frames
-    realityEditor.forEachFrameInAllObjects(function(thatObjectKey, thatFrameKey) {
+    realityEditor.forEachFrameInAllObjects(function (thatObjectKey, thatFrameKey) {
         var thatFrame = realityEditor.getFrame(thatObjectKey, thatFrameKey);
 
         // loop through all links in that frame
@@ -529,6 +534,6 @@ realityEditor.getLinksToAndFromNode = function(nodeKey) {
 
     return {
         linksToNode: linksToNode,
-        linksFromNode: linksFromNode
+        linksFromNode: linksFromNode,
     };
 };

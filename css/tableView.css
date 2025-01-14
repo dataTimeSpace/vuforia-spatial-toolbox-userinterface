@@ -10,8 +10,10 @@
     display: block;
     margin: 0 auto;
 }
-.table-view-row-header {}
-.table-view-column-header {}
+.table-view-row-header {
+}
+.table-view-column-header {
+}
 .table-view-data-modified:after {
     color: lightsteelblue;
     content: '*';
@@ -21,8 +23,9 @@
     border: 2px solid white;
     text-wrap: nowrap;
 }
-.table-view-wrapper th, .table-view-wrapper td {
-    border: 1px solid #AAAAAA;
+.table-view-wrapper th,
+.table-view-wrapper td {
+    border: 1px solid #aaaaaa;
     padding: 10px;
     text-align: center;
     cursor: pointer;

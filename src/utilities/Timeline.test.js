@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'vitest';
-import { Region, Timeline } from "./Timeline";
+import { Region, Timeline } from './Timeline';
 
 const region = new Region(0, 5, null);
 
@@ -8,10 +8,10 @@ describe('region', () => {
         const testRegion = new Region(5, 0, null);
         expect(testRegion).toMatchObject({
             startTime: 0,
-            endTime: 5
+            endTime: 5,
         });
     });
-    
+
     test('region duration is calculated properly', () => {
         const testRegion = new Region(-5, 5, null);
         expect(testRegion.duration).toBe(10);
@@ -32,7 +32,7 @@ describe('region', () => {
         expect(region.equals(testRegion3)).toBe(false);
         expect(region.equals(testRegion4)).toBe(false);
     });
-    
+
     test('rangeEquals returns true for same range', () => {
         const testRegion1 = new Region(0, 5, null);
         const testRegion2 = new Region(0, 5, 'value');
@@ -48,7 +48,7 @@ describe('region', () => {
         expect(region.rangeEquals(testRegion2)).toBe(false);
         expect(region.rangeEquals(testRegion3)).toBe(false);
     });
-    
+
     test('isSubsetOf returns true for subsets', () => {
         const testRegion1 = new Region(0, 5, null);
         const testRegion2 = new Region(0, 3, null);
@@ -59,7 +59,7 @@ describe('region', () => {
         expect(testRegion3.isSubsetOf(region)).toBe(true);
         expect(testRegion4.isSubsetOf(region)).toBe(true);
     });
-    
+
     test('isSubsetOf returns false for non-subsets', () => {
         const testRegion1 = new Region(0, 7, null);
         const testRegion2 = new Region(-2, 5, null);
@@ -72,7 +72,7 @@ describe('region', () => {
         expect(testRegion4.isSubsetOf(region)).toBe(false);
         expect(testRegion5.isSubsetOf(region)).toBe(false);
     });
-    
+
     test('isSupersetOf returns true for supersets', () => {
         const testRegion1 = new Region(0, 5, null);
         const testRegion2 = new Region(0, 7, null);
@@ -96,7 +96,7 @@ describe('region', () => {
         expect(testRegion4.isSupersetOf(region)).toBe(false);
         expect(testRegion5.isSupersetOf(region)).toBe(false);
     });
-    
+
     test('hasOverlapWith returns true for overlapping regions', () => {
         const testRegion1 = new Region(0, 5, null);
         const testRegion2 = new Region(-2, 3, null);
@@ -132,7 +132,7 @@ describe('region', () => {
         expect(testRegion2.isAdjacentTo(region)).toBe(false);
         expect(testRegion3.isAdjacentTo(region)).toBe(false);
     });
-    
+
     test('isEntirelyBefore returns true for regions before', () => {
         const testRegion1 = new Region(-5, 0, null);
         expect(testRegion1.isEntirelyBefore(region)).toBe(true);
@@ -171,18 +171,18 @@ describe('region', () => {
         expect(region.includes(-2)).toBe(false);
         expect(region.includes(7)).toBe(false);
     });
-    
+
     test('subtract returns same region for non-overlapping subtraction', () => {
         const testRegion = new Region(7, 10, null);
         const subtraction = region.subtract(testRegion);
         expect(subtraction).toMatchObject([region]);
     });
-    
+
     test('subtract returns empty list for equivalent regions', () => {
         const testRegion1 = new Region(0, 5, null);
         expect(region.subtract(testRegion1).length).toBe(0);
     });
-    
+
     test('subtract returns empty list for strict supersets', () => {
         const testRegion1 = new Region(0, 7, null);
         const testRegion2 = new Region(-2, 5, null);
@@ -191,16 +191,13 @@ describe('region', () => {
         expect(region.subtract(testRegion2).length).toBe(0);
         expect(region.subtract(testRegion3).length).toBe(0);
     });
-    
+
     test('subtract properly subtracts for strict subsets', () => {
         const testRegion = new Region(2, 3, null);
         const subtraction = region.subtract(testRegion);
-        expect(subtraction).toMatchObject([
-            new Region(0, 2, null),
-            new Region(3, 5, null)
-        ])
+        expect(subtraction).toMatchObject([new Region(0, 2, null), new Region(3, 5, null)]);
     });
-    
+
     test('subtract properly subtracts regions overlapping on one side', () => {
         const testRegion1 = new Region(-2, 2, null);
         const testRegion2 = new Region(3, 7, null);
@@ -209,7 +206,7 @@ describe('region', () => {
         expect(subtraction1).toMatchObject([new Region(2, 5, null)]);
         expect(subtraction2).toMatchObject([new Region(0, 3, null)]);
     });
-    
+
     test('merge functions properly', () => {
         const testRegion1 = new Region(-2, 2, null);
         const testRegion2 = new Region(3, 7, null);
@@ -222,9 +219,9 @@ describe('region', () => {
         expect(region.merge(testRegion4)).toMatchObject(new Region(0, 7, null));
         expect(region.merge(testRegion5)).toMatchObject(new Region(0, 9, null));
     });
-    
+
     test('merge throws error for different values', () => {
-        const testRegion1 = new Region(3, 7, "weird value");
+        const testRegion1 = new Region(3, 7, 'weird value');
         expect(() => region.merge(testRegion1)).toThrowError();
     });
 
@@ -237,98 +234,94 @@ describe('region', () => {
 describe('timeline', () => {
     test('insert adds elements properly', () => {
         const timeline = new Timeline();
-        timeline.insert(0, 5, "initial");
-        expect(timeline.regions).toMatchObject([new Region(0, 5, "initial")]);
-        timeline.insert(2, 7, "initial");
-        expect(timeline.regions).toMatchObject([new Region(0, 7, "initial")]);
-        timeline.insert(3, 4, "value");
+        timeline.insert(0, 5, 'initial');
+        expect(timeline.regions).toMatchObject([new Region(0, 5, 'initial')]);
+        timeline.insert(2, 7, 'initial');
+        expect(timeline.regions).toMatchObject([new Region(0, 7, 'initial')]);
+        timeline.insert(3, 4, 'value');
         expect(timeline.regions).toMatchObject([
-            new Region(0, 3, "initial"),
-            new Region(3, 4, "value"),
-            new Region(4, 7, "initial")
+            new Region(0, 3, 'initial'),
+            new Region(3, 4, 'value'),
+            new Region(4, 7, 'initial'),
         ]);
-        timeline.insert(-5, -2, "value");
+        timeline.insert(-5, -2, 'value');
         expect(timeline.regions).toMatchObject([
-            new Region(-5, -2, "value"),
-            new Region(0, 3, "initial"),
-            new Region(3, 4, "value"),
-            new Region(4, 7, "initial")
+            new Region(-5, -2, 'value'),
+            new Region(0, 3, 'initial'),
+            new Region(3, 4, 'value'),
+            new Region(4, 7, 'initial'),
         ]);
-        timeline.insert(-2, 3, "value");
+        timeline.insert(-2, 3, 'value');
         expect(timeline.regions).toMatchObject([
-            new Region(-5, 4, "value"),
-            new Region(4, 7, "initial")
+            new Region(-5, 4, 'value'),
+            new Region(4, 7, 'initial'),
         ]);
-        timeline.insert(-10, 10, "other");
-        expect(timeline.regions).toMatchObject([
-            new Region(-10, 10, "other")
-        ]);
+        timeline.insert(-10, 10, 'other');
+        expect(timeline.regions).toMatchObject([new Region(-10, 10, 'other')]);
     });
-    
+
     test('clear modifies elements properly', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
+        timeline.insert(-10, 10, 'initial');
         timeline.clear(-2, 2);
         expect(timeline.regions).toMatchObject([
-            new Region(-10, -2, "initial"),
-            new Region(2, 10, "initial")
+            new Region(-10, -2, 'initial'),
+            new Region(2, 10, 'initial'),
         ]);
         timeline.clear(-5, -2);
         timeline.clear(2, 5);
         expect(timeline.regions).toMatchObject([
-            new Region(-10, -5, "initial"),
-            new Region(5, 10, "initial")
+            new Region(-10, -5, 'initial'),
+            new Region(5, 10, 'initial'),
         ]);
         timeline.clear(-10, -5);
-        expect(timeline.regions).toMatchObject([
-            new Region(5, 10, "initial")
-        ]);
+        expect(timeline.regions).toMatchObject([new Region(5, 10, 'initial')]);
         timeline.clear(5, 10);
         expect(timeline.regions).toMatchObject([]);
     });
-    
+
     test('isRegionPresent returns true when it should', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
-        expect(timeline.isRegionPresent(-10, 10, "initial")).toBe(true);
-        expect(timeline.isRegionPresent(-10, 5, "initial")).toBe(true);
-        expect(timeline.isRegionPresent(-5, 10, "initial")).toBe(true);
-        expect(timeline.isRegionPresent(-5, 5, "initial")).toBe(true);
+        timeline.insert(-10, 10, 'initial');
+        expect(timeline.isRegionPresent(-10, 10, 'initial')).toBe(true);
+        expect(timeline.isRegionPresent(-10, 5, 'initial')).toBe(true);
+        expect(timeline.isRegionPresent(-5, 10, 'initial')).toBe(true);
+        expect(timeline.isRegionPresent(-5, 5, 'initial')).toBe(true);
     });
 
     test('isRegionPresent returns false when it should', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
-        expect(timeline.isRegionPresent(-10, 15, "initial")).toBe(false);
-        expect(timeline.isRegionPresent(-15, 10, "initial")).toBe(false);
-        expect(timeline.isRegionPresent(-15, 15, "initial")).toBe(false);
-        expect(timeline.isRegionPresent(-20, -15, "initial")).toBe(false);
-        expect(timeline.isRegionPresent(15, 20, "initial")).toBe(false);
-        expect(timeline.isRegionPresent(-10, 10, "other")).toBe(false);
-        expect(timeline.isRegionPresent(-10, 5, "other")).toBe(false);
-        expect(timeline.isRegionPresent(-5, 10, "other")).toBe(false);
-        expect(timeline.isRegionPresent(-5, 5, "other")).toBe(false);
+        timeline.insert(-10, 10, 'initial');
+        expect(timeline.isRegionPresent(-10, 15, 'initial')).toBe(false);
+        expect(timeline.isRegionPresent(-15, 10, 'initial')).toBe(false);
+        expect(timeline.isRegionPresent(-15, 15, 'initial')).toBe(false);
+        expect(timeline.isRegionPresent(-20, -15, 'initial')).toBe(false);
+        expect(timeline.isRegionPresent(15, 20, 'initial')).toBe(false);
+        expect(timeline.isRegionPresent(-10, 10, 'other')).toBe(false);
+        expect(timeline.isRegionPresent(-10, 5, 'other')).toBe(false);
+        expect(timeline.isRegionPresent(-5, 10, 'other')).toBe(false);
+        expect(timeline.isRegionPresent(-5, 5, 'other')).toBe(false);
     });
-    
+
     test('getValue returns the correct value', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
-        expect(timeline.getValue(0)).toBe("initial");
+        timeline.insert(-10, 10, 'initial');
+        expect(timeline.getValue(0)).toBe('initial');
         expect(timeline.getValue(50)).toBeNull();
     });
 
     test('getValueForRegion returns the correct value', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
-        expect(timeline.getValueForRegion(-10, 10)).toBe("initial");
-        expect(timeline.getValueForRegion(-5, 5)).toBe("initial");
-        expect(timeline.getValueForRegion(-10, 5)).toBe("initial");
-        expect(timeline.getValueForRegion(-5, 10)).toBe("initial");
+        timeline.insert(-10, 10, 'initial');
+        expect(timeline.getValueForRegion(-10, 10)).toBe('initial');
+        expect(timeline.getValueForRegion(-5, 5)).toBe('initial');
+        expect(timeline.getValueForRegion(-10, 5)).toBe('initial');
+        expect(timeline.getValueForRegion(-5, 10)).toBe('initial');
     });
 
     test('getValueForRegion returns null when no matching region exists', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
+        timeline.insert(-10, 10, 'initial');
         expect(timeline.getValueForRegion(-12, 10)).toBeNull();
         expect(timeline.getValueForRegion(-10, 12)).toBeNull();
         expect(timeline.getValueForRegion(-12, 12)).toBeNull();
@@ -339,20 +332,20 @@ describe('timeline', () => {
         expect(timeline.getValueForRegion(-20, -10)).toBeNull();
         expect(timeline.getValueForRegion(10, 20)).toBeNull();
     });
-    
+
     test('subset creates subsets properly', () => {
         const timeline = new Timeline();
-        timeline.insert(-10, 10, "initial");
-        timeline.insert(-2, 2, "value");
+        timeline.insert(-10, 10, 'initial');
+        timeline.insert(-2, 2, 'value');
         const subset1 = timeline.subset(-10, -2);
         expect(subset1).toMatchObject({
             regions: [
                 {
                     startTime: -10,
                     endTime: -2,
-                    value: "initial"
-                }
-            ]
+                    value: 'initial',
+                },
+            ],
         });
         const subset2 = timeline.subset(-10, 0);
         expect(subset2).toMatchObject({
@@ -360,25 +353,25 @@ describe('timeline', () => {
                 {
                     startTime: -10,
                     endTime: -2,
-                    value: "initial"
+                    value: 'initial',
                 },
                 {
                     startTime: -2,
                     endTime: 0,
-                    value: "value"
-                }
-            ]
+                    value: 'value',
+                },
+            ],
         });
         const subset3 = timeline.subset(-20, -15);
         expect(subset3).toMatchObject({
-            regions: []
+            regions: [],
         });
     });
-    
+
     test('copy copies timelines properly', () => {
         const timeline = new Timeline();
         expect(new Timeline().copy(timeline)).toMatchObject(timeline);
-        timeline.insert(-10, 10, "initial");
+        timeline.insert(-10, 10, 'initial');
         expect(new Timeline().copy(timeline)).toMatchObject(timeline);
         timeline.clear(-5, 5);
         expect(new Timeline().copy(timeline)).toMatchObject(timeline);

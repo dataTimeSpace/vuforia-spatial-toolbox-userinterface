@@ -1,14 +1,14 @@
-import * as THREE from "../../thirdPartyCode/three/three.module.js";
+import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
-createNameSpace("realityEditor.humanPose");
+createNameSpace('realityEditor.humanPose');
 
-import * as network from './network.js'
-import * as draw from './draw.js'
-import * as utils from './utils.js'
-import {JOINTS, JOINTS_V1_COUNT, JOINTS_V2_COUNT, JOINTS_PER_POSE} from "./constants.js";
-import {Pose} from "./Pose.js";
+import * as network from './network.js';
+import * as draw from './draw.js';
+import * as utils from './utils.js';
+import { JOINTS, JOINTS_V1_COUNT, JOINTS_V2_COUNT, JOINTS_PER_POSE } from './constants.js';
+import { Pose } from './Pose.js';
 
-(function(exports) {
+(function (exports) {
     // Re-export submodules for use in legacy code
     exports.network = network;
     exports.draw = draw;
@@ -17,7 +17,7 @@ import {Pose} from "./Pose.js";
     const MAX_FPS = 20;
     const IDLE_TIMEOUT_MS = 2000;
 
-    let myHumanPoseId = null;  // objectId
+    let myHumanPoseId = null; // objectId
 
     let humanPoseObjects = {};
     let nameIdMap = {};
@@ -28,7 +28,11 @@ import {Pose} from "./Pose.js";
 
     function initService() {
         realityEditor.app.callbacks.subscribeToPoses((poseJoints, frameData) => {
-            let pose = utils.makePoseData('device' + globalStates.tempUuid + '_pose1', poseJoints, frameData);
+            let pose = utils.makePoseData(
+                'device' + globalStates.tempUuid + '_pose1',
+                poseJoints,
+                frameData
+            );
             let poseObjectName = utils.getPoseObjectName(pose);
 
             if (typeof nameIdMap[poseObjectName] === 'undefined') {
@@ -64,7 +68,7 @@ import {Pose} from "./Pose.js";
 
             try {
                 // main update runs at ~60 FPS, but we can save some compute by limiting the pose rendering FPS
-                if (Date.now() - lastRenderTime < (1000.0 / MAX_FPS)) return;
+                if (Date.now() - lastRenderTime < 1000.0 / MAX_FPS) return;
                 lastRenderTime = Date.now();
 
                 if (lastRenderTime - lastUpdateTime > IDLE_TIMEOUT_MS) {
@@ -82,8 +86,7 @@ import {Pose} from "./Pose.js";
                     if (typeof lastRenderedPoses[id] === 'undefined') {
                         updatedHumanPoseObjects.push(obj);
                         lastRenderedPoses[id] = newPoseHash;
-                    }
-                    else {
+                    } else {
                         if (newPoseHash !== lastRenderedPoses[id]) {
                             updatedHumanPoseObjects.push(obj);
                             lastRenderedPoses[id] = newPoseHash;
@@ -95,7 +98,6 @@ import {Pose} from "./Pose.js";
                 lastUpdateTime = Date.now();
 
                 draw.renderLiveHumanPoseObjects(updatedHumanPoseObjects, Date.now());
-
             } catch (e) {
                 console.warn('error in renderLiveHumanPoseObjects', e);
             }
@@ -125,7 +127,12 @@ import {Pose} from "./Pose.js";
      * @param {MotionStudy} motionStudy
      */
     async function loadHistory(historyRegion, motionStudy) {
-        if (!realityEditor.sceneGraph || !realityEditor.sceneGraph.getWorldId() || !realityEditor.device || !realityEditor.device.environment) {
+        if (
+            !realityEditor.sceneGraph ||
+            !realityEditor.sceneGraph.getWorldId() ||
+            !realityEditor.device ||
+            !realityEditor.device.environment
+        ) {
             setTimeout(() => {
                 loadHistory(historyRegion, motionStudy);
             }, 500);
@@ -138,7 +145,11 @@ import {Pose} from "./Pose.js";
         const regionEndTime = historyRegion.endTime;
 
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
-        const historyLogsUrl = realityEditor.network.getURL(worldObject.ip, realityEditor.network.getPort(worldObject), '/history/logs');
+        const historyLogsUrl = realityEditor.network.getURL(
+            worldObject.ip,
+            realityEditor.network.getPort(worldObject),
+            '/history/logs'
+        );
         let logs = [];
         for (let retry = 0; retry < 3; retry++) {
             try {
@@ -179,7 +190,10 @@ import {Pose} from "./Pose.js";
             if (log) {
                 await replayHistory(log, motionStudy);
             } else {
-                console.error('Unable to load history log after retries', `${historyLogsUrl}/${logName}`);
+                console.error(
+                    'Unable to load history log after retries',
+                    `${historyLogsUrl}/${logName}`
+                );
             }
         }
 
@@ -192,10 +206,10 @@ import {Pose} from "./Pose.js";
         const timestampStrings = Object.keys(history);
         const poses = [];
         const mostRecentPoseByObjectId = {};
-        timestampStrings.forEach(timestampString => {
+        timestampStrings.forEach((timestampString) => {
             let historyEntry = history[timestampString];
             let objectNames = Object.keys(historyEntry);
-            let presentHumanNames = objectNames.filter(name => name.startsWith('_HUMAN_'));
+            let presentHumanNames = objectNames.filter((name) => name.startsWith('_HUMAN_'));
             applyDiff(timeObjects, historyEntry);
             if (presentHumanNames.length === 0) {
                 return;
@@ -229,8 +243,13 @@ import {Pose} from "./Pose.js";
                     let confidence = 0.0;
                     if (keys) {
                         const node = poseObject.frames[keys.frameKey].nodes[keys.nodeKey];
-                        if (node && node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data].confidence !== undefined) {
-                            confidence = node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data].confidence;
+                        if (
+                            node &&
+                            node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data].confidence !==
+                                undefined
+                        ) {
+                            confidence =
+                                node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data].confidence;
                         }
                     }
                     jointConfidences[jointId] = confidence;
@@ -242,11 +261,9 @@ import {Pose} from "./Pose.js";
                 if (length !== JOINTS_PER_POSE) {
                     if (length == JOINTS_V1_COUNT) {
                         utils.convertFromJointsV1(jointPositions, jointConfidences);
-                    }
-                    else if (length == JOINTS_V2_COUNT) {
+                    } else if (length == JOINTS_V2_COUNT) {
                         utils.convertFromJointsV2(jointPositions, jointConfidences);
-                    }
-                    else {
+                    } else {
                         console.error('Unknown joint schema of a recorded pose.');
                         return;
                     }
@@ -256,7 +273,7 @@ import {Pose} from "./Pose.js";
                 const timestamp = Math.round(poseObject.lastUpdateDataTS); // parseInt(timestampString)
                 const pose = new Pose(jointPositions, jointConfidences, timestamp, {
                     poseObjectId: identifier,
-                    poseHasParent: poseObject.parent && (poseObject.parent !== 'none'),
+                    poseHasParent: poseObject.parent && poseObject.parent !== 'none',
                 });
                 pose.metadata.previousPose = mostRecentPoseByObjectId[poseObject.objectId];
                 mostRecentPoseByObjectId[poseObject.objectId] = pose;
@@ -305,49 +322,52 @@ import {Pose} from "./Pose.js";
      * @param {Object} pose - 23 real joints
      */
     function addSyntheticJoints(pose) {
-
         if (pose.joints.length <= 0) {
             // if no pose is detected, cannot add
             return;
         }
 
         // head
-        pose.joints.push(averageJoints(extractJoints(pose.joints, [
-            JOINTS.LEFT_EAR,
-            JOINTS.RIGHT_EAR,
-        ])));
+        pose.joints.push(
+            averageJoints(extractJoints(pose.joints, [JOINTS.LEFT_EAR, JOINTS.RIGHT_EAR]))
+        );
         // neck
-        pose.joints.push(averageJoints(extractJoints(pose.joints, [
-            JOINTS.LEFT_SHOULDER,
-            JOINTS.RIGHT_SHOULDER,
-        ])));
+        pose.joints.push(
+            averageJoints(extractJoints(pose.joints, [JOINTS.LEFT_SHOULDER, JOINTS.RIGHT_SHOULDER]))
+        );
         // chest
-        pose.joints.push(averageJoints(extractJoints(pose.joints, [
-            JOINTS.LEFT_SHOULDER,
-            JOINTS.RIGHT_SHOULDER,
-            JOINTS.LEFT_SHOULDER,
-            JOINTS.RIGHT_SHOULDER,
-            JOINTS.LEFT_HIP,
-            JOINTS.RIGHT_HIP,
-        ])));
+        pose.joints.push(
+            averageJoints(
+                extractJoints(pose.joints, [
+                    JOINTS.LEFT_SHOULDER,
+                    JOINTS.RIGHT_SHOULDER,
+                    JOINTS.LEFT_SHOULDER,
+                    JOINTS.RIGHT_SHOULDER,
+                    JOINTS.LEFT_HIP,
+                    JOINTS.RIGHT_HIP,
+                ])
+            )
+        );
         // navel
-        pose.joints.push(averageJoints(extractJoints(pose.joints, [
-            JOINTS.LEFT_SHOULDER,
-            JOINTS.RIGHT_SHOULDER,
-            JOINTS.LEFT_HIP,
-            JOINTS.RIGHT_HIP,
-            JOINTS.LEFT_HIP,
-            JOINTS.RIGHT_HIP,
-        ])));
+        pose.joints.push(
+            averageJoints(
+                extractJoints(pose.joints, [
+                    JOINTS.LEFT_SHOULDER,
+                    JOINTS.RIGHT_SHOULDER,
+                    JOINTS.LEFT_HIP,
+                    JOINTS.RIGHT_HIP,
+                    JOINTS.LEFT_HIP,
+                    JOINTS.RIGHT_HIP,
+                ])
+            )
+        );
         // pelvis
-        pose.joints.push(averageJoints(extractJoints(pose.joints, [
-            JOINTS.LEFT_HIP,
-            JOINTS.RIGHT_HIP,
-        ])));
+        pose.joints.push(
+            averageJoints(extractJoints(pose.joints, [JOINTS.LEFT_HIP, JOINTS.RIGHT_HIP]))
+        );
     }
 
     function updateObjectFromRawPose(humanPoseObject, pose) {
-
         if (pose.joints.length <= 0) {
             // if no pose is detected, don't update (even update timestamp)
             return;
@@ -360,14 +380,26 @@ import {Pose} from "./Pose.js";
         var objPosition = {
             x: pose.joints[0].x,
             y: pose.joints[0].y,
-            z: pose.joints[0].z
+            z: pose.joints[0].z,
         };
 
         humanPoseObject.matrix = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            objPosition.x, objPosition.y, objPosition.z, 1
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            objPosition.x,
+            objPosition.y,
+            objPosition.z,
+            1,
         ];
 
         // updating scene graph with new pose
@@ -378,20 +410,32 @@ import {Pose} from "./Pose.js";
         // update relative positions of all joints/frames wrt. object positions
         pose.joints.forEach((jointInfo, index) => {
             let jointName = Object.values(JOINTS)[index];
-            let frameId = Object.keys(humanPoseObject.frames).find(key => {
+            let frameId = Object.keys(humanPoseObject.frames).find((key) => {
                 return key.endsWith(jointName);
             });
             if (!frameId) {
-                console.warn('couldn\'t find frame for joint ' + jointName + ' (' + index + ')');
+                console.warn("couldn't find frame for joint " + jointName + ' (' + index + ')');
                 return;
             }
 
             // set position of jointFrame
             let positionMatrix = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                jointInfo.x - objPosition.x, jointInfo.y - objPosition.y, jointInfo.z - objPosition.z, 1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                jointInfo.x - objPosition.x,
+                jointInfo.y - objPosition.y,
+                jointInfo.z - objPosition.z,
+                1,
             ];
 
             // updating scene graph with new pose
@@ -404,15 +448,15 @@ import {Pose} from "./Pose.js";
             if (keys) {
                 let node = realityEditor.getNode(keys.objectKey, keys.frameKey, keys.nodeKey);
                 if (node) {
-                    node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data] = { confidence: jointInfo.confidence };
+                    node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.data] = {
+                        confidence: jointInfo.confidence,
+                    };
                 }
             }
         });
-
     }
 
     function tryUpdatingPoseObject(pose, humanPoseObject) {
-
         //console.log('try updating pose object', pose, humanPoseObject);
 
         addSyntheticJoints(pose);
@@ -424,75 +468,111 @@ import {Pose} from "./Pose.js";
         // This public data contain the whole pose (joint 3D positions and confidences) to transfer in one go to servers
         let keys = utils.getJointNodeInfo(humanPoseObject, JOINTS.NOSE);
         if (keys) {
-            realityEditor.network.realtime.writePublicData(keys.objectKey, keys.frameKey, keys.nodeKey, utils.JOINT_PUBLIC_DATA_KEYS.transferData, pose);
+            realityEditor.network.realtime.writePublicData(
+                keys.objectKey,
+                keys.frameKey,
+                keys.nodeKey,
+                utils.JOINT_PUBLIC_DATA_KEYS.transferData,
+                pose
+            );
         }
-
     }
 
     let objectsInProgress = {};
 
     function tryCreatingObjectFromPose(poseObjectName) {
-
-        if (objectsInProgress[poseObjectName]) { return; }
+        if (objectsInProgress[poseObjectName]) {
+            return;
+        }
         objectsInProgress[poseObjectName] = true;
 
         let worldObject = realityEditor.worldObjects.getBestWorldObject(); // subscribeToPoses only triggers after we localize within a world
 
-        realityEditor.network.utilities.verifyObjectNameNotOnWorldServer(worldObject, poseObjectName, () => {
-            network.addHumanPoseObject(worldObject.objectId, poseObjectName, (data) => {
-                nameIdMap[poseObjectName] = data.id;
-                myHumanPoseId = data.id;
+        realityEditor.network.utilities.verifyObjectNameNotOnWorldServer(
+            worldObject,
+            poseObjectName,
+            () => {
+                network.addHumanPoseObject(
+                    worldObject.objectId,
+                    poseObjectName,
+                    (data) => {
+                        nameIdMap[poseObjectName] = data.id;
+                        myHumanPoseId = data.id;
+                        delete objectsInProgress[poseObjectName];
+                    },
+                    (err) => {
+                        console.warn('unable to add human pose object to server', err);
+                        delete objectsInProgress[poseObjectName];
+                    }
+                );
+            },
+            () => {
+                console.warn('human pose already exists on server');
                 delete objectsInProgress[poseObjectName];
-
-            }, (err) => {
-                console.warn('unable to add human pose object to server', err);
-                delete objectsInProgress[poseObjectName];
-
-            });
-        }, () => {
-            console.warn('human pose already exists on server');
-            delete objectsInProgress[poseObjectName];
-
-        });
+            }
+        );
     }
 
     // initialize the human pose object
     function handleDiscoveredHumanPose(object, objectKey) {
-        if (!utils.isHumanPoseObject(object)) { return; }
-        if (typeof humanPoseObjects[objectKey] !== 'undefined') { return; }
+        if (!utils.isHumanPoseObject(object)) {
+            return;
+        }
+        if (typeof humanPoseObjects[objectKey] !== 'undefined') {
+            return;
+        }
         humanPoseObjects[objectKey] = object; // keep track of which human pose objects we've processed so far
-
 
         if (objectKey === myHumanPoseId) {
             // no action for now
         } else {
             // subscribe to public data of a selected joint node in remote HumanPoseObject which transfers whole pose
             let keys = utils.getJointNodeInfo(object, JOINTS.NOSE);
-            if (!keys) { return; }
+            if (!keys) {
+                return;
+            }
 
             let subscriptionCallback = (msgContent) => {
                 // update public data of node in local human pose object
-                let node = realityEditor.getNode(msgContent.object, msgContent.frame, msgContent.node);
+                let node = realityEditor.getNode(
+                    msgContent.object,
+                    msgContent.frame,
+                    msgContent.node
+                );
                 if (!node) {
-                    console.warn('couldn\'t find the node ' + msgContent.node + ' which stores whole pose data');
+                    console.warn(
+                        "couldn't find the node " +
+                            msgContent.node +
+                            ' which stores whole pose data'
+                    );
                     return;
                 }
                 // MK TODO: is it necessary to store all transfered data into the node of local object? on top of updateObjectFromRawPose below?
-                node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData] = msgContent.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData];
+                node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData] =
+                    msgContent.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData];
 
-                let object = realityEditor.getObject(msgContent.object)
+                let object = realityEditor.getObject(msgContent.object);
                 if (!object) {
-                    console.warn('couldn\'t find the human pose object ' + msgContent.object);
+                    console.warn("couldn't find the human pose object " + msgContent.object);
                     return;
                 }
 
                 // update local instance of HumanPoseObject with new pose data transferred through a selected node
-                updateObjectFromRawPose(object, node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData]);
-            }
+                updateObjectFromRawPose(
+                    object,
+                    node.publicData[utils.JOINT_PUBLIC_DATA_KEYS.transferData]
+                );
+            };
 
-            realityEditor.network.realtime.subscribeToPublicData(keys.objectKey, keys.frameKey, keys.nodeKey, utils.JOINT_PUBLIC_DATA_KEYS.transferData, (msg) => {
-                subscriptionCallback(JSON.parse(msg));
-            });
+            realityEditor.network.realtime.subscribeToPublicData(
+                keys.objectKey,
+                keys.frameKey,
+                keys.nodeKey,
+                utils.JOINT_PUBLIC_DATA_KEYS.transferData,
+                (msg) => {
+                    subscriptionCallback(JSON.parse(msg));
+                }
+            );
         }
     }
 
@@ -503,9 +583,9 @@ import {Pose} from "./Pose.js";
             delete humanPoseObjects[objectId];
             delete realityEditor.objects[objectId];
         }
-        nameIdMap = {}
+        nameIdMap = {};
     }
-    
+
     function returnHumanPoseObjects() {
         return humanPoseObjects;
     }
@@ -514,8 +594,7 @@ import {Pose} from "./Pose.js";
     exports.loadHistory = loadHistory;
     exports.deleteLocalHumanObjects = deleteLocalHumanObjects;
     exports.returnHumanPoseObjects = returnHumanPoseObjects;
-
-}(realityEditor.humanPose));
+})(realityEditor.humanPose);
 
 export const initService = realityEditor.humanPose.initService;
 export const loadHistory = realityEditor.humanPose.loadHistory;

@@ -45,7 +45,7 @@ export class ProfilerSettingsUI {
         this.setInitialPosition();
         this.hide(); // It is important to set the menu's position before hiding it, otherwise its width will be calculated as 0
     }
-    
+
     update() {
         if (this.isHidden) return; // cancels the update loop while hidden
 
@@ -56,7 +56,7 @@ export class ProfilerSettingsUI {
         } catch (e) {
             console.warn(e);
         }
-        
+
         requestAnimationFrame(this.update.bind(this));
     }
 
@@ -111,7 +111,7 @@ export class ProfilerSettingsUI {
         this.root.style.left = '2em';
         this.snapToFitScreen();
     }
-    
+
     addStats() {
         this.stats = new Stats();
         let statsContainer = this.root.querySelector('.profiler-stats-container');
@@ -120,24 +120,30 @@ export class ProfilerSettingsUI {
 
     setUpEventListeners() {
         // Toggle menu minimization when clicking on the header, but only if not dragging
-        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', event => {
+        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', (event) => {
             event.stopPropagation();
             let mouseDownX = event.clientX;
             let mouseDownY = event.clientY;
-            const mouseUpListener = event => {
+            const mouseUpListener = (event) => {
                 const mouseUpX = event.clientX;
                 const mouseUpY = event.clientY;
                 if (mouseDownX === mouseUpX && mouseDownY === mouseUpY) {
                     this.toggleMinimized();
                 }
-                this.root.querySelector('.hpa-settings-header').removeEventListener('mouseup', mouseUpListener);
+                this.root
+                    .querySelector('.hpa-settings-header')
+                    .removeEventListener('mouseup', mouseUpListener);
             };
-            this.root.querySelector('.hpa-settings-header').addEventListener('mouseup', mouseUpListener);
+            this.root
+                .querySelector('.hpa-settings-header')
+                .addEventListener('mouseup', mouseUpListener);
         });
 
-        this.root.querySelector('#profiler-settings-enable-metrics').addEventListener('change', (event) => {
-            this.updateMetrics(event.target.checked);
-        });
+        this.root
+            .querySelector('#profiler-settings-enable-metrics')
+            .addEventListener('change', (event) => {
+                this.updateMetrics(event.target.checked);
+            });
 
         // Add listeners to aid with clicking checkboxes
         this.root.querySelectorAll('.hpa-settings-section-row-checkbox').forEach((checkbox) => {
@@ -177,11 +183,11 @@ export class ProfilerSettingsUI {
                 this.root.style.left = `${dragStartLeft + event.clientX - dragStartX}px`;
                 this.root.style.top = `${dragStartTop + event.clientY - dragStartY}px`;
                 this.snapToFitScreen();
-            }
+            };
             const mouseUpListener = () => {
                 document.removeEventListener('mousemove', mouseMoveListener);
                 document.removeEventListener('mouseup', mouseUpListener);
-            }
+            };
             document.addEventListener('mousemove', mouseMoveListener);
             document.addEventListener('mouseup', mouseUpListener);
         });
@@ -203,7 +209,10 @@ export class ProfilerSettingsUI {
             this.root.style.left = `${window.innerWidth - this.root.offsetWidth}px`;
         }
         // Keep the header visible on the screen off the bottom
-        if (this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight > window.innerHeight) {
+        if (
+            this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight >
+            window.innerHeight
+        ) {
             this.root.style.top = `${window.innerHeight - this.root.querySelector('.hpa-settings-header').offsetHeight}px`;
         }
     }
@@ -257,7 +266,7 @@ export class ProfilerSettingsUI {
         this.root.querySelector('#profiler-settings-enable-metrics').checked = enabled;
         this.updateMetrics(enabled);
     }
-    
+
     updateMetrics(enabled) {
         let container = document.querySelector('.profiler-log-container');
         if (enabled) {

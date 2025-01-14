@@ -1,10 +1,10 @@
-import {JOINTS, JOINT_CONFIDENCE_THRESHOLD} from './constants.js';
-import {setChildHumanPosesVisible} from "./draw.js"
+import { JOINTS, JOINT_CONFIDENCE_THRESHOLD } from './constants.js';
+import { setChildHumanPosesVisible } from './draw.js';
 
 export class HumanPoseAnalyzerSettingsUi {
     constructor(humanPoseAnalyzer) {
         this.humanPoseAnalyzer = humanPoseAnalyzer;
-        
+
         this.root = document.createElement('div');
         this.root.id = 'hpa-settings';
 
@@ -105,7 +105,7 @@ export class HumanPoseAnalyzerSettingsUi {
                 </div>
             </div>
         `;
-        
+
         this.populateSelects();
         this.setUpEventListeners();
         this.enableDrag();
@@ -124,7 +124,8 @@ export class HumanPoseAnalyzerSettingsUi {
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
         const sessionMenuContainer = document.querySelector('#sessionMenuContainer');
         const sessionMenuLeft = sessionMenuContainer ? sessionMenuContainer.offsetLeft : 0;
-        if (sessionMenuContainer) { // Avoid the top right menu
+        if (sessionMenuContainer) {
+            // Avoid the top right menu
             this.root.style.top = `calc(${navbarHeight}px + 2em)`;
             this.root.style.left = `calc(${sessionMenuLeft - this.root.offsetWidth}px - 6em)`;
             return;
@@ -133,46 +134,61 @@ export class HumanPoseAnalyzerSettingsUi {
         this.root.style.left = `calc(${window.innerWidth - this.root.offsetWidth}px - 2em)`;
         this.snapToFitScreen();
     }
-    
+
     populateSelects() {
-        this.root.querySelector('#hpa-settings-select-lens').innerHTML = this.humanPoseAnalyzer.lenses.map((lens) => {
-            return `<option value="${lens.name}">${lens.name}</option>`;
-        }).join('');
-        
+        this.root.querySelector('#hpa-settings-select-lens').innerHTML =
+            this.humanPoseAnalyzer.lenses
+                .map((lens) => {
+                    return `<option value="${lens.name}">${lens.name}</option>`;
+                })
+                .join('');
+
         const jointNames = ['', ...Object.values(JOINTS)];
-        this.root.querySelector('#hpa-settings-select-joint').innerHTML = jointNames.map((jointName) => {
-            return `<option value="${jointName}">${jointName}</option>`;
-        }).join('');
+        this.root.querySelector('#hpa-settings-select-joint').innerHTML = jointNames
+            .map((jointName) => {
+                return `<option value="${jointName}">${jointName}</option>`;
+            })
+            .join('');
     }
-    
+
     setUpEventListeners() {
         // Toggle menu minimization when clicking on the header, but only if not dragging
-        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', event => {
+        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', (event) => {
             let mouseDownX = event.clientX;
             let mouseDownY = event.clientY;
-            const mouseUpListener = event => {
+            const mouseUpListener = (event) => {
                 const mouseUpX = event.clientX;
                 const mouseUpY = event.clientY;
                 if (mouseDownX === mouseUpX && mouseDownY === mouseUpY) {
                     this.toggleMinimized();
                 }
-                this.root.querySelector('.hpa-settings-header').removeEventListener('mouseup', mouseUpListener);
+                this.root
+                    .querySelector('.hpa-settings-header')
+                    .removeEventListener('mouseup', mouseUpListener);
             };
-            this.root.querySelector('.hpa-settings-header').addEventListener('mouseup', mouseUpListener);
+            this.root
+                .querySelector('.hpa-settings-header')
+                .addEventListener('mouseup', mouseUpListener);
         });
 
-        this.root.querySelector('#hpa-settings-toggle-live-history-lines').addEventListener('change', (event) => {
-            this.humanPoseAnalyzer.setLiveHistoryLinesVisible(event.target.checked);
-        });
-        
-        this.root.querySelector('#hpa-settings-toggle-child-human-poses').addEventListener('change', (event) => {
-            setChildHumanPosesVisible(event.target.checked);
-        });
+        this.root
+            .querySelector('#hpa-settings-toggle-live-history-lines')
+            .addEventListener('change', (event) => {
+                this.humanPoseAnalyzer.setLiveHistoryLinesVisible(event.target.checked);
+            });
 
-        this.root.querySelector('#hpa-settings-toggle-historical-history-lines').addEventListener('change', (event) => {
-            this.humanPoseAnalyzer.setHistoricalHistoryLinesVisible(event.target.checked);
-        });
-        
+        this.root
+            .querySelector('#hpa-settings-toggle-child-human-poses')
+            .addEventListener('change', (event) => {
+                setChildHumanPosesVisible(event.target.checked);
+            });
+
+        this.root
+            .querySelector('#hpa-settings-toggle-historical-history-lines')
+            .addEventListener('change', (event) => {
+                this.humanPoseAnalyzer.setHistoricalHistoryLinesVisible(event.target.checked);
+            });
+
         this.root.querySelector('#hpa-settings-reset-history').addEventListener('mouseup', () => {
             this.humanPoseAnalyzer.resetLiveHistoryLines();
             this.humanPoseAnalyzer.resetLiveHistoryClones();
@@ -182,23 +198,27 @@ export class HumanPoseAnalyzerSettingsUi {
             this.humanPoseAnalyzer.setActiveLensByName(event.target.value);
         });
 
-        this.root.querySelector('#hpa-settings-toggle-tag-menu').addEventListener('change', (event) => {
-            if (event.target.checked) {
-                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.show();
-                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.maximize();
-            } else {
-                this.humanPoseAnalyzer.motionStudy.tagSystemMenu.hide();
-            }
-        });
+        this.root
+            .querySelector('#hpa-settings-toggle-tag-menu')
+            .addEventListener('change', (event) => {
+                if (event.target.checked) {
+                    this.humanPoseAnalyzer.motionStudy.tagSystemMenu.show();
+                    this.humanPoseAnalyzer.motionStudy.tagSystemMenu.maximize();
+                } else {
+                    this.humanPoseAnalyzer.motionStudy.tagSystemMenu.hide();
+                }
+            });
 
-        this.root.querySelector('#hpa-settings-toggle-table').addEventListener('change', (event) => {
-            if (event.target.checked) {
-                this.humanPoseAnalyzer.motionStudy.tableViewMenu.show();
-                this.humanPoseAnalyzer.motionStudy.tableViewMenu.maximize();
-            } else {
-                this.humanPoseAnalyzer.motionStudy.tableViewMenu.hide();
-            }
-        });
+        this.root
+            .querySelector('#hpa-settings-toggle-table')
+            .addEventListener('change', (event) => {
+                if (event.target.checked) {
+                    this.humanPoseAnalyzer.motionStudy.tableViewMenu.show();
+                    this.humanPoseAnalyzer.motionStudy.tableViewMenu.maximize();
+                } else {
+                    this.humanPoseAnalyzer.motionStudy.tableViewMenu.hide();
+                }
+            });
 
         this.root.querySelector('#hpa-settings-toggle-sync').addEventListener('change', (event) => {
             realityEditor.motionStudy.setSynchronizationEnabled(event.target.checked);
@@ -225,19 +245,22 @@ export class HumanPoseAnalyzerSettingsUi {
         });
         */
 
-        this.root.querySelector('#hpa-settings-toggle-joint-confidence').addEventListener('change', (event) => {
-            if (event.target.checked) {
-                this.humanPoseAnalyzer.setJointConfidenceThreshold(JOINT_CONFIDENCE_THRESHOLD);
-            }
-            else {
-                this.humanPoseAnalyzer.setJointConfidenceThreshold(0.0);
-            }
-        });
-        
-        this.root.querySelector('#hpa-settings-select-joint').addEventListener('change', (event) => {
-            this.humanPoseAnalyzer.setActiveJointByName(event.target.value);
-        });
-        
+        this.root
+            .querySelector('#hpa-settings-toggle-joint-confidence')
+            .addEventListener('change', (event) => {
+                if (event.target.checked) {
+                    this.humanPoseAnalyzer.setJointConfidenceThreshold(JOINT_CONFIDENCE_THRESHOLD);
+                } else {
+                    this.humanPoseAnalyzer.setJointConfidenceThreshold(0.0);
+                }
+            });
+
+        this.root
+            .querySelector('#hpa-settings-select-joint')
+            .addEventListener('change', (event) => {
+                this.humanPoseAnalyzer.setActiveJointByName(event.target.value);
+            });
+
         // Add listeners to aid with clicking checkboxes
         this.root.querySelectorAll('.hpa-settings-section-row-checkbox').forEach((checkbox) => {
             const checkboxContainer = checkbox.parentElement;
@@ -249,7 +272,7 @@ export class HumanPoseAnalyzerSettingsUi {
                 event.stopPropagation(); // Prevent double-counting clicks
             });
         });
-        
+
         // Add click listeners to selects to stop propagation to rest of app
         this.root.querySelectorAll('.hpa-settings-section-row-select').forEach((select) => {
             select.addEventListener('click', (event) => {
@@ -257,13 +280,13 @@ export class HumanPoseAnalyzerSettingsUi {
             });
         });
     }
-    
+
     enableDrag() {
         let dragStartX = 0;
         let dragStartY = 0;
         let dragStartLeft = 0;
         let dragStartTop = 0;
-        
+
         this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', (event) => {
             dragStartX = event.clientX;
             dragStartY = event.clientY;
@@ -274,16 +297,16 @@ export class HumanPoseAnalyzerSettingsUi {
                 this.root.style.left = `${dragStartLeft + event.clientX - dragStartX}px`;
                 this.root.style.top = `${dragStartTop + event.clientY - dragStartY}px`;
                 this.snapToFitScreen();
-            }
+            };
             const mouseUpListener = () => {
                 document.removeEventListener('mousemove', mouseMoveListener);
                 document.removeEventListener('mouseup', mouseUpListener);
-            }
+            };
             document.addEventListener('mousemove', mouseMoveListener);
             document.addEventListener('mouseup', mouseUpListener);
         });
     }
-    
+
     isOutOfBounds() {
         const navbar = document.querySelector('.desktopMenuBar');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
@@ -296,7 +319,10 @@ export class HumanPoseAnalyzerSettingsUi {
         if (this.root.offsetLeft + this.root.offsetWidth > window.innerWidth) {
             return true;
         }
-        if (this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight > window.innerHeight) {
+        if (
+            this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight >
+            window.innerHeight
+        ) {
             return true;
         }
         return false;
@@ -318,11 +344,14 @@ export class HumanPoseAnalyzerSettingsUi {
             this.root.style.left = `${window.innerWidth - this.root.offsetWidth}px`;
         }
         // Keep the header visible on the screen off the bottom
-        if (this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight > window.innerHeight) {
+        if (
+            this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight >
+            window.innerHeight
+        ) {
             this.root.style.top = `${window.innerHeight - this.root.querySelector('.hpa-settings-header').offsetHeight}px`;
         }
     }
-    
+
     show() {
         this.root.classList.remove('hidden');
         if (this.isOutOfBounds()) {
@@ -331,11 +360,11 @@ export class HumanPoseAnalyzerSettingsUi {
             this.setInitialPosition();
         }
     }
-    
+
     hide() {
         this.root.classList.add('hidden');
     }
-    
+
     toggle() {
         if (this.root.classList.contains('hidden')) {
             this.show();
@@ -343,7 +372,7 @@ export class HumanPoseAnalyzerSettingsUi {
             this.hide();
         }
     }
-    
+
     minimize() {
         if (this.root.classList.contains('hidden')) {
             return;
@@ -353,7 +382,7 @@ export class HumanPoseAnalyzerSettingsUi {
         this.root.style.width = `${previousWidth}px`;
         this.root.querySelector('.hpa-settings-header-icon').innerText = '+';
     }
-    
+
     maximize() {
         if (this.root.classList.contains('hidden')) {
             return;
@@ -361,7 +390,7 @@ export class HumanPoseAnalyzerSettingsUi {
         this.root.classList.remove('hpa-settings-minimized');
         this.root.querySelector('.hpa-settings-header-icon').innerHTML = '&ndash;';
     }
-    
+
     toggleMinimized() {
         if (this.root.classList.contains('hpa-settings-minimized')) {
             this.maximize();
@@ -375,7 +404,8 @@ export class HumanPoseAnalyzerSettingsUi {
     }
 
     setLiveHistoryLinesVisible(historyLinesVisible) {
-        this.root.querySelector('#hpa-settings-toggle-live-history-lines').checked = historyLinesVisible;
+        this.root.querySelector('#hpa-settings-toggle-live-history-lines').checked =
+            historyLinesVisible;
     }
 
     setChildHumanPosesVisible(visible) {
@@ -383,7 +413,8 @@ export class HumanPoseAnalyzerSettingsUi {
     }
 
     setHistoricalHistoryLinesVisible(historyLinesVisible) {
-        this.root.querySelector('#hpa-settings-toggle-historical-history-lines').checked = historyLinesVisible;
+        this.root.querySelector('#hpa-settings-toggle-historical-history-lines').checked =
+            historyLinesVisible;
     }
 
     setActiveJointByName(_jointName) {
@@ -399,7 +430,7 @@ export class HumanPoseAnalyzerSettingsUi {
     setJointConfidenceFilter(filterOn) {
         this.root.querySelector('#hpa-settings-toggle-joint-confidence').checked = filterOn;
     }
-    
+
     markLive() {
         this.root.querySelector('#hpa-live-settings').classList.remove('hidden');
         this.root.querySelector('#hpa-historical-settings').classList.add('hidden');

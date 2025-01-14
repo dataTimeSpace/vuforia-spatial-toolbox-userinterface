@@ -47,7 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.network.utilities");
+createNameSpace('realityEditor.network.utilities');
 
 /**
  * @desc rename object[before] to object[after], deleting object[before]
@@ -57,8 +57,8 @@ createNameSpace("realityEditor.network.utilities");
  * @return {Object}
  **/
 
-realityEditor.network.utilities.rename = function(object, before, after) {
-    if (typeof object[before] !== "undefined") {
+realityEditor.network.utilities.rename = function (object, before, after) {
+    if (typeof object[before] !== 'undefined') {
         object[after] = object[before];
         delete object[before];
     }
@@ -69,11 +69,11 @@ realityEditor.network.utilities.rename = function(object, before, after) {
  * @param {Node} origin - the logic node you want to update
  * @param {Object.<{string: Block}>} remoteBlocks - set of blocks mapped by their uuid
  */
-realityEditor.network.utilities.syncBlocksWithRemote = function(origin, remoteBlocks) {
+realityEditor.network.utilities.syncBlocksWithRemote = function (origin, remoteBlocks) {
     // delete old blocks
     for (var blockKey in origin.blocks) {
         if (!origin.blocks.hasOwnProperty(blockKey)) continue;
-        if (this.shouldSyncBlock(origin, blockKey, "delete")) {
+        if (this.shouldSyncBlock(origin, blockKey, 'delete')) {
             var domElement = origin.guiState.blockDomElements[blockKey];
             if (domElement) {
                 domElement.parentNode.removeChild(domElement);
@@ -86,9 +86,9 @@ realityEditor.network.utilities.syncBlocksWithRemote = function(origin, remoteBl
     // add missing blocks (updates existing ones too)
     for (blockKey in remoteBlocks) {
         if (!remoteBlocks.hasOwnProperty(blockKey)) continue;
-        if (this.shouldSyncBlock(origin, blockKey, "create")) {
+        if (this.shouldSyncBlock(origin, blockKey, 'create')) {
             origin.blocks[blockKey] = new Block();
-            for (var key in remoteBlocks[blockKey]){
+            for (var key in remoteBlocks[blockKey]) {
                 origin.blocks[blockKey][key] = remoteBlocks[blockKey][key];
             }
         }
@@ -102,10 +102,10 @@ realityEditor.network.utilities.syncBlocksWithRemote = function(origin, remoteBl
  * @param {string} mode - "create" or "delete"
  * @return {boolean}
  */
-realityEditor.network.utilities.shouldSyncBlock = function(origin, blockKey, mode) {
-    if (mode === "create") {
+realityEditor.network.utilities.shouldSyncBlock = function (origin, blockKey, mode) {
+    if (mode === 'create') {
         if (!origin.blocks[blockKey]) return true;
-    } else if (mode === "delete") {
+    } else if (mode === 'delete') {
         if (!origin.blocks[blockKey]) return false;
     }
     // if not create or delete mode, upload it unless it is an inOutBlock - as of 9/10/19 this path is never reached
@@ -117,7 +117,7 @@ realityEditor.network.utilities.shouldSyncBlock = function(origin, blockKey, mod
  * @param {Frame} origin - the frame you want to update
  * @param {Object.<{string: Link}>} remoteLinks - set of links mapped by their uuid
  */
-realityEditor.network.utilities.syncLinksWithRemote = function(origin, remoteLinks) {
+realityEditor.network.utilities.syncLinksWithRemote = function (origin, remoteLinks) {
     // delete old links
     for (var linkKey in origin.links) {
         if (!origin.links.hasOwnProperty(linkKey)) continue;
@@ -127,9 +127,9 @@ realityEditor.network.utilities.syncLinksWithRemote = function(origin, remoteLin
     // add missing links (update existing links too)
     for (linkKey in remoteLinks) {
         if (!remoteLinks.hasOwnProperty(linkKey)) continue;
-        
+
         origin.links[linkKey] = new BlockLink();
-        for (var key in remoteLinks[linkKey]){
+        for (var key in remoteLinks[linkKey]) {
             origin.links[linkKey][key] = remoteLinks[linkKey][key];
         }
     }
@@ -142,9 +142,9 @@ realityEditor.network.utilities.syncLinksWithRemote = function(origin, remoteLin
  * @param {Object.<{string: Node}>} nodes
  * @return {Object.<{string: Node}>}
  */
-realityEditor.network.utilities.getNodesJsonForIframes = function(nodes) {
+realityEditor.network.utilities.getNodesJsonForIframes = function (nodes) {
     var simpleNodes = {};
-    var keysToExclude = ["links", "blocks", "grid", "guiState"];
+    var keysToExclude = ['links', 'blocks', 'grid', 'guiState'];
     for (var node in nodes) {
         if (!nodes.hasOwnProperty(node)) continue;
         simpleNodes[node] = {};
@@ -159,13 +159,28 @@ realityEditor.network.utilities.getNodesJsonForIframes = function(nodes) {
 };
 
 // Check if an object with this name exists on the server
-realityEditor.network.utilities.verifyObjectNameNotOnWorldServer = function(serverWorldObject, objectName, onDoesntExist, onExists) {
-    let downloadUrl = realityEditor.network.getURL(serverWorldObject.ip, realityEditor.network.getPort(serverWorldObject), '/object/' + objectName);
-    realityEditor.network.getData(null, null, null, downloadUrl, (objectKey, _frameKey, _nodeKey, msg) => {
-        if (msg) {
-            onExists(msg);
-        } else {
-            onDoesntExist();
+realityEditor.network.utilities.verifyObjectNameNotOnWorldServer = function (
+    serverWorldObject,
+    objectName,
+    onDoesntExist,
+    onExists
+) {
+    let downloadUrl = realityEditor.network.getURL(
+        serverWorldObject.ip,
+        realityEditor.network.getPort(serverWorldObject),
+        '/object/' + objectName
+    );
+    realityEditor.network.getData(
+        null,
+        null,
+        null,
+        downloadUrl,
+        (objectKey, _frameKey, _nodeKey, msg) => {
+            if (msg) {
+                onExists(msg);
+            } else {
+                onDoesntExist();
+            }
         }
-    });
-}
+    );
+};

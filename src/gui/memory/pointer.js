@@ -47,209 +47,226 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.memory");
+createNameSpace('realityEditor.gui.memory');
 
-(function(exports) {
+(function (exports) {
+    var pointers = {};
 
-var pointers = {};
+    var requestAnimationFrame =
+        window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        function (cb) {
+            setTimeout(cb, 17);
+        };
 
-var requestAnimationFrame = window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame || function(cb) {setTimeout(cb, 17);};
+    /**
+     * @constructor
+     * @param {Object} link - Link object with information regarding connection
+     * @param {Object} isObjectA - Whether this pointer is based on ObjectA or ObjectB
+     * using it as a basis for its position.
+     */
+    function MemoryPointer(link, isObjectA) {
+        this.link = link;
+        this.isObjectA = isObjectA;
 
-/**
- * @constructor
- * @param {Object} link - Link object with information regarding connection
- * @param {Object} isObjectA - Whether this pointer is based on ObjectA or ObjectB
- * using it as a basis for its position.
- */
-function MemoryPointer(link, isObjectA) {
-    this.link = link;
-    this.isObjectA = isObjectA;
+        this.object = null;
+        this.connectedNode = null;
+        this.connectedNodeKey = null;
+        this.connectedFrame = null;
+        this.connectedObject = null;
+        this.frameId = null;
 
-    this.object = null;
-    this.connectedNode = null;
-    this.connectedNodeKey = null;
-    this.connectedFrame = null;
-    this.connectedObject = null;
-    this.frameId = null;
+        if (this.isObjectA) {
+            this.object = objects[this.link.objectA];
+            this.frameId = this.link.frameA;
+            this.connectedObject = objects[this.link.objectB];
+            this.connectedNodeKey = this.link.nodeB;
+            this.connectedFrame = this.connectedObject.frames[this.link.frameB];
+        } else {
+            this.object = objects[this.link.objectB];
+            this.frameId = this.link.frameB;
+            this.connectedObject = objects[this.link.objectA];
+            this.connectedNodeKey = this.link.nodeA;
+            this.connectedFrame = this.connectedObject.frames[this.link.frameA];
+        }
+        this.connectedNode = this.connectedFrame.nodes[this.connectedNodeKey];
 
-    if (this.isObjectA) {
-        this.object = objects[this.link.objectA];
-        this.frameId = this.link.frameA;
-        this.connectedObject = objects[this.link.objectB];
-        this.connectedNodeKey = this.link.nodeB;
-        this.connectedFrame = this.connectedObject.frames[this.link.frameB];
-    } else {
-        this.object = objects[this.link.objectB];
-        this.frameId = this.link.frameB;
-        this.connectedObject = objects[this.link.objectA];
-        this.connectedNodeKey = this.link.nodeA;
-        this.connectedFrame = this.connectedObject.frames[this.link.frameA];
-    }
-    this.connectedNode = this.connectedFrame.nodes[this.connectedNodeKey];
+        this.element = document.createElement('div');
+        this.element.classList.add('memoryContainer');
+        this.element.classList.add('memoryPointer');
+        this.element.setAttribute('touch-action', 'none');
 
-    this.element = document.createElement('div');
-    this.element.classList.add('memoryContainer');
-    this.element.classList.add('memoryPointer');
-    this.element.setAttribute('touch-action', 'none');
+        document.querySelector('.memoryPointerContainer').appendChild(this.element);
 
-    document.querySelector('.memoryPointerContainer').appendChild(this.element);
+        this.memory = new realityEditor.gui.memory.MemoryContainer(this.element);
+        this.memory.set(this.object);
 
-    this.memory = new realityEditor.gui.memory.MemoryContainer(this.element);
-    this.memory.set(this.object);
+        // TODO could calculate center of mass of other points and select location opposite that
+        var baseDistance = (this.connectedNode.screenLinearZ || 5) * 30;
+        var baseTheta = Math.random() * 2 * Math.pi;
+        this.x = Math.cos(baseTheta) * baseDistance;
+        this.y = Math.sin(baseTheta) * baseDistance;
 
-    // TODO could calculate center of mass of other points and select location opposite that
-    var baseDistance = (this.connectedNode.screenLinearZ || 5) * 30;
-    var baseTheta = Math.random() * 2 * Math.pi;
-    this.x = Math.cos(baseTheta) * baseDistance;
-    this.y = Math.sin(baseTheta) * baseDistance;
+        this.alive = true;
+        this.lastDraw = Date.now();
+        this.idleTimeout = 250;
 
-    this.alive = true;
-    this.lastDraw = Date.now();
-    this.idleTimeout = 250;
+        this.beginForceSimulation();
 
-    this.beginForceSimulation();
+        this.update = this.update.bind(this);
+        this.update();
 
-    this.update = this.update.bind(this);
-    this.update();
-
-    pointers[this.object.objectId] = this;
-}
-
-MemoryPointer.prototype.update = function() {
-    var object = this.object;
-    var connectedObject = this.connectedObject;
-    if (!this.alive) {
-        this.remove();
-        return;
-    }
-    if (!object || !connectedObject) {
-        this.remove();
-        return;
-    }
-    if (object.objectVisible) {
-        this.remove();
-        return;
-    }
-    if (globalStates.guiState !== 'node' && globalStates.guiState !== 'logic') { // don't remove when in crafting board either
-        // Remove if no longer in connection-drawing mode
-        this.remove();
-        return;
-    }
-    if (this.lastDraw + this.idleTimeout < Date.now()) {
-        this.remove();
-        return;
+        pointers[this.object.objectId] = this;
     }
 
-    this.updateForceSimulation();
-    requestAnimationFrame(this.update);
-};
+    MemoryPointer.prototype.update = function () {
+        var object = this.object;
+        var connectedObject = this.connectedObject;
+        if (!this.alive) {
+            this.remove();
+            return;
+        }
+        if (!object || !connectedObject) {
+            this.remove();
+            return;
+        }
+        if (object.objectVisible) {
+            this.remove();
+            return;
+        }
+        if (globalStates.guiState !== 'node' && globalStates.guiState !== 'logic') {
+            // don't remove when in crafting board either
+            // Remove if no longer in connection-drawing mode
+            this.remove();
+            return;
+        }
+        if (this.lastDraw + this.idleTimeout < Date.now()) {
+            this.remove();
+            return;
+        }
 
-MemoryPointer.prototype.beginForceSimulation = function() {
-    this.simNode = {
-        id: 'this',
-        x: this.x,
-        y: this.y
+        this.updateForceSimulation();
+        requestAnimationFrame(this.update);
     };
-    this.forceNodes = [this.simNode];
 
-    for (var nodeKey in this.connectedFrame.nodes) {
-        var node = this.connectedFrame.nodes[nodeKey];
-        this.forceNodes.push({
-            id: nodeKey,
-            fx: node.screenX - this.connectedNode.screenX,
-            fy: node.screenY - this.connectedNode.screenY
-        });
+    MemoryPointer.prototype.beginForceSimulation = function () {
+        this.simNode = {
+            id: 'this',
+            x: this.x,
+            y: this.y,
+        };
+        this.forceNodes = [this.simNode];
+
+        for (var nodeKey in this.connectedFrame.nodes) {
+            var node = this.connectedFrame.nodes[nodeKey];
+            this.forceNodes.push({
+                id: nodeKey,
+                fx: node.screenX - this.connectedNode.screenX,
+                fy: node.screenY - this.connectedNode.screenY,
+            });
+        }
+
+        var links = [
+            {
+                source: this.connectedNodeKey,
+                target: 'this',
+            },
+        ];
+
+        this.force = d3
+            .forceSimulation()
+            .force(
+                'link',
+                d3
+                    .forceLink()
+                    .distance(80)
+                    .id(function (d) {
+                        return d.id;
+                    })
+            )
+            .force('charge', d3.forceManyBody().strength(-80));
+
+        this.force.nodes(this.forceNodes);
+
+        this.force.force('link').links(links);
+
+        this.force.stop();
+    };
+
+    MemoryPointer.prototype.updateForceSimulation = function () {
+        for (var i = 0; i < this.forceNodes.length; i++) {
+            var forceNode = this.forceNodes[i];
+            if (forceNode.id === 'this') {
+                continue;
+            }
+            var node = this.connectedFrame.nodes[forceNode.id];
+            if (!node) {
+                continue;
+            }
+            forceNode.fx = node.screenX - this.connectedNode.screenX;
+            forceNode.fy = node.screenY - this.connectedNode.screenY;
+        }
+
+        this.force.alpha(1);
+        this.force
+            .force('link')
+            .distance(
+                (this.connectedNode.screenLinearZ || 5) * (20 * this.connectedObject.averageScale)
+            );
+        this.force.tick();
+
+        this.x = this.simNode.x + this.connectedNode.screenX;
+        this.y = this.simNode.y + this.connectedNode.screenY;
+    };
+
+    MemoryPointer.prototype.draw = function () {
+        if (!this.alive) {
+            return;
+        }
+
+        this.lastDraw = Date.now();
+        var scale = (this.connectedNode.screenLinearZ * this.connectedObject.averageScale) / 10;
+
+        var tol = 60 * scale;
+
+        var connectedNodeIsOffscreen =
+            this.connectedNode.screenX < -tol ||
+            this.connectedNode.screenY < -tol ||
+            this.connectedNode.screenX > globalStates.height + tol ||
+            this.connectedNode.screenY > globalStates.width + tol;
+
+        if (!connectedNodeIsOffscreen) {
+            if (this.x < tol) {
+                this.x = tol;
+            }
+            if (this.y < tol) {
+                this.y = tol;
+            }
+            if (this.x > globalStates.height - tol) {
+                this.x = globalStates.height - tol;
+            }
+            if (this.y > globalStates.width - tol) {
+                this.y = globalStates.width - tol;
+            }
+        }
+
+        this.element.style.transform =
+            'translate3d(' + this.x + 'px,' + this.y + 'px, 2px) scale(' + scale + ')';
+    };
+
+    MemoryPointer.prototype.remove = function () {
+        this.alive = false;
+        this.memory.remove();
+        delete pointers[this.object.objectId];
+    };
+
+    function getMemoryPointerWithId(id) {
+        if (pointers[id] && !pointers[id].alive) {
+            delete pointers[id];
+        }
+        return pointers[id];
     }
 
-    var links = [{
-        source: this.connectedNodeKey,
-        target: 'this'
-    }];
-
-    this.force = d3.forceSimulation()
-        .force('link', d3.forceLink().distance(80).id(function(d) { return d.id; }))
-        .force('charge', d3.forceManyBody().strength(-80));
-
-    this.force.nodes(this.forceNodes);
-
-    this.force.force('link')
-        .links(links);
-
-    this.force.stop();
-};
-
-MemoryPointer.prototype.updateForceSimulation = function() {
-    for (var i = 0; i < this.forceNodes.length; i++) {
-        var forceNode = this.forceNodes[i];
-        if (forceNode.id === 'this') {
-            continue;
-        }
-        var node = this.connectedFrame.nodes[forceNode.id];
-        if (!node) {
-            continue;
-        }
-        forceNode.fx = node.screenX - this.connectedNode.screenX;
-        forceNode.fy = node.screenY - this.connectedNode.screenY;
-    }
-
-    this.force.alpha(1);
-    this.force.force('link').distance((this.connectedNode.screenLinearZ || 5) * (20*this.connectedObject.averageScale));
-    this.force.tick();
-
-    this.x = this.simNode.x + this.connectedNode.screenX;
-    this.y = this.simNode.y + this.connectedNode.screenY;
-};
-
-
-
-MemoryPointer.prototype.draw = function() {
-    if (!this.alive) {
-        return;
-    }
-
-    this.lastDraw = Date.now();
-    var scale = (this.connectedNode.screenLinearZ*this.connectedObject.averageScale) /10;
-
-    var tol = 60 * scale;
-
-    var connectedNodeIsOffscreen = (this.connectedNode.screenX < -tol) ||
-        (this.connectedNode.screenY < -tol) ||
-        (this.connectedNode.screenX > globalStates.height + tol) ||
-        (this.connectedNode.screenY > globalStates.width + tol);
-
-    if (!connectedNodeIsOffscreen) {
-        if (this.x < tol) {
-            this.x = tol;
-        }
-        if (this.y < tol) {
-            this.y = tol;
-        }
-        if (this.x > globalStates.height - tol) {
-            this.x = globalStates.height - tol;
-        }
-        if (this.y > globalStates.width - tol) {
-            this.y = globalStates.width - tol;
-        }
-    }
-
-    this.element.style.transform = 'translate3d(' + this.x + 'px,' + this.y + 'px, 2px) scale(' + scale + ')';
-};
-
-MemoryPointer.prototype.remove = function() {
-    this.alive = false;
-    this.memory.remove();
-    delete pointers[this.object.objectId];
-};
-
-function getMemoryPointerWithId(id) {
-    if (pointers[id] && !pointers[id].alive) {
-        delete pointers[id];
-    }
-    return pointers[id];
-}
-
-exports.MemoryPointer = MemoryPointer;
-exports.getMemoryPointerWithId = getMemoryPointerWithId;
-
-}(realityEditor.gui.memory));
+    exports.MemoryPointer = MemoryPointer;
+    exports.getMemoryPointerWithId = getMemoryPointerWithId;
+})(realityEditor.gui.memory);

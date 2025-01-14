@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.gui.ar.grouping");
+createNameSpace('realityEditor.gui.ar.grouping');
 
 /**
  * @fileOverview realityEditor.grouping.js
@@ -7,8 +7,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
  * Registers callback listeners for rendering and touch events to keep dependencies acyclic
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * Maps each groupID to its set of group members (frameKeys)
      * @type {Object.<string, Set.<string>>}
@@ -25,7 +24,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
      * @type {Object.<string, string>}
      */
     var frameToObj = {};
-    
+
     /**
      * Keeps track of where the line starts
      * @type {Array.<Array.<number>>}
@@ -50,25 +49,23 @@ createNameSpace("realityEditor.gui.ar.grouping");
     var selectingState = {
         active: false,
         object: [],
-        frame: []
+        frame: [],
     };
 
     /**
      * @type {boolean}
      */
     var isUnconstrainedEditingGroup = false;
-    
+
     /**
      * Initialize the grouping service regardless of whether it is enabled onLoad
      * Subscribe to touches and rendering events, and a variety of other frame events,
      * but only respond to them if the grouping service is currently enabled at the time of the event
      */
     function initService() {
-        
         // render hulls on every update (iff grouping mode enabled)
-        realityEditor.gui.ar.draw.addUpdateListener(function() {
+        realityEditor.gui.ar.draw.addUpdateListener(function () {
             if (realityEditor.gui.settings.toggleStates.groupingEnabled) {
-                
                 // draw hulls if any of their elements are being moved, or if the lasso is active
                 var shouldDrawHulls = false;
                 if (selectingState.active) {
@@ -78,7 +75,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
                     shouldDrawHulls = true;
                 }
 
-                var svg = document.getElementById("groupSVG");
+                var svg = document.getElementById('groupSVG');
                 if (shouldDrawHulls) {
                     if (svg.classList.contains('groupOutlineFadeOut')) {
                         svg.classList.remove('groupOutlineFadeOut');
@@ -92,40 +89,55 @@ createNameSpace("realityEditor.gui.ar.grouping");
 
                 drawGroupHulls();
 
-                if (isUnconstrainedEditingGroup && !realityEditor.device.editingState.unconstrainedDisabled) {
-
+                if (
+                    isUnconstrainedEditingGroup &&
+                    !realityEditor.device.editingState.unconstrainedDisabled
+                ) {
                     let activeVehicle = realityEditor.device.getEditingVehicle();
-                    let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
-                    forEachGroupedFrame(activeVehicle, function(groupedFrame) {
-                        let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(groupedFrame.uuid);
-                        let relativePosition = groupRelativePositions[groupedFrame.uuid];
-                        groupedSceneNode.setPositionRelativeTo(selectedSceneNode, relativePosition);
-                    }, true);
+                    let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                        activeVehicle.uuid
+                    );
+                    forEachGroupedFrame(
+                        activeVehicle,
+                        function (groupedFrame) {
+                            let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                                groupedFrame.uuid
+                            );
+                            let relativePosition = groupRelativePositions[groupedFrame.uuid];
+                            groupedSceneNode.setPositionRelativeTo(
+                                selectedSceneNode,
+                                relativePosition
+                            );
+                        },
+                        true
+                    );
                 }
             }
         });
 
         // -- be notified when certain touch event functions get triggered in device/index.js -- //
-        
+
         // on touch down, start creating a lasso if you double tap on the background
-        realityEditor.device.registerCallback('onDocumentMultiTouchStart', function(params) {
+        realityEditor.device.registerCallback('onDocumentMultiTouchStart', function (params) {
             if (realityEditor.gui.settings.toggleStates.groupingEnabled) {
                 console.log('grouping.js: onDocumentMultiTouchStart', params);
-                
+
                 // If the event is hitting the background and it isn't the multi-touch to scale an object
                 if (realityEditor.device.utilities.isEventHittingBackground(params.event)) {
                     if (params.event.touches.length < 2) {
                         console.log('did tap on background in grouping mode');
 
                         // handling double taps
-                        if (!isDoubleTap) { // on first tap
+                        if (!isDoubleTap) {
+                            // on first tap
                             isDoubleTap = true;
 
                             // if no follow up tap within time reset
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 isDoubleTap = false;
                             }, 300);
-                        } else { // registered double tap and start drawing selection lasso
+                        } else {
+                            // registered double tap and start drawing selection lasso
                             selectingState.active = true;
                             // var svg = document.getElementById("groupSVG");
                             //TODO: start drawing
@@ -136,51 +148,66 @@ createNameSpace("realityEditor.gui.ar.grouping");
                     // else if hitting a grouped frame, preserve relative locations between it and its groupies
                     var activeVehicle = realityEditor.device.getEditingVehicle();
                     if (activeVehicle) {
-                        let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
+                        let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                            activeVehicle.uuid
+                        );
 
-                        forEachGroupedFrame(activeVehicle, function(groupedFrame) {
-                            let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(groupedFrame.uuid);
-                            groupRelativePositions[groupedFrame.uuid] = groupedSceneNode.getMatrixRelativeTo(selectedSceneNode);
-                        }, true);
+                        forEachGroupedFrame(
+                            activeVehicle,
+                            function (groupedFrame) {
+                                let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                                    groupedFrame.uuid
+                                );
+                                groupRelativePositions[groupedFrame.uuid] =
+                                    groupedSceneNode.getMatrixRelativeTo(selectedSceneNode);
+                            },
+                            true
+                        );
                     }
                 }
-
             }
-            
         });
-        
+
         // on touch move, continue drawing a lasso. or if you're selecting a grouped frame, move all grouped frames
-        realityEditor.device.registerCallback('onDocumentMultiTouchMove', function(params) {
+        realityEditor.device.registerCallback('onDocumentMultiTouchMove', function (params) {
             if (realityEditor.gui.settings.toggleStates.groupingEnabled) {
                 // console.log('grouping.js: onDocumentMultiTouchMove', params);
-                
+
                 if (selectingState.active) {
                     continueLasso(params.event.pageX, params.event.pageY);
                 }
 
                 var activeVehicle = realityEditor.device.getEditingVehicle();
                 var isSingleTouch = params.event.touches.length === 1;
-                
+
                 if (activeVehicle && isSingleTouch) {
                     // Any time a frame or node is moved, check if it's part of a group and move all grouped frames/nodes with it
-                    let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
-                    forEachGroupedFrame(activeVehicle, function(groupedFrame) {
-                        let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(groupedFrame.uuid);
-                        let relativePosition = groupRelativePositions[groupedFrame.uuid];
-                        groupedSceneNode.setPositionRelativeTo(selectedSceneNode, relativePosition);
-                    }, true);
-                    
+                    let selectedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                        activeVehicle.uuid
+                    );
+                    forEachGroupedFrame(
+                        activeVehicle,
+                        function (groupedFrame) {
+                            let groupedSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                                groupedFrame.uuid
+                            );
+                            let relativePosition = groupRelativePositions[groupedFrame.uuid];
+                            groupedSceneNode.setPositionRelativeTo(
+                                selectedSceneNode,
+                                relativePosition
+                            );
+                        },
+                        true
+                    );
                 }
-
             }
-            
         });
-        
+
         // on touch up finish the lasso and create a group out of encircled frames. or stop moving grouped frames.
-        realityEditor.device.registerCallback('onDocumentMultiTouchEnd', function(params) {
+        realityEditor.device.registerCallback('onDocumentMultiTouchEnd', function (params) {
             if (realityEditor.gui.settings.toggleStates.groupingEnabled) {
                 console.log('grouping.js: onDocumentMultiTouchEnd', params);
-                
+
                 if (selectingState.active) {
                     selectingState.active = false;
                     closeLasso();
@@ -189,14 +216,14 @@ createNameSpace("realityEditor.gui.ar.grouping");
                     selectFrames(selected);
                     // TODO: get selected => select
                 }
-                
+
                 var activeVehicle = realityEditor.device.getEditingVehicle();
                 console.log('onDocumentMultiTouchEnd', params, activeVehicle);
 
                 // check how many touches are still on the canvas / on the frame
                 // if there's still a touch on it (it was being scaled or distance scaled), reset touch offset so vehicle doesn't jump
                 if (realityEditor.device.currentScreenTouches.length > 0) {
-                    forEachGroupedFrame(activeVehicle, function(frame) {
+                    forEachGroupedFrame(activeVehicle, function (frame) {
                         frame.groupTouchOffset = undefined; // recalculate groupTouchOffset each time
                     });
                 }
@@ -204,128 +231,166 @@ createNameSpace("realityEditor.gui.ar.grouping");
         });
 
         // when you stop moving around a frame, clear some state and post the new positions of all grouped frames to the server
-        realityEditor.device.registerCallback('resetEditingState', function(params) {
+        realityEditor.device.registerCallback('resetEditingState', function (params) {
             isUnconstrainedEditingGroup = false;
 
             var activeVehicle = realityEditor.device.getEditingVehicle();
-            if (!activeVehicle) { return; }
+            if (!activeVehicle) {
+                return;
+            }
 
             console.log('resetEditingState', params, activeVehicle);
 
             // clear the groupTouchOffset of each frame in the group
             // and post the new positions of each frame in the group to the server
-            forEachGroupedFrame(activeVehicle, function(frame) {
-                frame.groupTouchOffset = undefined; // recalculate groupTouchOffset each time
+            forEachGroupedFrame(
+                activeVehicle,
+                function (frame) {
+                    frame.groupTouchOffset = undefined; // recalculate groupTouchOffset each time
 
-                var memberPositionData = realityEditor.gui.ar.positioning.getPositionData(frame);
-                var memberContent = {};
-                memberContent.x = memberPositionData.x;
-                memberContent.y = memberPositionData.y;
-                memberContent.scale = memberPositionData.scale;
-                if (realityEditor.device.isEditingUnconstrained(activeVehicle)) {
-                    memberContent.matrix = memberPositionData.matrix;
-                }
-                memberContent.lastEditor = globalStates.tempUuid;
-                
-                var memberUrlEndpoint = realityEditor.network.getURL(objects[frame.objectId].ip, realityEditor.network.getPort(objects[frame.objectId]), '/object/' + frame.objectId + "/frame/" + frame.uuid + "/node/null/size");
-                // + "/node/" + this.editingState.node + routeSuffix;
-                realityEditor.network.postData(memberUrlEndpoint, memberContent);
-            }, false);
-            
+                    var memberPositionData =
+                        realityEditor.gui.ar.positioning.getPositionData(frame);
+                    var memberContent = {};
+                    memberContent.x = memberPositionData.x;
+                    memberContent.y = memberPositionData.y;
+                    memberContent.scale = memberPositionData.scale;
+                    if (realityEditor.device.isEditingUnconstrained(activeVehicle)) {
+                        memberContent.matrix = memberPositionData.matrix;
+                    }
+                    memberContent.lastEditor = globalStates.tempUuid;
+
+                    var memberUrlEndpoint = realityEditor.network.getURL(
+                        objects[frame.objectId].ip,
+                        realityEditor.network.getPort(objects[frame.objectId]),
+                        '/object/' + frame.objectId + '/frame/' + frame.uuid + '/node/null/size'
+                    );
+                    // + "/node/" + this.editingState.node + routeSuffix;
+                    realityEditor.network.postData(memberUrlEndpoint, memberContent);
+                },
+                false
+            );
         });
-        
+
         // unconstrained move grouped vehicles if needed by storing their initial matrix offset
         // TODO: also store this info when starting unconstrained editing via another method, e.g. editing mode
-        realityEditor.device.registerCallback('onFramePulledIntoUnconstrained', function(params) {
-            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) { return; }
+        realityEditor.device.registerCallback('onFramePulledIntoUnconstrained', function (params) {
+            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) {
+                return;
+            }
 
             var activeVehicle = params.activeVehicle;
-            forEachGroupedFrame(activeVehicle, function(frame) {
-                // store relative offset
-                var activeVehicleMatrix = realityEditor.gui.ar.positioning.getPositionData(activeVehicle).matrix;
-                var groupedVehicleMatrix = realityEditor.gui.ar.positioning.getPositionData(frame).matrix;
+            forEachGroupedFrame(
+                activeVehicle,
+                function (frame) {
+                    // store relative offset
+                    var activeVehicleMatrix =
+                        realityEditor.gui.ar.positioning.getPositionData(activeVehicle).matrix;
+                    var groupedVehicleMatrix =
+                        realityEditor.gui.ar.positioning.getPositionData(frame).matrix;
 
-                var startingMatrixOffset = [];
-                realityEditor.gui.ar.utilities.multiplyMatrix(realityEditor.gui.ar.utilities.invertMatrix(activeVehicleMatrix), groupedVehicleMatrix, startingMatrixOffset);
-                frame.startingMatrixOffset = startingMatrixOffset;
-                
-                isUnconstrainedEditingGroup = true;
-            }, true);
+                    var startingMatrixOffset = [];
+                    realityEditor.gui.ar.utilities.multiplyMatrix(
+                        realityEditor.gui.ar.utilities.invertMatrix(activeVehicleMatrix),
+                        groupedVehicleMatrix,
+                        startingMatrixOffset
+                    );
+                    frame.startingMatrixOffset = startingMatrixOffset;
+
+                    isUnconstrainedEditingGroup = true;
+                },
+                true
+            );
         });
 
         // TODO: this method is a hack, implement in a better way making use of screenExtension module
         // push/pull grouped vehicles into screens together if needed
-        realityEditor.gui.screenExtension.registerCallback('updateArFrameVisibility', function(params) {
-            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) return;
-                
-            var selectedFrame = realityEditor.getFrame(params.objectKey, params.frameKey);
-            if (selectedFrame && selectedFrame.groupID) {
-                var newVisualization = params.newVisualization;
-                forEachGroupedFrame(selectedFrame, function(groupedFrame) {
+        realityEditor.gui.screenExtension.registerCallback(
+            'updateArFrameVisibility',
+            function (params) {
+                if (!realityEditor.gui.settings.toggleStates.groupingEnabled) return;
 
-                    if (groupedFrame.visualization === newVisualization) { return; } // don't repeat for the originating frame or ones already transitioned
+                var selectedFrame = realityEditor.getFrame(params.objectKey, params.frameKey);
+                if (selectedFrame && selectedFrame.groupID) {
+                    var newVisualization = params.newVisualization;
+                    forEachGroupedFrame(
+                        selectedFrame,
+                        function (groupedFrame) {
+                            if (groupedFrame.visualization === newVisualization) {
+                                return;
+                            } // don't repeat for the originating frame or ones already transitioned
 
-                    groupedFrame.visualization = newVisualization;
+                            groupedFrame.visualization = newVisualization;
 
-                    if (newVisualization === 'screen') {
-                        
-                        console.log('pushed grouped frame ' + groupedFrame.uuid + ' into screen');
-                        
-                        realityEditor.gui.ar.draw.hideTransformed(groupedFrame.uuid, groupedFrame, globalDOMCache, cout);
+                            if (newVisualization === 'screen') {
+                                console.log(
+                                    'pushed grouped frame ' + groupedFrame.uuid + ' into screen'
+                                );
 
-                        groupedFrame.ar.x = 0;
-                        groupedFrame.ar.y = 0;
-                        groupedFrame.begin = [];
-                        groupedFrame.ar.matrix = [
-                            1, 0, 0, 0,
-                            0, 1, 0, 0,
-                            0, 0, 1, 0,
-                            0, 0, 0, 1,
-                        ];
-                        
-                    } else if (newVisualization === 'ar') {
+                                realityEditor.gui.ar.draw.hideTransformed(
+                                    groupedFrame.uuid,
+                                    groupedFrame,
+                                    globalDOMCache,
+                                    cout
+                                );
 
-                        console.log('pull grouped frame ' + groupedFrame.uuid + ' into AR');
+                                groupedFrame.ar.x = 0;
+                                groupedFrame.ar.y = 0;
+                                groupedFrame.begin = [];
+                                groupedFrame.ar.matrix = [
+                                    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+                                ];
+                            } else if (newVisualization === 'ar') {
+                                console.log('pull grouped frame ' + groupedFrame.uuid + ' into AR');
 
-                        // set to false so it definitely gets re-added and re-rendered
-                        groupedFrame.visible = false;
-                        groupedFrame.ar.matrix = [
-                            1, 0, 0, 0,
-                            0, 1, 0, 0,
-                            0, 0, 1, 0,
-                            0, 0, 0, 1,
-                        ];
-                        groupedFrame.temp = realityEditor.gui.ar.utilities.newIdentityMatrix();
-                        groupedFrame.begin = realityEditor.gui.ar.utilities.newIdentityMatrix();
+                                // set to false so it definitely gets re-added and re-rendered
+                                groupedFrame.visible = false;
+                                groupedFrame.ar.matrix = [
+                                    1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+                                ];
+                                groupedFrame.temp =
+                                    realityEditor.gui.ar.utilities.newIdentityMatrix();
+                                groupedFrame.begin =
+                                    realityEditor.gui.ar.utilities.newIdentityMatrix();
 
-                        var activeKey = groupedFrame.uuid;
-                        // resize iframe to override incorrect size it starts with so that it matches the screen frame
-                        var iframe = globalDOMCache['iframe' + activeKey];
-                        var overlay = globalDOMCache[activeKey];
-                        var svg = globalDOMCache['svg' + activeKey];
+                                var activeKey = groupedFrame.uuid;
+                                // resize iframe to override incorrect size it starts with so that it matches the screen frame
+                                var iframe = globalDOMCache['iframe' + activeKey];
+                                var overlay = globalDOMCache[activeKey];
+                                var svg = globalDOMCache['svg' + activeKey];
 
-                        iframe.style.width = groupedFrame.frameSizeX + 'px';
-                        iframe.style.height = groupedFrame.frameSizeY + 'px';
-                        iframe.style.left = ((globalStates.height - parseFloat(groupedFrame.frameSizeX)) / 2) + "px";
-                        iframe.style.top = ((globalStates.width - parseFloat(groupedFrame.frameSizeY)) / 2) + "px";
+                                iframe.style.width = groupedFrame.frameSizeX + 'px';
+                                iframe.style.height = groupedFrame.frameSizeY + 'px';
+                                iframe.style.left =
+                                    (globalStates.height - parseFloat(groupedFrame.frameSizeX)) /
+                                        2 +
+                                    'px';
+                                iframe.style.top =
+                                    (globalStates.width - parseFloat(groupedFrame.frameSizeY)) / 2 +
+                                    'px';
 
-                        overlay.style.width = iframe.style.width;
-                        overlay.style.height = iframe.style.height;
-                        overlay.style.left = iframe.style.left;
-                        overlay.style.top = iframe.style.top;
+                                overlay.style.width = iframe.style.width;
+                                overlay.style.height = iframe.style.height;
+                                overlay.style.left = iframe.style.left;
+                                overlay.style.top = iframe.style.top;
 
-                        svg.style.width = iframe.style.width;
-                        svg.style.height = iframe.style.height;
-                        realityEditor.gui.ar.moveabilityOverlay.createSvg(svg);
+                                svg.style.width = iframe.style.width;
+                                svg.style.height = iframe.style.height;
+                                realityEditor.gui.ar.moveabilityOverlay.createSvg(svg);
 
-                        // set the correct position for the frame that was just pulled to AR
+                                // set the correct position for the frame that was just pulled to AR
 
-                        // 1. move it so it is centered on the pointer, ignoring touchOffset
-                        // var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
-                        var touchPosition = realityEditor.device.currentScreenTouches[0].position;
-                        realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(groupedFrame, touchPosition.x, touchPosition.y, false);
+                                // 1. move it so it is centered on the pointer, ignoring touchOffset
+                                // var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
+                                var touchPosition =
+                                    realityEditor.device.currentScreenTouches[0].position;
+                                realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(
+                                    groupedFrame,
+                                    touchPosition.x,
+                                    touchPosition.y,
+                                    false
+                                );
 
-                        /*
+                                /*
                         // 2. convert touch offset from percent scale to actual scale of the frame
                         var convertedTouchOffsetX = (this.screenObject.touchOffsetX) * parseFloat(groupedFrame.width);
                         var convertedTouchOffsetY = (this.screenObject.touchOffsetY) * parseFloat(groupedFrame.height);
@@ -334,66 +399,93 @@ createNameSpace("realityEditor.gui.ar.grouping");
                         groupedFrame.ar.x -= (convertedTouchOffsetX - parseFloat(groupedFrame.width)/2 ) * groupedFrame.ar.scale;
                         groupedFrame.ar.y -= (convertedTouchOffsetY - parseFloat(groupedFrame.height)/2 ) * groupedFrame.ar.scale;
                         */
-                        
-                        // TODO: this causes a bug now with the offset... figure out why it used to be necessary but doesn't help anymore
-                        // 4. set the actual touchOffset so that it stays in the correct offset as you drag around
-                        // realityEditor.device.editingState.touchOffset = {
-                        //     x: convertedTouchOffsetX,
-                        //     y: convertedTouchOffsetY
-                        // };
 
-                        realityEditor.gui.ar.draw.showARFrame(activeKey);
+                                // TODO: this causes a bug now with the offset... figure out why it used to be necessary but doesn't help anymore
+                                // 4. set the actual touchOffset so that it stays in the correct offset as you drag around
+                                // realityEditor.device.editingState.touchOffset = {
+                                //     x: convertedTouchOffsetX,
+                                //     y: convertedTouchOffsetY
+                                // };
 
-                        // realityEditor.device.beginTouchEditing(groupedFrame.objectId, activeKey);
+                                realityEditor.gui.ar.draw.showARFrame(activeKey);
 
-                    }
-                    
-                    sendScreenObject(groupedFrame, groupedFrame.visualization);
+                                // realityEditor.device.beginTouchEditing(groupedFrame.objectId, activeKey);
+                            }
 
-                    realityEditor.network.updateFrameVisualization(objects[groupedFrame.objectId].ip, groupedFrame.objectId, groupedFrame.uuid, groupedFrame.visualization, groupedFrame.ar);
-                    
-                }, true);
-                
+                            sendScreenObject(groupedFrame, groupedFrame.visualization);
+
+                            realityEditor.network.updateFrameVisualization(
+                                objects[groupedFrame.objectId].ip,
+                                groupedFrame.objectId,
+                                groupedFrame.uuid,
+                                groupedFrame.visualization,
+                                groupedFrame.ar
+                            );
+                        },
+                        true
+                    );
+                }
             }
-            
-        });
-        
+        );
+
         // Remove the frame from its group when it gets deleted -- AND delete all frames in the same group
-        realityEditor.device.registerCallback('vehicleDeleted', function(params) {
-            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) { return; }
-            
+        realityEditor.device.registerCallback('vehicleDeleted', function (params) {
+            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) {
+                return;
+            }
+
             var DELETE_ALL_FRAMES_IN_GROUP = true; // can be easily turned off if we don't want that behavior
             if (params.objectKey && params.frameKey && !params.nodeKey) {
                 if (DELETE_ALL_FRAMES_IN_GROUP) {
                     // in this mode, delete all frames in this group
-                    var frameBeingDeleted = realityEditor.getFrame(params.objectKey, params.frameKey);
-                    forEachGroupedFrame(frameBeingDeleted, function(groupedFrame) {
-                        // in this mode, just remove the deleted frame from its group if it's in one
-                        removeFromGroup(groupedFrame.uuid, groupedFrame.objectId);
-                        // delete this frame too
-                        realityEditor.device.deleteFrame(groupedFrame, groupedFrame.objectId, groupedFrame.uuid);
-                    }, true);
-                    
+                    var frameBeingDeleted = realityEditor.getFrame(
+                        params.objectKey,
+                        params.frameKey
+                    );
+                    forEachGroupedFrame(
+                        frameBeingDeleted,
+                        function (groupedFrame) {
+                            // in this mode, just remove the deleted frame from its group if it's in one
+                            removeFromGroup(groupedFrame.uuid, groupedFrame.objectId);
+                            // delete this frame too
+                            realityEditor.device.deleteFrame(
+                                groupedFrame,
+                                groupedFrame.objectId,
+                                groupedFrame.uuid
+                            );
+                        },
+                        true
+                    );
                 } else {
                     // in this mode, just remove the deleted frame from its group if it's in one
                     removeFromGroup(params.frameKey, params.objectKey);
                 }
-                
             }
         });
-        
-        // adjust distanceScale of grouped frames together so they get set to same amount
-        realityEditor.device.distanceScaling.registerCallback('scaleEditingFrameDistance', function(params) {
-            if (!realityEditor.gui.settings.toggleStates.groupingEnabled) { return; }
 
-            forEachGroupedFrame(params.frame, function(groupedFrame) {
-                // groupedFrame.distanceScale = params.frame.distanceScale;
-                groupedFrame.distanceScale = (groupedFrame.screenZ / realityEditor.device.distanceScaling.getDefaultDistance()) / 0.85;
-            }, true);
-        });
-        
+        // adjust distanceScale of grouped frames together so they get set to same amount
+        realityEditor.device.distanceScaling.registerCallback(
+            'scaleEditingFrameDistance',
+            function (params) {
+                if (!realityEditor.gui.settings.toggleStates.groupingEnabled) {
+                    return;
+                }
+
+                forEachGroupedFrame(
+                    params.frame,
+                    function (groupedFrame) {
+                        // groupedFrame.distanceScale = params.frame.distanceScale;
+                        groupedFrame.distanceScale =
+                            groupedFrame.screenZ /
+                            realityEditor.device.distanceScaling.getDefaultDistance() /
+                            0.85;
+                    },
+                    true
+                );
+            }
+        );
     }
-    
+
     /**
      * Emulates realityEditor.gui.screenExtension.sendScreenObject() but for grouped frames with different offsets, etc
      * @param {Frame} groupedFrame
@@ -401,8 +493,10 @@ createNameSpace("realityEditor.gui.ar.grouping");
      */
     function sendScreenObject(groupedFrame, newVisualization) {
         for (var frameKey in realityEditor.gui.screenExtension.visibleScreenObjects) {
-            if (!realityEditor.gui.screenExtension.visibleScreenObjects.hasOwnProperty(frameKey)) continue;
-            var visibleScreenObject = realityEditor.gui.screenExtension.visibleScreenObjects[frameKey];
+            if (!realityEditor.gui.screenExtension.visibleScreenObjects.hasOwnProperty(frameKey))
+                continue;
+            var visibleScreenObject =
+                realityEditor.gui.screenExtension.visibleScreenObjects[frameKey];
 
             // var screenObjectClone = JSON.parse(JSON.stringify(this.screenObject));
 
@@ -412,13 +506,26 @@ createNameSpace("realityEditor.gui.ar.grouping");
                 node: null,
                 touchOffsetX: 0,
                 touchOffsetY: 0,
-                isScreenVisible: (newVisualization === "screen"),
-                scale: groupedFrame.ar.scale
+                isScreenVisible: newVisualization === 'screen',
+                scale: groupedFrame.ar.scale,
             };
 
             // for every visible screen, calculate this touch's exact x,y coordinate within that screen plane
-            var thisFrameFrameCenterScreenPosition = realityEditor.gui.ar.positioning.getScreenPosition(groupedFrame.objectId,groupedFrame.uuid,true,false,false,false,false).center;
-            var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(visibleScreenObject.object, thisFrameFrameCenterScreenPosition.x, thisFrameFrameCenterScreenPosition.y);
+            var thisFrameFrameCenterScreenPosition =
+                realityEditor.gui.ar.positioning.getScreenPosition(
+                    groupedFrame.objectId,
+                    groupedFrame.uuid,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false
+                ).center;
+            var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+                visibleScreenObject.object,
+                thisFrameFrameCenterScreenPosition.x,
+                thisFrameFrameCenterScreenPosition.y
+            );
             // visibleScreenObject.x = point.x;
             // visibleScreenObject.y = point.y;
 
@@ -426,15 +533,18 @@ createNameSpace("realityEditor.gui.ar.grouping");
             screenObjectClone.y = point.y; //visibleScreenObject.y;
             screenObjectClone.targetScreen = {
                 object: visibleScreenObject.object,
-                frame: visibleScreenObject.frame
+                frame: visibleScreenObject.frame,
             };
             screenObjectClone.touches = visibleScreenObject.touches;
 
-            var iframe = globalDOMCache["iframe" + frameKey];
+            var iframe = globalDOMCache['iframe' + frameKey];
             if (iframe) {
-                iframe.contentWindow.postMessage(JSON.stringify({
-                    screenObject: screenObjectClone
-                }), '*');
+                iframe.contentWindow.postMessage(
+                    JSON.stringify({
+                        screenObject: screenObjectClone,
+                    }),
+                    '*'
+                );
             }
         }
     }
@@ -449,10 +559,12 @@ createNameSpace("realityEditor.gui.ar.grouping");
     function forEachGroupedFrame(activeVehicle, callback, excludeActive) {
         if (activeVehicle && activeVehicle.groupID) {
             var groupMembers = getGroupMembers(activeVehicle.groupID);
-            groupMembers.forEach(function(member) {
+            groupMembers.forEach(function (member) {
                 var frame = realityEditor.getFrame(member.object, member.frame);
                 if (frame) {
-                    if (excludeActive && frame.uuid === activeVehicle.uuid) { return; }
+                    if (excludeActive && frame.uuid === activeVehicle.uuid) {
+                        return;
+                    }
                     callback(frame);
                 } else {
                     groupStruct[activeVehicle.groupID].delete(member.frame); // group restruct
@@ -473,7 +585,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
         if (!isEnabled) {
             clearHulls(svg);
             closeLasso();
-            
+
             svg.style.display = 'none';
             lassoSvg.style.display = 'none';
         } else {
@@ -491,12 +603,12 @@ createNameSpace("realityEditor.gui.ar.grouping");
         // start drawing; set first point; reset lasso
         points = [[x, y]];
         if (lasso === null) {
-            lasso = document.getElementById("lasso");
+            lasso = document.getElementById('lasso');
         }
 
-        lasso.setAttribute("points", x + ", "+y);
-        lasso.setAttribute("stroke", "#00ffff");
-        lasso.setAttribute("fill", "rgba(0,255,255,0.2)");
+        lasso.setAttribute('points', x + ', ' + y);
+        lasso.setAttribute('stroke', '#00ffff');
+        lasso.setAttribute('fill', 'rgba(0,255,255,0.2)');
 
         globalCanvas.hasContent = true;
     }
@@ -507,17 +619,17 @@ createNameSpace("realityEditor.gui.ar.grouping");
      * @param {number} y
      */
     function continueLasso(x, y) {
-        var lassoPoints = lasso.getAttribute("points");
-        lassoPoints += " "+x+", "+y;
-        lasso.setAttribute("points", lassoPoints);
+        var lassoPoints = lasso.getAttribute('points');
+        lassoPoints += ' ' + x + ', ' + y;
+        lasso.setAttribute('points', lassoPoints);
         points.push([x, y]);
         var lassoed = getLassoed().length;
         if (lassoed > 0) {
-            lasso.setAttribute("fill", "rgba(0,255,255,0.2)");
-            lasso.setAttribute("stroke", "#00ff00");
+            lasso.setAttribute('fill', 'rgba(0,255,255,0.2)');
+            lasso.setAttribute('stroke', '#00ff00');
         } else {
-            lasso.setAttribute("fill", "rgba(0,255,255,0.2)");
-            lasso.setAttribute("stroke", "#00ffff");
+            lasso.setAttribute('fill', 'rgba(0,255,255,0.2)');
+            lasso.setAttribute('stroke', '#00ffff');
         }
     }
 
@@ -526,16 +638,18 @@ createNameSpace("realityEditor.gui.ar.grouping");
      */
     function closeLasso() {
         function clearLasso() {
-            lasso.setAttribute("points", "");
+            lasso.setAttribute('points', '');
             lasso.classList.remove('groupLassoFadeOut');
         }
-        if (!lasso) { return; }
+        if (!lasso) {
+            return;
+        }
 
-        var lassoPoints = lasso.getAttribute("points");
+        var lassoPoints = lasso.getAttribute('points');
         var start = points[0];
-        lassoPoints += " " + start[0]+", "+start[1];
-        lasso.setAttribute("points", lassoPoints);
-        
+        lassoPoints += ' ' + start[0] + ', ' + start[1];
+        lasso.setAttribute('points', lassoPoints);
+
         lasso.classList.add('groupLassoFadeOut');
 
         setTimeout(clearLasso.bind(this), 300);
@@ -546,15 +660,18 @@ createNameSpace("realityEditor.gui.ar.grouping");
      */
     function getLassoed() {
         var lassoedFrames = []; // array of frames in lasso
-        
-        realityEditor.forEachFrameInAllObjects(function(objectKey, frameKey) {
+
+        realityEditor.forEachFrameInAllObjects(function (objectKey, frameKey) {
             var frame = realityEditor.getFrame(objectKey, frameKey);
             if (frame && frame.visualization === 'ar' && frame.location === 'global') {
                 // check if frame in lasso
                 // FIXME: insidePoly doesn't work for crossed over shapes (such as an infinite symbol)
-                var inLasso = realityEditor.gui.ar.utilities.insidePoly([frame.screenX, frame.screenY], points);
+                var inLasso = realityEditor.gui.ar.utilities.insidePoly(
+                    [frame.screenX, frame.screenY],
+                    points
+                );
                 if (inLasso) {
-                    lassoedFrames.push({object: objectKey, frame: frameKey});
+                    lassoedFrames.push({ object: objectKey, frame: frameKey });
                 }
             }
         });
@@ -568,7 +685,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
      * @param {Array.<Object>.<string, string>} selected - [{object: <string>, frame: <string>}]
      */
     function selectFrames(selected) {
-        console.log("--select frames--");
+        console.log('--select frames--');
         console.log(selected.length);
 
         if (selected.length === 0) return;
@@ -586,7 +703,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
             // see which groups we've selected from
             var groups = {}; // {groupID.<string>: <set>.<string>}
             // let frameToObj = {}; // lookup for {frameKey: objectKey}
-            selected.forEach(function(member) {
+            selected.forEach(function (member) {
                 var object = realityEditor.getObject(member.object);
                 var group = object.frames[member.frame].groupID;
                 frameToObj[member.frame] = member.object;
@@ -595,14 +712,16 @@ createNameSpace("realityEditor.gui.ar.grouping");
                     if (group in groups) groups[group].add(member.frame);
                     else groups[group] = new Set([member.frame]);
                 }
-
             });
 
             var groupIDs = Object.keys(groups);
             // if you've selected all of one group and only that group ...
-            if (groupIDs.length === 1 && groups[groupIDs[0]].size === groupStruct[groupIDs[0]].size) {
-                // then remove all from group 
-                selected.forEach(function(member) {
+            if (
+                groupIDs.length === 1 &&
+                groups[groupIDs[0]].size === groupStruct[groupIDs[0]].size
+            ) {
+                // then remove all from group
+                selected.forEach(function (member) {
                     removeFromGroup(member.frame, member.object);
                 });
             }
@@ -611,7 +730,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
                 createNewGroup(selected);
             }
         }
-        
+
         drawGroupHulls();
     }
 
@@ -664,8 +783,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
         frame.groupID = newGroup;
         if (newGroup in groupStruct) {
             groupStruct[newGroup].add(frameKey);
-        }
-        else {
+        } else {
             groupStruct[newGroup] = new Set([frameKey]);
         }
         // TODO: send to server
@@ -678,11 +796,11 @@ createNameSpace("realityEditor.gui.ar.grouping");
      */
     function createNewGroup(selected) {
         // create new groupID
-        var newGroup = "group" + realityEditor.device.utilities.uuidTime();
+        var newGroup = 'group' + realityEditor.device.utilities.uuidTime();
         groupStruct[newGroup] = new Set();
 
         // add each selected to group
-        selected.forEach(function(member) {
+        selected.forEach(function (member) {
             var frame = realityEditor.getFrame(member.object, member.frame);
             addToGroup(member.frame, member.object, newGroup);
             frame.groupID = newGroup;
@@ -705,14 +823,34 @@ createNameSpace("realityEditor.gui.ar.grouping");
         if (typeof buffer === 'undefined') buffer = 0;
         // new method
         let frame = realityEditor.getFrame(objectKey, frameKey);
-        var halfWidth = parseInt(frame.frameSizeX)/2 + buffer;
-        var halfHeight = parseInt(frame.frameSizeY)/2 + buffer;
-        
+        var halfWidth = parseInt(frame.frameSizeX) / 2 + buffer;
+        var halfHeight = parseInt(frame.frameSizeY) / 2 + buffer;
+
         return {
-            upperLeft: realityEditor.sceneGraph.getScreenPosition(frameKey, [-halfWidth, -halfHeight, 0, 1]),
-            upperRight: realityEditor.sceneGraph.getScreenPosition(frameKey, [halfWidth, -halfHeight, 0, 1]),
-            lowerLeft: realityEditor.sceneGraph.getScreenPosition(frameKey, [-halfWidth, halfHeight, 0, 1]),
-            lowerRight: realityEditor.sceneGraph.getScreenPosition(frameKey, [halfWidth, halfHeight, 0, 1]),
+            upperLeft: realityEditor.sceneGraph.getScreenPosition(frameKey, [
+                -halfWidth,
+                -halfHeight,
+                0,
+                1,
+            ]),
+            upperRight: realityEditor.sceneGraph.getScreenPosition(frameKey, [
+                halfWidth,
+                -halfHeight,
+                0,
+                1,
+            ]),
+            lowerLeft: realityEditor.sceneGraph.getScreenPosition(frameKey, [
+                -halfWidth,
+                halfHeight,
+                0,
+                1,
+            ]),
+            lowerRight: realityEditor.sceneGraph.getScreenPosition(frameKey, [
+                halfWidth,
+                halfHeight,
+                0,
+                1,
+            ]),
         };
     }
 
@@ -725,7 +863,7 @@ createNameSpace("realityEditor.gui.ar.grouping");
         if (!(groupID in groupStruct)) return;
         var members = [];
         for (var frameKey of groupStruct[groupID]) {
-            var member = {object: frameToObj[frameKey], frame: frameKey};
+            var member = { object: frameToObj[frameKey], frame: frameKey };
             members.push(member);
         }
         return members;
@@ -740,16 +878,16 @@ createNameSpace("realityEditor.gui.ar.grouping");
             svg.removeChild(svg.firstChild);
         }
     }
-    
+
     /**
      * iterates through all groups and creates the hulls
      */
     function drawGroupHulls() {
-        var svg = document.getElementById("groupSVG");
+        var svg = document.getElementById('groupSVG');
 
         clearHulls(svg);
 
-        Object.keys(groupStruct).forEach(function(groupID) {
+        Object.keys(groupStruct).forEach(function (groupID) {
             if (groupStruct[groupID].size > 1) {
                 drawHull(svg, groupStruct[groupID], groupID);
             }
@@ -759,7 +897,8 @@ createNameSpace("realityEditor.gui.ar.grouping");
             var hullPoints = [];
 
             // get the corners of frames
-            for (var frameKey of group) { // iterate over the Set
+            for (var frameKey of group) {
+                // iterate over the Set
                 var objectKey = frameToObj[frameKey];
                 if (!realityEditor.gui.ar.draw.visibleObjects.hasOwnProperty(objectKey)) continue; // only draw hulls for frames on visible objects
                 var frame = realityEditor.getFrame(objectKey, frameKey);
@@ -768,16 +907,16 @@ createNameSpace("realityEditor.gui.ar.grouping");
                 if (!frame || frame.visualization !== 'ar') continue;
 
                 var bb = getFrameCornersScreenCoordinates(objectKey, frameKey, 50);
-                
+
                 // points.push([x, y]); // pushing center point
                 // pushing corner points
                 if (bb) {
-                    Object.keys(bb).forEach(function(corner) {
+                    Object.keys(bb).forEach(function (corner) {
                         hullPoints.push([bb[corner].x, bb[corner].y]);
                     });
                 }
             }
-            
+
             if (hullPoints.length === 0) {
                 return; // if all members are in screen visualization there won't be any hull points to render in AR
             }
@@ -785,19 +924,19 @@ createNameSpace("realityEditor.gui.ar.grouping");
             // create hull points
             var hullShape = hull(hullPoints, Infinity);
             var hullString = '';
-            hullShape.forEach(function(pt) {
+            hullShape.forEach(function (pt) {
                 hullString += ' ' + pt[0] + ', ' + pt[1];
             });
             hullString += ' ' + hullShape[0][0] + ', ' + hullShape[0][1];
 
             // draw hull
             var hullSVG = document.createElementNS(svg.namespaceURI, 'polyline');
-            if (hullString.indexOf("undefined") === -1) {
-                hullSVG.setAttribute("points", hullString);
-                hullSVG.setAttribute("fill", "None");
-                hullSVG.setAttribute("stroke", "#FFF");
-                hullSVG.setAttribute("stroke-width", "5");
-                hullSVG.classList.add("hull");
+            if (hullString.indexOf('undefined') === -1) {
+                hullSVG.setAttribute('points', hullString);
+                hullSVG.setAttribute('fill', 'None');
+                hullSVG.setAttribute('stroke', '#FFF');
+                hullSVG.setAttribute('stroke-width', '5');
+                hullSVG.classList.add('hull');
                 hullSVG.id = groupID;
                 svg.appendChild(hullSVG);
             }
@@ -816,12 +955,10 @@ createNameSpace("realityEditor.gui.ar.grouping");
         var group = thisFrame.groupID;
         if (group === undefined) {
             thisFrame.groupID = null;
-        }
-        else if (group !== null) {
+        } else if (group !== null) {
             if (group in groupStruct) {
                 groupStruct[group].add(frameKey);
-            }
-            else {
+            } else {
                 groupStruct[group] = new Set([frameKey]);
             }
         }
@@ -831,5 +968,4 @@ createNameSpace("realityEditor.gui.ar.grouping");
     exports.initService = initService;
     exports.toggleGroupingMode = toggleGroupingMode;
     exports.reconstructGroupStruct = reconstructGroupStruct;
-
 })(realityEditor.gui.ar.grouping);

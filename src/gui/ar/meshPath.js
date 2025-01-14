@@ -11,7 +11,7 @@ let VERT_PATH = Object.freeze({
     left: 'left',
     right: 'right',
     start: 'start',
-    end: 'end'
+    end: 'end',
 });
 const POSITIONS_PER_POINT = 24; // each point on the path has 8 triangles
 const COMPONENTS_PER_POSITION = 3; // each vertex has 3 position components (x,y,z)
@@ -43,15 +43,27 @@ const fragmentShader = `
  * for each of the points on the path. It is aligned so that its top faces the global up vector. Different colors can
  * be given to its "horizontal" vs its "wall" faces.
  */
-export class MeshPath extends THREE.Group
-{
-    constructor(path, {widthMm, heightMm, horizontalColor, wallColor, wallBrightness, usePerVertexColors, bottomScale, opacity, colorBlending}) {
+export class MeshPath extends THREE.Group {
+    constructor(
+        path,
+        {
+            widthMm,
+            heightMm,
+            horizontalColor,
+            wallColor,
+            wallBrightness,
+            usePerVertexColors,
+            bottomScale,
+            opacity,
+            colorBlending,
+        }
+    ) {
         super();
 
         this.widthMm = widthMm || 10; // 10mm default
         this.heightMm = heightMm || 10;
-        this.horizontalColor = horizontalColor || 0xFFFFFF;
-        this.wallColor = wallColor || 0xABABAB;
+        this.horizontalColor = horizontalColor || 0xffffff;
+        this.wallColor = wallColor || 0xababab;
         this.wallBrightness = wallBrightness || 0.8; // sides are by default a bit darker than the horizontal, to make more visible
         this.usePerVertexColors = usePerVertexColors || false;
         this.bottomScale = bottomScale || 1; // if > 1, bottom of path flares out a bit to make sides more visible
@@ -92,7 +104,7 @@ export class MeshPath extends THREE.Group
      * @property {(number[]|THREE.Color)} color - The color of the point [0-255, 0-255, 0-255] (only used if perVertexColors=true)
      * @property {number} [scale] - The scale of the point (1.0 = default)
      */
-    
+
     // call this to build (or rebuild) the mesh given an updated array of [{x,y,z}, ...] values
     // each point can also have parameters:
     // - color: [0-255, 0-255, 0-255] (only used if perVertexColors=true)
@@ -103,9 +115,9 @@ export class MeshPath extends THREE.Group
      */
     setPoints(points) {
         this.resetPoints(); // removes the previous mesh from the scene and disposes of its geometry
-        
+
         this.currentPoints = points;
-        this.currentPoints.forEach(point => {
+        this.currentPoints.forEach((point) => {
             // Convert THREE.Color colors into the correct format
             if (point.color && point.color.isColor) {
                 point.color = [point.color.r * 255, point.color.g * 255, point.color.b * 255];
@@ -119,126 +131,456 @@ export class MeshPath extends THREE.Group
 
         const horizontalGeometry = new THREE.BufferGeometry(); // The horizontal represents the flat top and bottom of the line
         const wallGeometry = new THREE.BufferGeometry(); // The wall represents the two sides of the line
-        const up = new THREE.Vector3(0,1,0);
+        const up = new THREE.Vector3(0, 1, 0);
 
-        const horizontalMaterial = getMaterial(this.horizontalColor, this.opacity, this.usePerVertexColors, this.colorBlending);
-        const wallMaterial = getMaterial(this.wallColor, this.opacity, this.usePerVertexColors, this.colorBlending);
+        const horizontalMaterial = getMaterial(
+            this.horizontalColor,
+            this.opacity,
+            this.usePerVertexColors,
+            this.colorBlending
+        );
+        const wallMaterial = getMaterial(
+            this.wallColor,
+            this.opacity,
+            this.usePerVertexColors,
+            this.colorBlending
+        );
 
         for (let i = points.length - 1; i > 0; i--) {
             const start = points[i];
-            const end = points[i-1];
+            const end = points[i - 1];
             const direction = new THREE.Vector3().subVectors(end, start);
-            const startTaperFactor = (typeof start.scale !== 'undefined') ? start.scale : 1;
-            const endTaperFactor = (typeof end.scale !== 'undefined') ? end.scale : 1;
-            const cross = new THREE.Vector3().crossVectors(direction, up).normalize().multiplyScalar(this.widthMm / 2);
+            const startTaperFactor = typeof start.scale !== 'undefined' ? start.scale : 1;
+            const endTaperFactor = typeof end.scale !== 'undefined' ? end.scale : 1;
+            const cross = new THREE.Vector3()
+                .crossVectors(direction, up)
+                .normalize()
+                .multiplyScalar(this.widthMm / 2);
             // Base can be wider to allow visibility while moving along line
             const bottomCross = cross.clone().multiplyScalar(this.bottomScale);
-            const vertex = this.createVertexComponents(start, end, cross, bottomCross, startTaperFactor, endTaperFactor);
+            const vertex = this.createVertexComponents(
+                start,
+                end,
+                cross,
+                bottomCross,
+                startTaperFactor,
+                endTaperFactor
+            );
 
             let colors = {};
             colors[VERT_PATH.start] = {};
             colors[VERT_PATH.end] = {};
-            colors[VERT_PATH.start].horizontal = (typeof start.color !== 'undefined') ? start.color : this.horizontalColor;
-            colors[VERT_PATH.end].horizontal = (typeof end.color !== 'undefined') ? end.color : this.horizontalColor;
-            colors[VERT_PATH.start].wall = (typeof start.color !== 'undefined') ? start.color : this.wallColor;
-            colors[VERT_PATH.end].wall = (typeof end.color !== 'undefined') ? end.color : this.wallColor;
+            colors[VERT_PATH.start].horizontal =
+                typeof start.color !== 'undefined' ? start.color : this.horizontalColor;
+            colors[VERT_PATH.end].horizontal =
+                typeof end.color !== 'undefined' ? end.color : this.horizontalColor;
+            colors[VERT_PATH.start].wall =
+                typeof start.color !== 'undefined' ? start.color : this.wallColor;
+            colors[VERT_PATH.end].wall =
+                typeof end.color !== 'undefined' ? end.color : this.wallColor;
 
             // First top triangle
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.top, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.top, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.top,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.top,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.left,
+                VERT_PATH.top,
+                colors
+            );
 
             // Second top triangle
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.top, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.top,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.right,
+                VERT_PATH.top,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.left,
+                VERT_PATH.top,
+                colors
+            );
 
             // First bottom triangle
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.bottom, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.bottom, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
 
             // Second bottom triangle
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.bottom, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
-            this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addHorizontalVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
 
             // First left triangle
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.bottom, colors);
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.top, colors);
-            this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.top,
+                colors
+            );
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
 
             // Second left triangle
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.left, VERT_PATH.top, colors);
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.left,
+                VERT_PATH.top,
+                colors
+            );
             this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
-            this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.left,
+                VERT_PATH.bottom,
+                colors
+            );
 
             // First right triangle
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.top, colors);
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.bottom, colors);
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.top,
+                colors
+            );
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
             this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
 
             // Second right triangle
-            this.addWallVertexHelper(vertex, VERT_PATH.start, VERT_PATH.right, VERT_PATH.bottom, colors);
-            this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.start,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
+            this.addWallVertexHelper(
+                vertex,
+                VERT_PATH.end,
+                VERT_PATH.right,
+                VERT_PATH.bottom,
+                colors
+            );
             this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
 
             // Handle bends by adding extra geometry bridging this segment to the next segment
             if (i > 1) {
-                const nextDirection = new THREE.Vector3().subVectors(points[i-2],end);
-                const nextCross = new THREE.Vector3().crossVectors(nextDirection, up).normalize().multiplyScalar(this.widthMm / 2);
+                const nextDirection = new THREE.Vector3().subVectors(points[i - 2], end);
+                const nextCross = new THREE.Vector3()
+                    .crossVectors(nextDirection, up)
+                    .normalize()
+                    .multiplyScalar(this.widthMm / 2);
                 const nextBottomCross = nextCross.clone().multiplyScalar(this.bottomScale);
-                const nextVertex = this.createVertexComponents(start, end, nextCross, nextBottomCross, startTaperFactor, endTaperFactor);
+                const nextVertex = this.createVertexComponents(
+                    start,
+                    end,
+                    nextCross,
+                    nextBottomCross,
+                    startTaperFactor,
+                    endTaperFactor
+                );
 
                 // First top triangle
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
 
                 // Second top triangle
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
 
                 // First bottom triangle
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
 
                 // Second bottom triangle
-                this.addHorizontalVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
-                this.addHorizontalVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
+                this.addHorizontalVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addHorizontalVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
 
                 // First left triangle
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
 
                 // Second left triangle
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.top, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.left, VERT_PATH.bottom, colors);
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.left,
+                    VERT_PATH.bottom,
+                    colors
+                );
 
                 // First right triangle
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
 
                 // Second right triangle
-                this.addWallVertexHelper(vertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.bottom, colors);
-                this.addWallVertexHelper(nextVertex, VERT_PATH.end, VERT_PATH.right, VERT_PATH.top, colors);
+                this.addWallVertexHelper(
+                    vertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.bottom,
+                    colors
+                );
+                this.addWallVertexHelper(
+                    nextVertex,
+                    VERT_PATH.end,
+                    VERT_PATH.right,
+                    VERT_PATH.top,
+                    colors
+                );
             }
         }
 
-        horizontalGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.horizontalPositionsBuffer), COMPONENTS_PER_POSITION));
-        wallGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.wallPositionsBuffer), COMPONENTS_PER_POSITION));
+        horizontalGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(
+                new Float32Array(this.horizontalPositionsBuffer),
+                COMPONENTS_PER_POSITION
+            )
+        );
+        wallGeometry.setAttribute(
+            'position',
+            new THREE.BufferAttribute(
+                new Float32Array(this.wallPositionsBuffer),
+                COMPONENTS_PER_POSITION
+            )
+        );
 
         if (this.usePerVertexColors) {
             const normalized = true; // maps the uints from 0-255 to 0-1
-            horizontalGeometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(this.horizontalColorsBuffer), COMPONENTS_PER_COLOR, normalized));
-            wallGeometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(this.wallColorsBuffer), COMPONENTS_PER_COLOR, normalized));
+            horizontalGeometry.setAttribute(
+                'color',
+                new THREE.BufferAttribute(
+                    new Uint8Array(this.horizontalColorsBuffer),
+                    COMPONENTS_PER_COLOR,
+                    normalized
+                )
+            );
+            wallGeometry.setAttribute(
+                'color',
+                new THREE.BufferAttribute(
+                    new Uint8Array(this.wallColorsBuffer),
+                    COMPONENTS_PER_COLOR,
+                    normalized
+                )
+            );
         }
 
         const horizontalMesh = new THREE.Mesh(horizontalGeometry, horizontalMaterial);
@@ -249,29 +591,35 @@ export class MeshPath extends THREE.Group
         // can be accessed publicly
         this.horizontalMesh = horizontalMesh;
         this.wallMesh = wallMesh;
-        
+
         this.onRemove = () => {
             // Since these geometries are not reused, they MUST be disposed to prevent memory leakage
             if (horizontalGeometry) horizontalGeometry.dispose();
             if (wallGeometry) wallGeometry.dispose();
-        }
-        
+        };
+
         this.getGeometry = () => {
             return {
                 horizontal: horizontalGeometry,
-                wall: wallGeometry
-            }
-        }
+                wall: wallGeometry,
+            };
+        };
     }
-    
-    addPoints(points) { // TODO: replace with optimized version that appends to the mesh if performance is an issue
+
+    addPoints(points) {
+        // TODO: replace with optimized version that appends to the mesh if performance is an issue
         this.setPoints(this.currentPoints.concat(points));
     }
 
     // internal helper function - adds the vertex information to the horizontalMesh
     addHorizontalVertexHelper(vertexComponents, startEnd, leftRight, topBottom, colors) {
         let thisVertex = vertexComponents[startEnd][topBottom][leftRight];
-        this.addHorizontalVertex(thisVertex.x, thisVertex.y, thisVertex.z, colors[startEnd].horizontal);
+        this.addHorizontalVertex(
+            thisVertex.x,
+            thisVertex.y,
+            thisVertex.z,
+            colors[startEnd].horizontal
+        );
     }
 
     // internal helper function - adds the vertex information to the wallMesh
@@ -313,10 +661,10 @@ export class MeshPath extends THREE.Group
                 [VERT_PATH.left, VERT_PATH.right].forEach((leftRight) => {
                     let crossMultiplier = leftRight === VERT_PATH.left ? -1 : 1;
                     components[startEnd][topBottom][leftRight] = {
-                        x: point.x + (crossMultiplier * cross.x * taperFactor),
-                        y: point.y + (heightOffset * taperFactor),
-                        z: point.z + (crossMultiplier * cross.z * taperFactor)
-                    }
+                        x: point.x + crossMultiplier * cross.x * taperFactor,
+                        y: point.y + heightOffset * taperFactor,
+                        z: point.z + crossMultiplier * cross.z * taperFactor,
+                    };
                 });
             });
         });
@@ -327,7 +675,13 @@ export class MeshPath extends THREE.Group
     // returns the index of the point on the path that contains that face
     getPointFromFace(vertexIndices) {
         let approximatePointIndex = Math.floor(vertexIndices[0] / POSITIONS_PER_POINT);
-        return Math.max(0, Math.min(this.currentPoints.length - 1, (this.currentPoints.length - approximatePointIndex) - 2));
+        return Math.max(
+            0,
+            Math.min(
+                this.currentPoints.length - 1,
+                this.currentPoints.length - approximatePointIndex - 2
+            )
+        );
     }
 
     /**
@@ -349,15 +703,15 @@ export class MeshPath extends THREE.Group
 
         const length = this.currentPoints.length;
         const i = length - pointIndex;
-        const startBufferIndex = (POSITIONS_PER_POINT * componentsPerIndex) * (i-2); // todo: this was off by 1 on my first attempt so i'm subtracting (i-2) instead of (i-1), but i'm not sure why
-        let endBufferIndex = (POSITIONS_PER_POINT * componentsPerIndex) * (i-1) - 1;
+        const startBufferIndex = POSITIONS_PER_POINT * componentsPerIndex * (i - 2); // todo: this was off by 1 on my first attempt so i'm subtracting (i-2) instead of (i-1), but i'm not sure why
+        let endBufferIndex = POSITIONS_PER_POINT * componentsPerIndex * (i - 1) - 1;
         if (i === length - 1) {
-            endBufferIndex -= (POSITIONS_PER_POINT * componentsPerIndex) * 0.5; // last index has half as many positions
+            endBufferIndex -= POSITIONS_PER_POINT * componentsPerIndex * 0.5; // last index has half as many positions
         }
 
         let bufferIndices = [];
         for (let j = startBufferIndex; j <= endBufferIndex; j += componentsPerIndex) {
-            bufferIndices.push(Math.floor(j/componentsPerIndex));
+            bufferIndices.push(Math.floor(j / componentsPerIndex));
         }
         return bufferIndices;
     }
@@ -369,7 +723,7 @@ export class MeshPath extends THREE.Group
         let totalDistance = 0;
         for (let i = smallerIndex; i < biggerIndex; i++) {
             let thisPoint = this.currentPoints[i];
-            let nextPoint = this.currentPoints[i+1];
+            let nextPoint = this.currentPoints[i + 1];
             let dx = nextPoint.x - thisPoint.x;
             let dy = nextPoint.y - thisPoint.y;
             let dz = nextPoint.z - thisPoint.z;
@@ -390,19 +744,34 @@ export class MeshPath extends THREE.Group
         let wallColorAttribute = geometry.wall.getAttribute('color');
         let brightness = this.wallBrightness;
 
-        pointIndicesThatNeedUpdate.forEach(index => {
+        pointIndicesThatNeedUpdate.forEach((index) => {
             let colorBufferIndices = this.getBufferIndices(index, COMPONENTS_PER_COLOR);
-            colorBufferIndices.forEach(bfrIndex => {
+            colorBufferIndices.forEach((bfrIndex) => {
                 let newColor = {
                     r: this.currentPoints[index].color[0],
                     g: this.currentPoints[index].color[1],
                     b: this.currentPoints[index].color[2],
-                    a: this.currentPoints[index].color.length === 3 ? 255 : this.currentPoints[index].color[3]
-                }
-                horizontalColorAttribute.setXYZW(bfrIndex, newColor.r, newColor.g, newColor.b, newColor.a);
-                wallColorAttribute.setXYZW(bfrIndex, newColor.r * brightness, newColor.g * brightness, newColor.b * brightness, newColor.a);
+                    a:
+                        this.currentPoints[index].color.length === 3
+                            ? 255
+                            : this.currentPoints[index].color[3],
+                };
+                horizontalColorAttribute.setXYZW(
+                    bfrIndex,
+                    newColor.r,
+                    newColor.g,
+                    newColor.b,
+                    newColor.a
+                );
+                wallColorAttribute.setXYZW(
+                    bfrIndex,
+                    newColor.r * brightness,
+                    newColor.g * brightness,
+                    newColor.b * brightness,
+                    newColor.a
+                );
             });
-        })
+        });
         geometry.horizontal.attributes.color.needsUpdate = true;
         geometry.wall.attributes.color.needsUpdate = true;
     }
@@ -429,15 +798,17 @@ function getMaterialKey(color, opacity, usePerVertexColors) {
  * @returns {THREE.MeshBasicMaterial}
  */
 function getMaterial(color, opacity = 1, usePerVertexColors = false, colorBlending = false) {
-    if (usePerVertexColors && !colorBlending) { color = 0xFFFFFF; } // if color isn't white, vertex colors blend
+    if (usePerVertexColors && !colorBlending) {
+        color = 0xffffff;
+    } // if color isn't white, vertex colors blend
     let materialKey = getMaterialKey(color, opacity, usePerVertexColors);
     if (typeof cachedMaterials[materialKey] === 'undefined') {
         let params = {
-            color: color || 0xFFFFFF
+            color: color || 0xffffff,
         };
         if (opacity < 1) {
-            params.transparent = true
-            params.opacity = opacity
+            params.transparent = true;
+            params.opacity = opacity;
         }
         if (usePerVertexColors) {
             params.vertexColors = true;
@@ -447,7 +818,7 @@ function getMaterial(color, opacity = 1, usePerVertexColors = false, colorBlendi
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             transparent: true,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
         });
     }
     return cachedMaterials[materialKey]; // allows us to reuse materials that have the exact same params

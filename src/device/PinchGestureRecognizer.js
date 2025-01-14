@@ -4,7 +4,7 @@ export class PinchGestureRecognizer {
         this.callbacks = {
             onPinchChange: [],
             onPinchStart: [],
-            onPinchEnd: []
+            onPinchEnd: [],
         };
         this.addMultitouchEvents();
     }
@@ -33,12 +33,16 @@ export class PinchGestureRecognizer {
             if (event.touches.length === 2) {
                 const touch1 = event.touches[0];
                 const touch2 = event.touches[1];
-                const currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+                const currentDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
 
-                if (initialDistance === 0) { // indicates the start of the pinch gesture
+                if (initialDistance === 0) {
+                    // indicates the start of the pinch gesture
                     initialDistance = currentDistance;
                     lastDistance = initialDistance;
-                    this.callbacks.onPinchStart.forEach(callback => {
+                    this.callbacks.onPinchStart.forEach((callback) => {
                         callback();
                     });
                 } else {
@@ -46,13 +50,13 @@ export class PinchGestureRecognizer {
                     // 5 is empirically determined to feel natural. -= so bigger distance leads to closer zoom
                     this.unprocessedScroll -= 5 * (currentDistance - lastDistance);
                     lastDistance = currentDistance;
-                    this.callbacks.onPinchChange.forEach(callback => {
+                    this.callbacks.onPinchChange.forEach((callback) => {
                         callback(this.unprocessedScroll);
                     });
                     this.unprocessedScroll = 0;
                 }
             }
-        }
+        };
 
         // Add multitouch event listeners to the document
         document.addEventListener('touchstart', (event) => {
@@ -81,7 +85,7 @@ export class PinchGestureRecognizer {
         document.addEventListener('touchend', (_event) => {
             initialDistance = 0;
             isMultitouchGestureActive = false;
-            this.callbacks.onPinchEnd.forEach(callback => {
+            this.callbacks.onPinchEnd.forEach((callback) => {
                 callback();
             });
         });

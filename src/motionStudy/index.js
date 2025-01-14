@@ -1,11 +1,11 @@
-createNameSpace("realityEditor.motionStudy");
+createNameSpace('realityEditor.motionStudy');
 
-import {MotionStudy} from './motionStudy.js';
-import {MotionStudyMobile} from './MotionStudyMobile.js';
-import {MotionStudySensors} from './MotionStudySensors.js';
-import {StepAnimationManager} from './StepAnimationManager.js';
+import { MotionStudy } from './motionStudy.js';
+import { MotionStudyMobile } from './MotionStudyMobile.js';
+import { MotionStudySensors } from './MotionStudySensors.js';
+import { StepAnimationManager } from './StepAnimationManager.js';
 
-(function(exports) {
+(function (exports) {
     /**
      * @param {string} frame - frame id associated with instance of
      * motionStudy
@@ -23,7 +23,7 @@ import {StepAnimationManager} from './StepAnimationManager.js';
     let motionStudyByFrame = {};
     let sensors = new MotionStudySensors();
     let synchronizationEnabled = true;
-    
+
     function getDefaultMotionStudy() {
         return motionStudyByFrame[noneFrame];
     }
@@ -36,7 +36,7 @@ import {StepAnimationManager} from './StepAnimationManager.js';
         return motionStudyByFrame[activeFrame];
     }
     exports.getActiveMotionStudy = getActiveMotionStudy;
-    
+
     function getMotionStudyByFrame(frame) {
         return motionStudyByFrame[frame];
     }
@@ -194,6 +194,6 @@ import {StepAnimationManager} from './StepAnimationManager.js';
         sensors.attachListeners();
     }
     exports.initService = initService;
-}(realityEditor.motionStudy));
+})(realityEditor.motionStudy);
 
 export const initService = realityEditor.motionStudy.initService;

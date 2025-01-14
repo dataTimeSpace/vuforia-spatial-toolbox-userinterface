@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.worldObjects");
+createNameSpace('realityEditor.worldObjects');
 
 /**
  * @fileOverview realityEditor.worldObjects
@@ -8,15 +8,15 @@ createNameSpace("realityEditor.worldObjects");
  *  data from session to session, and has the lowest priority to add frames to if any other world objects are visible
  */
 
-(function(exports) {
-    const PROXY = !window.location.port || window.location.port === "443";
+(function (exports) {
+    const PROXY = !window.location.port || window.location.port === '443';
 
     var worldObjects = {}; // world objects are stored in the regular global "objects" variable, but also in here
     var worldObjectKeys = [];
     var discoveredServerIPs = [];
-    
+
     var cameraMatrixOffset; // can be used to relocalize the world objects to a different origin point // todo: isn't actually used, should probably be removed
-    
+
     var originObjects = {}; // detected _ORIGIN_ objects with type=origin
     var originByName = {};
     var worldByName = {};
@@ -38,16 +38,14 @@ createNameSpace("realityEditor.worldObjects");
      * Init world object module
      */
     function initService() {
-        
         // register a callback for when new objects / IPs are discovered
         // (look at desktopAdapter to figure out how I did it there)
         // trigger the onNewServerDiscovered if it belongs to an undiscovered server
-        
+
         cameraMatrixOffset = realityEditor.gui.ar.utilities.newIdentityMatrix();
-        
+
         // when an object is detected, check if we need to add a world object for its server
-        realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
-            
+        realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
             if (object.isWorldObject || object.type === 'world') {
                 // add to the internal world objects
                 if (typeof worldObjects[objectKey] === 'undefined') {
@@ -63,16 +61,20 @@ createNameSpace("realityEditor.worldObjects");
 
                 if (object.objectId !== getLocalWorldId()) {
                     const renderingFlagName = 'loadingWorldMesh';
-                    realityEditor.device.environment.clearSuppressedObjectRenderingFlag(renderingFlagName); // ensure that tools aren't hidden
+                    realityEditor.device.environment.clearSuppressedObjectRenderingFlag(
+                        renderingFlagName
+                    ); // ensure that tools aren't hidden
                 }
             }
 
             if (object.type === 'origin') {
                 originObjects[objectKey] = object;
                 updateOriginOffsetIfNecessary(null, object);
-                setTimeout(function() { updateOriginOffsetIfNecessary(null, object); }, 100);
+                setTimeout(function () {
+                    updateOriginOffsetIfNecessary(null, object);
+                }, 100);
             }
-            
+
             // backwards compatible with old servers - try downloading the local server's worldObject from http://ip:port/worldObject/
             handleServerDiscovered(object);
         });
@@ -82,13 +84,13 @@ createNameSpace("realityEditor.worldObjects");
         }
 
         // when an explicit worldObject message is detected, check if we still need to add that world object
-        realityEditor.network.addUDPMessageHandler('worldObject', function(message) {
+        realityEditor.network.addUDPMessageHandler('worldObject', function (message) {
             if (typeof message.worldObject.ip !== 'undefined') {
-                handleServerDiscovered(message.worldObject)
+                handleServerDiscovered(message.worldObject);
             }
         });
     }
-    
+
     function updateOriginOffsetIfNecessary(worldObject, originObject) {
         if (worldObject && !originObject) {
             originObject = getMatchingOriginObject(worldObject.objectId);
@@ -96,18 +98,27 @@ createNameSpace("realityEditor.worldObjects");
         if (originObject && !worldObject) {
             worldObject = getMatchingWorldObject(originObject.objectId);
         }
-        
+
         // only use offset if both are loaded
-        if (!originObject || !worldObject) { return; }
-
-        if (typeof worldObject.originOffset !== 'undefined') { return; }
-
-        // only use offset if a non-identity matrix has been saved to that origin. we know it was localized because that is a prerequisite for saving.
-        if (!originObject.matrix || originObject.matrix.length !== 16 || realityEditor.gui.ar.utilities.isIdentityMatrix(originObject.matrix, 3)) {
+        if (!originObject || !worldObject) {
             return;
         }
 
-        realityEditor.getObject(worldObject.objectId).originOffset = realityEditor.gui.ar.utilities.copyMatrix(originObject.matrix);
+        if (typeof worldObject.originOffset !== 'undefined') {
+            return;
+        }
+
+        // only use offset if a non-identity matrix has been saved to that origin. we know it was localized because that is a prerequisite for saving.
+        if (
+            !originObject.matrix ||
+            originObject.matrix.length !== 16 ||
+            realityEditor.gui.ar.utilities.isIdentityMatrix(originObject.matrix, 3)
+        ) {
+            return;
+        }
+
+        realityEditor.getObject(worldObject.objectId).originOffset =
+            realityEditor.gui.ar.utilities.copyMatrix(originObject.matrix);
         // worldObject.originOffset = realityEditor.gui.ar.utilities.copyMatrix(originObject.matrix);
     }
 
@@ -140,7 +151,7 @@ createNameSpace("realityEditor.worldObjects");
             return;
         }
 
-        setTimeout(function() {
+        setTimeout(function () {
             if (!realityEditor.worldObjects.getWorldObjectKeys().includes(localWorldObjectKey)) {
                 tryLoadingLocalWorldObject(); // keep repeating until we load it successfully
             }
@@ -152,7 +163,6 @@ createNameSpace("realityEditor.worldObjects");
      * @param {string} serverIP
      */
     function handleServerDiscovered(object) {
-        
         if (discoveredServerIPs.indexOf(object.ip) < 0) {
             discoveredServerIPs.push(object.ip);
             onNewServerDiscovered(object);
@@ -169,18 +179,26 @@ createNameSpace("realityEditor.worldObjects");
         if (object.ip !== '127.0.0.1' && object.ip !== 'localhost') {
             return;
         }
-        
+
         // REST endpoint for for downloading the world object for that server
-        var urlEndpoint = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/worldObject/');
-        realityEditor.network.getData(null, null, null, urlEndpoint, function (objectKey, frameKey, nodeKey, msg) {
-            if (msg && Object.keys(msg).length > 0) {
-                initializeWorldObject(msg);
+        var urlEndpoint = realityEditor.network.getURL(
+            object.ip,
+            realityEditor.network.getPort(object),
+            '/worldObject/'
+        );
+        realityEditor.network.getData(
+            null,
+            null,
+            null,
+            urlEndpoint,
+            function (objectKey, frameKey, nodeKey, msg) {
+                if (msg && Object.keys(msg).length > 0) {
+                    initializeWorldObject(msg);
+                }
             }
-            
-        });
-        
+        );
     }
-    
+
     function initializeWorldObject(object) {
         if (typeof object.integerVersion === 'undefined') {
             object.integerVersion = 300;
@@ -204,11 +222,16 @@ createNameSpace("realityEditor.worldObjects");
         // (setOrigin will be updated to the target position when target is added/downloaded/localized)
         if (!realityEditor.device.environment.isWithinToolboxApp()) {
             // but in the VR mode, always initialize at identity origin, so that an empty world counts as "localized"
-            realityEditor.worldObjects.setOrigin(object.objectId, realityEditor.gui.ar.utilities.newIdentityMatrix());
+            realityEditor.worldObjects.setOrigin(
+                object.objectId,
+                realityEditor.gui.ar.utilities.newIdentityMatrix()
+            );
         }
 
         updateOriginOffsetIfNecessary(object, null);
-        setTimeout(function() { updateOriginOffsetIfNecessary(object, null); }, 100);
+        setTimeout(function () {
+            updateOriginOffsetIfNecessary(object, null);
+        }, 100);
     }
 
     /**
@@ -218,25 +241,24 @@ createNameSpace("realityEditor.worldObjects");
      * @return {Object}
      */
     function getBestWorldObject() {
-        
         // if there are any global world objects, add to those first
-        let visibleGlobalWorldObjectKeys = getGlobalWorldObjectKeys().filter(function(objectKey) {
-            return (typeof realityEditor.gui.ar.draw.visibleObjects[objectKey] !== 'undefined');
+        let visibleGlobalWorldObjectKeys = getGlobalWorldObjectKeys().filter(function (objectKey) {
+            return typeof realityEditor.gui.ar.draw.visibleObjects[objectKey] !== 'undefined';
         });
-        
+
         let distances = getDistanceToEachWorld();
-        
+
         if (visibleGlobalWorldObjectKeys.length > 0) {
             // todo: should there be a better way to see which server's world object you'd be accessing?
-            
+
             // sort them by distance
-            visibleGlobalWorldObjectKeys.sort(function(a, b) {
+            visibleGlobalWorldObjectKeys.sort(function (a, b) {
                 return distances[a] - distances[b];
             });
-            
+
             return realityEditor.getObject(visibleGlobalWorldObjectKeys[0]); // chooses the closest visible non-local world
         }
-        
+
         // otherwise add to the local one. there should always be one of these so it should never return null
         return getLocalWorldObject();
     }
@@ -256,7 +278,7 @@ createNameSpace("realityEditor.worldObjects");
     function getGlobalWorldObjectKeys() {
         var globalWorldObjectKeys = [];
         if (getWorldObjectKeys()) {
-            getWorldObjectKeys().forEach(function(worldObjectKey) {
+            getWorldObjectKeys().forEach(function (worldObjectKey) {
                 if (worldObjectKey !== localWorldObjectKey) {
                     globalWorldObjectKeys.push(worldObjectKey);
                 }
@@ -291,28 +313,32 @@ createNameSpace("realityEditor.worldObjects");
     }
 
     /**
-     * 
+     *
      * @param worldKey
      */
     function getMatchingOriginObject(worldKey) {
         let worldObject = worldObjects[worldKey];
-        if (!worldObject) { return null; }
+        if (!worldObject) {
+            return null;
+        }
         let originName = worldObject.name.replace(/^_WORLD_/, '_ORIGIN_');
         return getOriginByName(originName);
     }
 
     function getMatchingWorldObject(originKey) {
         let originObject = realityEditor.getObject(originKey);
-        if (!originObject) { return null; }
+        if (!originObject) {
+            return null;
+        }
         let worldName = originObject.name.replace(/^_ORIGIN_/, '_WORLD_');
         return getWorldByName(worldName);
     }
-    
+
     function getOriginByName(originName) {
         if (typeof originByName[originName] !== 'undefined') {
             return originByName[originName];
         }
-        let origin = Object.values(originObjects).find(obj => obj.name === originName);
+        let origin = Object.values(originObjects).find((obj) => obj.name === originName);
         if (origin) {
             originByName[originName] = origin;
             return originByName[originName];
@@ -324,7 +350,7 @@ createNameSpace("realityEditor.worldObjects");
         if (typeof worldByName[worldName] !== 'undefined') {
             return worldByName[worldName];
         }
-        let world = Object.values(worldObjects).find(obj => obj.name === worldName);
+        let world = Object.values(worldObjects).find((obj) => obj.name === worldName);
         if (world) {
             worldByName[worldName] = world;
             return worldByName[worldName];
@@ -374,22 +400,24 @@ createNameSpace("realityEditor.worldObjects");
      */
     function setOrigin(objectKey, originMatrix) {
         if (typeof worldCorrections[objectKey] !== 'undefined') {
-            
-            if (worldCorrections[objectKey] === null || realityEditor.gui.ar.utilities.isIdentityMatrix(worldCorrections[objectKey])) {
+            if (
+                worldCorrections[objectKey] === null ||
+                realityEditor.gui.ar.utilities.isIdentityMatrix(worldCorrections[objectKey])
+            ) {
                 // TODO: should localizedWithinWorldCallbacks be able to trigger twice? once when placeholder detected, once when target detected
-                localizedWithinWorldCallbacks.forEach(function(callback) {
+                localizedWithinWorldCallbacks.forEach(function (callback) {
                     callback(objectKey);
                 });
                 worldUsedForCorrection = objectKey;
                 realityEditor.app.tap();
-                setTimeout(function() {
+                setTimeout(function () {
                     realityEditor.app.tap();
                 }, 100);
-                setTimeout(function() {
+                setTimeout(function () {
                     realityEditor.app.tap();
                 }, 200);
             }
-            
+
             worldCorrections[objectKey] = originMatrix;
         }
     }
@@ -430,7 +458,7 @@ createNameSpace("realityEditor.worldObjects");
      */
     function getWorldObjectsByIP(serverIP) {
         var matchingWorldObjects = [];
-        Object.values(worldObjects).forEach(function(worldObject) {
+        Object.values(worldObjects).forEach(function (worldObject) {
             if (worldObject.ip === serverIP) {
                 matchingWorldObjects.push(worldObject);
             }
@@ -453,15 +481,18 @@ createNameSpace("realityEditor.worldObjects");
         }
         return distances;
     }
-    
+
     var isFirstTimeSettingWorldPosition = true;
-    
+
     function checkIfFirstLocalization() {
         if (isFirstTimeSettingWorldPosition) {
             if (getWorldObjectKeys().length > 0) {
-                if (typeof realityEditor.gui.ar.draw.visibleObjects[getLocalWorldId()] !== 'undefined') {
+                if (
+                    typeof realityEditor.gui.ar.draw.visibleObjects[getLocalWorldId()] !==
+                    'undefined'
+                ) {
                     isFirstTimeSettingWorldPosition = false;
-                    setTimeout(function() {
+                    setTimeout(function () {
                         if (realityEditor.gui.settings.toggleStates.tutorialState) {
                             realityEditor.gui.pocket.addTutorialFrame(getLocalWorldId());
                         }
@@ -470,7 +501,7 @@ createNameSpace("realityEditor.worldObjects");
             }
         }
     }
-    
+
     exports.initService = initService;
     exports.getWorldObjects = getWorldObjects;
     exports.getWorldObjectKeys = getWorldObjectKeys;
@@ -489,5 +520,4 @@ createNameSpace("realityEditor.worldObjects");
     exports.getOriginObjects = getOriginObjects;
     exports.getMatchingOriginObject = getMatchingOriginObject;
     exports.getMatchingWorldObject = getMatchingWorldObject;
-
-}(realityEditor.worldObjects));
+})(realityEditor.worldObjects);

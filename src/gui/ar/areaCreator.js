@@ -1,14 +1,14 @@
 /*
-* Created by Daniel Dangond on 12/06/21.
-*
-* Copyright (c) 2021 PTC Inc
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Created by Daniel Dangond on 12/06/21.
+ *
+ * Copyright (c) 2021 PTC Inc
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-createNameSpace("realityEditor.gui.ar.areaCreator");
+createNameSpace('realityEditor.gui.ar.areaCreator');
 
 /**
  * @fileOverview realityEditor.gui.ar.areaCreator
@@ -17,18 +17,18 @@ createNameSpace("realityEditor.gui.ar.areaCreator");
  */
 
 realityEditor.gui.ar.areaCreator.Modes = {
-    DISABLED: "DISABLED",
-    DRAW_MODE_SELECT: "DRAW_MODE_SELECT",
-    AREA_CREATE: "AREA_CREATE",
-    HEIGHT_SET: "HEIGHT_SET",
-}
+    DISABLED: 'DISABLED',
+    DRAW_MODE_SELECT: 'DRAW_MODE_SELECT',
+    AREA_CREATE: 'AREA_CREATE',
+    HEIGHT_SET: 'HEIGHT_SET',
+};
 realityEditor.gui.ar.areaCreator.mode = realityEditor.gui.ar.areaCreator.Modes.DISABLED;
 
 realityEditor.gui.ar.areaCreator.pointerCallbacks = {
     down: () => {},
     up: () => {},
-    move: () => {}
-}
+    move: () => {},
+};
 
 realityEditor.gui.ar.areaCreator.buttonCallbacks = {
     cancel: () => {},
@@ -36,7 +36,7 @@ realityEditor.gui.ar.areaCreator.buttonCallbacks = {
     polygon: () => {},
     confirmArea: () => {},
     confirmHeight: () => {},
-}
+};
 
 realityEditor.gui.ar.areaCreator.polygonPoints = [];
 realityEditor.gui.ar.areaCreator.height = 1;
@@ -52,33 +52,58 @@ realityEditor.gui.ar.areaCreator.animationCallbacks = [];
 
 realityEditor.gui.ar.areaCreator.initializedPrefabs = false;
 
-realityEditor.gui.ar.areaCreator.initService = function() {
+realityEditor.gui.ar.areaCreator.initService = function () {
     realityEditor.network.addPostMessageHandler('promptForArea', this.promptForAreaHandler);
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.getPrefabs = function() {
+realityEditor.gui.ar.areaCreator.getPrefabs = function () {
     if (!this.initializedPrefabs) {
         const THREE = realityEditor.gui.threejsScene.THREE;
-        const pointPillarGeometry = new THREE.CylinderGeometry(0.02, 0.02, 1, 8).translate(0, 0.5, 0).scale(1000,1000,1000);
-        const pointPillarMaterial = new THREE.MeshBasicMaterial({color: 0x66FF66, opacity: 0.6, transparent: true});
+        const pointPillarGeometry = new THREE.CylinderGeometry(0.02, 0.02, 1, 8)
+            .translate(0, 0.5, 0)
+            .scale(1000, 1000, 1000);
+        const pointPillarMaterial = new THREE.MeshBasicMaterial({
+            color: 0x66ff66,
+            opacity: 0.6,
+            transparent: true,
+        });
         this.pointPillarSource = new THREE.Mesh(pointPillarGeometry, pointPillarMaterial);
-        this.wallMaterial = new THREE.MeshBasicMaterial({color: 0x66FF66, opacity: 0.5, transparent: true, side: THREE.DoubleSide, wireframe: true});
-        this.floorMaterial = new THREE.MeshBasicMaterial({color: 0x66FF66, opacity: 0.5, transparent: true, side: THREE.DoubleSide});
+        this.wallMaterial = new THREE.MeshBasicMaterial({
+            color: 0x66ff66,
+            opacity: 0.5,
+            transparent: true,
+            side: THREE.DoubleSide,
+            wireframe: true,
+        });
+        this.floorMaterial = new THREE.MeshBasicMaterial({
+            color: 0x66ff66,
+            opacity: 0.5,
+            transparent: true,
+            side: THREE.DoubleSide,
+        });
         this.initializedPrefabs = true;
     }
     return {
         pointPillarSource: this.pointPillarSource,
         wallMaterial: this.wallMaterial,
-        floorMaterial: this.floorMaterial
-    }
+        floorMaterial: this.floorMaterial,
+    };
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.promptForAreaHandler = function(msgData) {
-    this.promptForArea(msgData.options).then(area => {
-        realityEditor.network.postMessageIntoFrame(msgData.frameKey, {area: area, canceled: false});
-    }).catch(() => {
-        realityEditor.network.postMessageIntoFrame(msgData.frameKey, {area: {}, canceled: true});
-    });
+realityEditor.gui.ar.areaCreator.promptForAreaHandler = function (msgData) {
+    this.promptForArea(msgData.options)
+        .then((area) => {
+            realityEditor.network.postMessageIntoFrame(msgData.frameKey, {
+                area: area,
+                canceled: false,
+            });
+        })
+        .catch(() => {
+            realityEditor.network.postMessageIntoFrame(msgData.frameKey, {
+                area: {},
+                canceled: true,
+            });
+        });
 }.bind(realityEditor.gui.ar.areaCreator);
 
 /**
@@ -86,109 +111,126 @@ realityEditor.gui.ar.areaCreator.promptForAreaHandler = function(msgData) {
  * in the form {points: [{x:number,y:number}...], height?: number} if the user completes the area creation process.
  * @param {object} options takes the form {drawingMode:'FREEHAND'|'POLYGON'|undefined, defineHeight:boolean}
  */
-realityEditor.gui.ar.areaCreator.promptForArea = function(options) {
+realityEditor.gui.ar.areaCreator.promptForArea = function (options) {
     return new Promise((resolve, reject) => {
         globalStates.useGroundPlane = true;
         function confirmAreaCreation(area) {
             resolve({
                 points: area.points,
                 height: area.height * 1000,
-                floorOffset: realityEditor.gui.ar.areaCreator.calculateFloorOffset()
+                floorOffset: realityEditor.gui.ar.areaCreator.calculateFloorOffset(),
             });
             realityEditor.gui.ar.areaCreator.disable();
         }
-        
+
         function cancelAreaCreation() {
             reject();
             realityEditor.gui.ar.areaCreator.disable();
         }
-        
+
         this.activateUI();
         this.buttonCallbacks.cancel = () => {
             cancelAreaCreation();
-        }
-        
+        };
+
         if (options.drawingMode === 'FREEHAND') {
-            this.beginAreaCreation(options.drawingMode).then(points => {
-                if (options.defineHeight) {
-                    this.promptForHeight().then(height => {
-                        confirmAreaCreation({points, height});
-                    }).catch(cancelAreaCreation);
-                } else {
-                    confirmAreaCreation({points});
-                }
-            }).catch(cancelAreaCreation);
-        } else if (options.drawingMode === 'POLYGON') {
-            this.beginAreaCreation(options.drawingMode).then(points => {
-                if (options.defineHeight) {
-                    this.promptForHeight().then(height => {
-                        confirmAreaCreation({points, height});
-                    }).catch(cancelAreaCreation);
-                } else {
-                    confirmAreaCreation({points});
-                }
-            }).catch(cancelAreaCreation);
-        } else {
-            this.promptForDrawingMode().then(drawingMode => {
-                this.beginAreaCreation(drawingMode).then(points => {
+            this.beginAreaCreation(options.drawingMode)
+                .then((points) => {
                     if (options.defineHeight) {
-                        this.promptForHeight().then(height => {
-                            confirmAreaCreation({points, height});
-                        }).catch(cancelAreaCreation);
+                        this.promptForHeight()
+                            .then((height) => {
+                                confirmAreaCreation({ points, height });
+                            })
+                            .catch(cancelAreaCreation);
                     } else {
-                        confirmAreaCreation({points});
+                        confirmAreaCreation({ points });
                     }
-                }).catch(cancelAreaCreation);
-            }).catch(cancelAreaCreation);
+                })
+                .catch(cancelAreaCreation);
+        } else if (options.drawingMode === 'POLYGON') {
+            this.beginAreaCreation(options.drawingMode)
+                .then((points) => {
+                    if (options.defineHeight) {
+                        this.promptForHeight()
+                            .then((height) => {
+                                confirmAreaCreation({ points, height });
+                            })
+                            .catch(cancelAreaCreation);
+                    } else {
+                        confirmAreaCreation({ points });
+                    }
+                })
+                .catch(cancelAreaCreation);
+        } else {
+            this.promptForDrawingMode()
+                .then((drawingMode) => {
+                    this.beginAreaCreation(drawingMode)
+                        .then((points) => {
+                            if (options.defineHeight) {
+                                this.promptForHeight()
+                                    .then((height) => {
+                                        confirmAreaCreation({ points, height });
+                                    })
+                                    .catch(cancelAreaCreation);
+                            } else {
+                                confirmAreaCreation({ points });
+                            }
+                        })
+                        .catch(cancelAreaCreation);
+                })
+                .catch(cancelAreaCreation);
         }
     });
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.promptForDrawingMode = function() {
+realityEditor.gui.ar.areaCreator.promptForDrawingMode = function () {
     this.mode = this.Modes.DRAW_MODE_SELECT;
     return new Promise((resolve, reject) => {
         this.clearCallbacks();
         this.showDrawingModeSelectionMenu();
-        
+
         this.buttonCallbacks.cancel = (event) => {
             reject();
             this.hideDrawingModeSelectionMenu();
             event.stopPropagation();
-        }
+        };
         this.buttonCallbacks.freehand = (event) => {
             resolve('FREEHAND');
             this.hideDrawingModeSelectionMenu();
             event.stopPropagation();
-        }
+        };
         this.buttonCallbacks.polygon = (event) => {
             resolve('POLYGON');
             this.hideDrawingModeSelectionMenu();
             event.stopPropagation();
-        }
+        };
     });
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.beginAreaCreation = function(drawingMode) {
+realityEditor.gui.ar.areaCreator.beginAreaCreation = function (drawingMode) {
     this.mode = this.Modes.AREA_CREATE;
     return new Promise((resolve, reject) => {
         this.clearCallbacks();
         this.showAreaCreationMenu();
-        
+
         this.buttonCallbacks.cancel = (event) => {
             reject();
             this.hideAreaCreationMenu();
             event.stopPropagation();
-        }
+        };
         this.buttonCallbacks.confirmArea = (event) => {
             resolve(this.polygonPoints);
             this.hideAreaCreationMenu();
             event.stopPropagation();
-        }
-        
+        };
+
         this.pointerCallbacks.down = (event) => {
             const point = this.calculateGroundPlaneIntersection(event);
             if (point) {
-                const flattenedPoint = new realityEditor.gui.threejsScene.THREE.Vector2(point.x, point.z);
+                const flattenedPoint = new realityEditor.gui.threejsScene.THREE.Vector2(
+                    point.x,
+                    point.z
+                );
                 this.polygonPoints.push(flattenedPoint);
                 if (this.polygonPoints.length >= 3) {
                     this.showAreaConfirmationButton();
@@ -198,63 +240,71 @@ realityEditor.gui.ar.areaCreator.beginAreaCreation = function(drawingMode) {
                 event.stopPropagation();
             }
             this.canDragTouch = true;
-        }
+        };
         this.pointerCallbacks.up = () => {};
         this.pointerCallbacks.move = (event) => {
             const point = this.calculateGroundPlaneIntersection(event);
-            if (point && this.canDragTouch) { // Ignore initial menu touch
-                const flattenedPoint = new realityEditor.gui.threejsScene.THREE.Vector2(point.x, point.z);
-                
+            if (point && this.canDragTouch) {
+                // Ignore initial menu touch
+                const flattenedPoint = new realityEditor.gui.threejsScene.THREE.Vector2(
+                    point.x,
+                    point.z
+                );
+
                 const pointInterval = 200; // 1 point per 200ms
-                if (drawingMode === "FREEHAND" && Date.now() - this.lastFreehandTime > pointInterval) { // TODO: base this on distance between points, not time
+                if (
+                    drawingMode === 'FREEHAND' &&
+                    Date.now() - this.lastFreehandTime > pointInterval
+                ) {
+                    // TODO: base this on distance between points, not time
                     this.lastFreehandTime = Date.now();
                     this.polygonPoints.push(flattenedPoint);
                     if (this.polygonPoints.length >= 3) {
                         this.showAreaConfirmationButton();
                     }
                 } else {
-                    this.polygonPoints[this.polygonPoints.length-1] = flattenedPoint; // Drag point in polygon mode
+                    this.polygonPoints[this.polygonPoints.length - 1] = flattenedPoint; // Drag point in polygon mode
                 }
                 this.needsRenderUpdate = true;
                 // stop propagation if we hit, otherwise pass the event on to the rest of the application
                 event.stopPropagation();
             }
         };
-        
+
         this.addAnimationCallback(this.areaAnimationCallback);
-    })
+    });
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.promptForHeight = function() {
+realityEditor.gui.ar.areaCreator.promptForHeight = function () {
     this.mode = this.Modes.HEIGHT_SET;
     return new Promise((resolve, reject) => {
         this.clearCallbacks();
         this.showHeightDefinitionMenu();
-        
+
         this.buttonCallbacks.cancel = (event) => {
             reject();
             this.hideHeightDefinitionMenu();
             event.stopPropagation();
-        }
+        };
         this.buttonCallbacks.confirmHeight = (event) => {
             resolve(this.height);
             this.hideHeightDefinitionMenu();
             event.stopPropagation();
-        }
+        };
 
         this.pointerCallbacks.move = (event) => {
             const movementFactor = 0.003;
-            const distance = (this.lastPointerY ? this.lastPointerY - event.clientY : 0);
+            const distance = this.lastPointerY ? this.lastPointerY - event.clientY : 0;
             this.height += distance * movementFactor;
             this.height = Math.max(0.001, Math.min(this.height, 1000));
             this.needsRenderUpdate = true;
-        }
+        };
 
         this.addAnimationCallback(this.areaAnimationCallback);
-    })
+    });
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.areaAnimationCallback = function() {
+realityEditor.gui.ar.areaCreator.areaAnimationCallback = function () {
     if (this.needsRenderUpdate) {
         this.clearAreaRender();
         this.generateAreaRender();
@@ -262,19 +312,22 @@ realityEditor.gui.ar.areaCreator.areaAnimationCallback = function() {
     }
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.clearAreaRender = function() {
+realityEditor.gui.ar.areaCreator.clearAreaRender = function () {
     realityEditor.gui.threejsScene.removeFromScene(this.areaRender);
     this.areaRender = null;
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.generateAreaRender = function() {
+realityEditor.gui.ar.areaCreator.generateAreaRender = function () {
     const THREE = realityEditor.gui.threejsScene.THREE;
     this.areaRender = new THREE.Group();
-    const relativePoints = this.polygonPoints.map(point => {
-        return new THREE.Vector2(point.x - this.polygonPoints[0].x, point.y - this.polygonPoints[0].y);
+    const relativePoints = this.polygonPoints.map((point) => {
+        return new THREE.Vector2(
+            point.x - this.polygonPoints[0].x,
+            point.y - this.polygonPoints[0].y
+        );
     });
     // Draw pillars
-    relativePoints.forEach(point => {
+    relativePoints.forEach((point) => {
         const pointPillar = this.getPrefabs().pointPillarSource.clone();
         this.areaRender.add(pointPillar);
         pointPillar.position.copy(new THREE.Vector3(point.x, 0, point.y));
@@ -284,9 +337,14 @@ realityEditor.gui.ar.areaCreator.generateAreaRender = function() {
         // Draw walls
         for (let i = 0; i < relativePoints.length; i++) {
             const wallStart = relativePoints[i];
-            const wallEnd = (i === relativePoints.length - 1) ? relativePoints[0] : relativePoints[i+1];
+            const wallEnd =
+                i === relativePoints.length - 1 ? relativePoints[0] : relativePoints[i + 1];
             const wallWidth = wallStart.distanceTo(wallEnd);
-            const wallGeometry = new THREE.PlaneGeometry(wallWidth, this.height * 1000).translate(wallWidth / 2, this.height * 1000 / 2, 0);
+            const wallGeometry = new THREE.PlaneGeometry(wallWidth, this.height * 1000).translate(
+                wallWidth / 2,
+                (this.height * 1000) / 2,
+                0
+            );
             const wall = new THREE.Mesh(wallGeometry, this.getPrefabs().wallMaterial);
             this.areaRender.add(wall);
             wall.position.copy(new THREE.Vector3(wallStart.x, 0, wallStart.y));
@@ -300,43 +358,65 @@ realityEditor.gui.ar.areaCreator.generateAreaRender = function() {
     const floor = new THREE.Mesh(floorGeometry, this.getPrefabs().floorMaterial);
     this.areaRender.add(floor);
     realityEditor.gui.threejsScene.addToScene(this.areaRender);
-    this.areaRender.position.copy(new THREE.Vector3(this.polygonPoints[0].x, 0, this.polygonPoints[0].y));
+    this.areaRender.position.copy(
+        new THREE.Vector3(this.polygonPoints[0].x, 0, this.polygonPoints[0].y)
+    );
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.didAreaUpdate = function() {
+realityEditor.gui.ar.areaCreator.didAreaUpdate = function () {
     return this.needsRenderUpdate;
 }.bind(realityEditor.gui.ar.areaCreator);
 
-realityEditor.gui.ar.areaCreator.calculateGroundPlaneIntersection = function(event) {
+realityEditor.gui.ar.areaCreator.calculateGroundPlaneIntersection = function (event) {
     const groundPlane = realityEditor.gui.threejsScene.getGroundPlaneCollider();
-    const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(event.clientX, event.clientY, [groundPlane.getInternalObject()]);
+    const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+        event.clientX,
+        event.clientY,
+        [groundPlane.getInternalObject()]
+    );
     if (intersects.length > 0) {
-        let worldObjectToolboxMatrix = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId()).worldMatrix;
+        let worldObjectToolboxMatrix = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.getWorldId()
+        ).worldMatrix;
         const worldObjectThreeMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-        realityEditor.gui.threejsScene.setMatrixFromArray(worldObjectThreeMatrix, worldObjectToolboxMatrix);
+        realityEditor.gui.threejsScene.setMatrixFromArray(
+            worldObjectThreeMatrix,
+            worldObjectToolboxMatrix
+        );
         return intersects[0].point.applyMatrix4(worldObjectThreeMatrix.invert());
     }
-}
+};
 
 realityEditor.gui.ar.areaCreator.cachedFloorOffset = null;
 
-realityEditor.gui.ar.areaCreator.calculateFloorOffset = function() {
+realityEditor.gui.ar.areaCreator.calculateFloorOffset = function () {
     if (this.cachedFloorOffset) {
         return this.cachedFloorOffset;
     }
 
-    const worldObjectToolboxMatrix = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId()).worldMatrix;
+    const worldObjectToolboxMatrix = realityEditor.sceneGraph.getSceneNodeById(
+        realityEditor.sceneGraph.getWorldId()
+    ).worldMatrix;
     const worldObjectThreeMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-    realityEditor.gui.threejsScene.setMatrixFromArray(worldObjectThreeMatrix, worldObjectToolboxMatrix);
+    realityEditor.gui.threejsScene.setMatrixFromArray(
+        worldObjectThreeMatrix,
+        worldObjectToolboxMatrix
+    );
     const groundPlaneToolboxMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
     const groundPlaneThreeMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-    realityEditor.gui.threejsScene.setMatrixFromArray(groundPlaneThreeMatrix, groundPlaneToolboxMatrix);
-    const groundToWorldMatrix = groundPlaneThreeMatrix.clone().invert().multiply(worldObjectThreeMatrix);
+    realityEditor.gui.threejsScene.setMatrixFromArray(
+        groundPlaneThreeMatrix,
+        groundPlaneToolboxMatrix
+    );
+    const groundToWorldMatrix = groundPlaneThreeMatrix
+        .clone()
+        .invert()
+        .multiply(worldObjectThreeMatrix);
     const position = new realityEditor.gui.threejsScene.THREE.Vector3();
     position.setFromMatrixPosition(groundToWorldMatrix);
     this.cachedFloorOffset = -position.y;
     return -position.y;
-}
+};
 
 // ensures there's a div on top of everything that blocks touch events from reaching the tools when we're in this mode
 realityEditor.gui.ar.areaCreator.getUI = function () {
@@ -362,7 +442,9 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
             realityEditor.gui.ar.areaCreator.pointerCallbacks.up(event);
             realityEditor.gui.ar.areaCreator.lastPointerY = null;
         });
-        this.UI.addEventListener('pointercancel', (event) => {realityEditor.gui.ar.areaCreator.pointerCallbacks.up(event)});
+        this.UI.addEventListener('pointercancel', (event) => {
+            realityEditor.gui.ar.areaCreator.pointerCallbacks.up(event);
+        });
         this.UI.addEventListener('pointermove', (event) => {
             realityEditor.gui.ar.areaCreator.pointerCallbacks.move(event);
             realityEditor.gui.ar.areaCreator.lastPointerY = event.clientY;
@@ -376,11 +458,14 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         this.UI.cancelButton.style.height = '15vh';
         let cancelButtonZIndex = 2902; // above areaCreator menus
         this.UI.cancelButton.style.zIndex = `${cancelButtonZIndex}`;
-        this.UI.cancelButton.style.transform = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + cancelButtonZIndex + ',1)';
-        this.UI.cancelButton.addEventListener('pointerdown', (event) => {realityEditor.gui.ar.areaCreator.buttonCallbacks.cancel(event)});
+        this.UI.cancelButton.style.transform =
+            'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + cancelButtonZIndex + ',1)';
+        this.UI.cancelButton.addEventListener('pointerdown', (event) => {
+            realityEditor.gui.ar.areaCreator.buttonCallbacks.cancel(event);
+        });
 
-        this.UI.appendChild(this.UI.cancelButton)
-        
+        this.UI.appendChild(this.UI.cancelButton);
+
         this.UI.infoDiv = document.createElement('div');
         this.UI.infoDiv.style.position = 'absolute';
         this.UI.infoDiv.style.top = '0';
@@ -390,7 +475,7 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         this.UI.infoDiv.style.textAlign = 'center';
 
         this.UI.appendChild(this.UI.infoDiv);
-        
+
         this.UI.infoText = document.createElement('div');
         this.UI.infoText.style.display = 'inline-block';
         this.UI.infoText.style.margin = '0 auto';
@@ -401,7 +486,7 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         this.UI.infoText.innerText = '';
         this.UI.infoText.style.display = 'none';
         this.UI.infoDiv.appendChild(this.UI.infoText);
-        
+
         this.UI.drawingModeMenu = document.createElement('div');
         this.UI.drawingModeMenu.style.display = 'flex';
         this.UI.drawingModeMenu.style.justifyContent = 'space-evenly';
@@ -413,23 +498,28 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         this.UI.drawingModeMenu.style.pointerEvents = 'none';
         let drawingModeMenuZIndex = 2901; // above scene elements, below pocket and menus
         this.UI.drawingModeMenu.style.zIndex = `${drawingModeMenuZIndex}`;
-        this.UI.drawingModeMenu.style.transform = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + drawingModeMenuZIndex + ',1)';
+        this.UI.drawingModeMenu.style.transform =
+            'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + drawingModeMenuZIndex + ',1)';
 
         const freehandButton = document.createElement('img');
-        freehandButton.src = "../../../svg/areaCreator/freehandButton.svg";
+        freehandButton.src = '../../../svg/areaCreator/freehandButton.svg';
         const polygonButton = document.createElement('img');
-        polygonButton.src = "../../../svg/areaCreator/polygonButton.svg";
-        [freehandButton,polygonButton].forEach(button => {
+        polygonButton.src = '../../../svg/areaCreator/polygonButton.svg';
+        [freehandButton, polygonButton].forEach((button) => {
             button.style.width = '50vh';
             button.style.height = '50vh';
-        })
+        });
 
-        freehandButton.addEventListener('pointerdown', (event) => {realityEditor.gui.ar.areaCreator.buttonCallbacks.freehand(event)});
-        polygonButton.addEventListener('pointerdown', (event) => {realityEditor.gui.ar.areaCreator.buttonCallbacks.polygon(event)});
-        
+        freehandButton.addEventListener('pointerdown', (event) => {
+            realityEditor.gui.ar.areaCreator.buttonCallbacks.freehand(event);
+        });
+        polygonButton.addEventListener('pointerdown', (event) => {
+            realityEditor.gui.ar.areaCreator.buttonCallbacks.polygon(event);
+        });
+
         this.UI.drawingModeMenu.appendChild(freehandButton);
         this.UI.drawingModeMenu.appendChild(polygonButton);
-        
+
         this.UI.appendChild(this.UI.drawingModeMenu);
 
         this.UI.areaCreationMenu = document.createElement('div');
@@ -445,11 +535,14 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         this.UI.confirmAreaButton.style.height = '15vh';
         let confirmAreaButtonZIndex = 2902; // above areaCreator menus
         this.UI.confirmAreaButton.style.zIndex = `${confirmAreaButtonZIndex}`;
-        this.UI.confirmAreaButton.style.transform = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + confirmAreaButtonZIndex + ',1)';
+        this.UI.confirmAreaButton.style.transform =
+            'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + confirmAreaButtonZIndex + ',1)';
         this.UI.confirmAreaButton.style.display = 'none';
         this.UI.confirmAreaButton.style.pointerEvents = 'none';
-        this.UI.confirmAreaButton.addEventListener('pointerdown', (event) => {realityEditor.gui.ar.areaCreator.buttonCallbacks.confirmArea(event)});
-        
+        this.UI.confirmAreaButton.addEventListener('pointerdown', (event) => {
+            realityEditor.gui.ar.areaCreator.buttonCallbacks.confirmArea(event);
+        });
+
         this.UI.areaCreationMenu.appendChild(this.UI.confirmAreaButton);
 
         this.UI.appendChild(this.UI.areaCreationMenu);
@@ -467,11 +560,14 @@ realityEditor.gui.ar.areaCreator.getUI = function () {
         confirmHeightButton.style.height = '15vh';
         let confirmHeightButtonZIndex = 2902; // above areaCreator menus
         confirmHeightButton.style.zIndex = `${confirmHeightButtonZIndex}`;
-        confirmHeightButton.style.transform = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + confirmHeightButtonZIndex + ',1)';
-        confirmHeightButton.addEventListener('pointerdown', (event) => {realityEditor.gui.ar.areaCreator.buttonCallbacks.confirmHeight(event)});
+        confirmHeightButton.style.transform =
+            'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,' + confirmHeightButtonZIndex + ',1)';
+        confirmHeightButton.addEventListener('pointerdown', (event) => {
+            realityEditor.gui.ar.areaCreator.buttonCallbacks.confirmHeight(event);
+        });
 
         this.UI.heightDefinitionMenu.appendChild(confirmHeightButton);
-        
+
         this.UI.appendChild(this.UI.heightDefinitionMenu);
     }
     return this.UI;
@@ -481,15 +577,15 @@ realityEditor.gui.ar.areaCreator.clearCallbacks = function () {
     this.pointerCallbacks = {
         down: () => {},
         up: () => {},
-        move: () => {}
-    }
+        move: () => {},
+    };
     this.buttonCallbacks = {
         cancel: () => {},
         freehand: () => {},
         polygon: () => {},
         confirmArea: () => {},
-        confirmHeight: () => {}
-    }
+        confirmHeight: () => {},
+    };
     this.animationCallbacks = [];
 }.bind(realityEditor.gui.ar.areaCreator);
 
@@ -504,9 +600,9 @@ realityEditor.gui.ar.areaCreator.removeAnimationCallback = function (callback) {
 }.bind(realityEditor.gui.ar.areaCreator);
 
 realityEditor.gui.ar.areaCreator.onAnimationFrame = function () {
-    this.animationCallbacks.forEach(callback => {
+    this.animationCallbacks.forEach((callback) => {
         callback();
-    })
+    });
 }.bind(realityEditor.gui.ar.areaCreator);
 
 realityEditor.gui.ar.areaCreator.activateUI = function () {
@@ -559,12 +655,12 @@ realityEditor.gui.ar.areaCreator.hideAreaCreationMenu = function () {
 realityEditor.gui.ar.areaCreator.showAreaConfirmationButton = function () {
     this.UI.confirmAreaButton.style.display = '';
     this.UI.confirmAreaButton.style.pointerEvents = 'auto';
-}
+};
 
 realityEditor.gui.ar.areaCreator.hideAreaConfirmationButton = function () {
     this.UI.confirmAreaButton.style.display = 'none';
     this.UI.confirmAreaButton.style.pointerEvents = 'none';
-}
+};
 
 realityEditor.gui.ar.areaCreator.showHeightDefinitionMenu = function () {
     this.getUI().heightDefinitionMenu.style.display = '';

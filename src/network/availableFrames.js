@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.network.availableFrames");
+createNameSpace('realityEditor.network.availableFrames');
 
 /**
  * @fileOverview realityEditor.network.availableFrames.js
@@ -7,8 +7,7 @@ createNameSpace("realityEditor.network.availableFrames");
  * for the frames based on which object/server you are closest to at any given time.
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * @typedef {Object} FrameInfo
      * @property {Image} icon - preloaded image with src path for pocket icon image
@@ -27,9 +26,9 @@ createNameSpace("realityEditor.network.availableFrames");
     function initService() {
         // immediately triggers for each server already in the system, and then triggers again every time a new server is detected
         realityEditor.network.onNewServerDetected(onNewServerDetected);
-        
+
         // if frames get enabled or disabled on the server, refresh the set of availableFrames
-        realityEditor.network.addUDPMessageHandler('action', function(message) {
+        realityEditor.network.addUDPMessageHandler('action', function (message) {
             if (typeof message.action.reloadAvailableFrames !== 'undefined') {
                 // download all pocket assets from the serverIP and rebuild the pocket
                 // TODO: this could be greatly optimized by only downloading/changing the reloadAvailableFrames.frameName
@@ -45,16 +44,26 @@ createNameSpace("realityEditor.network.availableFrames");
      * @param {string} serverIP
      */
     function onNewServerDetected(serverIP) {
-        var urlEndpoint = realityEditor.network.getURL(serverIP, realityEditor.network.getPortByIp(serverIP), '/availableFrames/');
-        realityEditor.network.getData(null, null, null, urlEndpoint, function (_nullObj, _nullFrame, _nullNode, response) {
-            framesPerServer[serverIP] = response;
-            if (!realityEditor.device.environment.variables.overrideMenusAndButtons) {
-                setTimeout(() => {
-                    downloadFramePocketAssets(serverIP); // preload the icons
-                }, 5000);
-                triggerServerFramesInfoUpdatedCallbacks(); // this can be detected to update the pocket if it is already open
+        var urlEndpoint = realityEditor.network.getURL(
+            serverIP,
+            realityEditor.network.getPortByIp(serverIP),
+            '/availableFrames/'
+        );
+        realityEditor.network.getData(
+            null,
+            null,
+            null,
+            urlEndpoint,
+            function (_nullObj, _nullFrame, _nullNode, response) {
+                framesPerServer[serverIP] = response;
+                if (!realityEditor.device.environment.variables.overrideMenusAndButtons) {
+                    setTimeout(() => {
+                        downloadFramePocketAssets(serverIP); // preload the icons
+                    }, 5000);
+                    triggerServerFramesInfoUpdatedCallbacks(); // this can be detected to update the pocket if it is already open
+                }
             }
-        });
+        );
     }
 
     /**
@@ -64,8 +73,8 @@ createNameSpace("realityEditor.network.availableFrames");
     function downloadFramePocketAssets(serverIP) {
         var frames = framesPerServer[serverIP];
         if (frames) {
-            Object.values(frames).forEach(function(frameInfo) {
-                if (typeof frameInfo.icon === "undefined") {
+            Object.values(frames).forEach(function (frameInfo) {
+                if (typeof frameInfo.icon === 'undefined') {
                     var preloadedImage = new Image(); // download / preload the icon.gif for each frame
                     preloadedImage.src = getFrameIconSrcByIP(serverIP, frameInfo.properties.name);
                     frameInfo.icon = preloadedImage;
@@ -73,7 +82,7 @@ createNameSpace("realityEditor.network.availableFrames");
             });
         }
     }
-    
+
     var DEBUG_TEST_POCKET = false; // turn this on to test conditional pocket functionality on local server
 
     /**
@@ -85,41 +94,42 @@ createNameSpace("realityEditor.network.availableFrames");
      * @return {Array.<{actualIP: string, proxyIP: string, frames: Object.<string, FrameInfo>}>}
      */
     function getFramesForAllVisibleObjects(visibleObjectKeys) {
-        
         var sortedByDistance = sortByDistance(visibleObjectKeys);
-        
+
         // sort by order of closest
-        var sortedVisibleServerIPs = sortedByDistance.map(function(objectInfo) {
+        var sortedVisibleServerIPs = sortedByDistance.map(function (objectInfo) {
             var actualIP = realityEditor.getObject(objectInfo.objectKey).ip;
             var proxyIP = getServerIPForObjectFrames(objectInfo.objectKey);
             return {
                 actualIP: actualIP,
-                proxyIP: proxyIP // TODO: could only include proxyIP if it isn't identical to actualIP?
+                proxyIP: proxyIP, // TODO: could only include proxyIP if it isn't identical to actualIP?
             };
         });
-        
+
         // filter out duplicates
         var uniqueServerIPs = [];
-        
-        sortedVisibleServerIPs.forEach(function(item) {
+
+        sortedVisibleServerIPs.forEach(function (item) {
             // if uniqueServerIPs doesn't already have an item with all identical properties, add this one
             // note: this is an N^2 solution. fine for now because N is usually very small, but may need to be optimized in the future
             var isAlreadyContained = false;
-            uniqueServerIPs.forEach(function(uniqueItem) {
-                if (isAlreadyContained) { return; }
+            uniqueServerIPs.forEach(function (uniqueItem) {
+                if (isAlreadyContained) {
+                    return;
+                }
                 if (uniqueItem.actualIP === item.actualIP && uniqueItem.proxyIP === item.proxyIP) {
                     isAlreadyContained = true;
                 }
             });
-            
+
             if (!isAlreadyContained) {
                 uniqueServerIPs.push(item);
             }
         });
-        
+
         var allFrames = [];
 
-        uniqueServerIPs.forEach(function(serverInfo) {
+        uniqueServerIPs.forEach(function (serverInfo) {
             var knownFrames = framesPerServer[serverInfo.proxyIP] || {};
             var framesCopy = JSON.parse(JSON.stringify(knownFrames)); // load from the proxy
             // Object.keys(framesCopy).forEach(function(frameName) {
@@ -127,18 +137,18 @@ createNameSpace("realityEditor.network.availableFrames");
             //         delete framesCopy[frameName];
             //     }
             // });
-            
+
             allFrames.push({
                 actualIP: serverInfo.actualIP,
                 proxyIP: serverInfo.proxyIP,
-                frames: framesCopy // TODO: if proxyIP !== actualIP, maybe don't include duplicate frames, just detect and retrieve them from the proxyIP's data structure instead
+                frames: framesCopy, // TODO: if proxyIP !== actualIP, maybe don't include duplicate frames, just detect and retrieve them from the proxyIP's data structure instead
             });
             return framesCopy;
         });
-        
+
         return allFrames;
     }
-    
+
     /**
      * Helper function to sort a list of object keys by the distance of that object to the camera, closest to furthest
      * Returns the sorted list with some additional metadata for each entry
@@ -147,34 +157,36 @@ createNameSpace("realityEditor.network.availableFrames");
      * @todo: should be moved to gui.ar or gui.ar.utilities
      */
     function sortByDistance(objectKeys) {
-        var validObjectKeys = objectKeys.filter(function(objectKey) {
+        var validObjectKeys = objectKeys.filter(function (objectKey) {
             return realityEditor.getObject(objectKey); // only use objectKeys that correspond to valid objects
         });
-        
-        return validObjectKeys.map( function(objectKey) {
-            var distance = realityEditor.sceneGraph.getDistanceToCamera(objectKey);
-            var isWorldObject = false;
-            var object = realityEditor.getObject(objectKey);
-            if (object && object.isWorldObject) {
-                isWorldObject = true;
-                if (objectKey === realityEditor.worldObjects.getLocalWorldId()) {
-                    // WORLD_local is "infinitely" far away, so that it is prioritized last
-                    distance = Number.MAX_SAFE_INTEGER;
-                } else {
-                    // world objects are essentially infinitely far away (10 million meters) compared to regular objects
-                    // so that regular objects are prioritized over them
-                    distance = realityEditor.gui.ar.MAX_DISTANCE + distance;
+
+        return validObjectKeys
+            .map(function (objectKey) {
+                var distance = realityEditor.sceneGraph.getDistanceToCamera(objectKey);
+                var isWorldObject = false;
+                var object = realityEditor.getObject(objectKey);
+                if (object && object.isWorldObject) {
+                    isWorldObject = true;
+                    if (objectKey === realityEditor.worldObjects.getLocalWorldId()) {
+                        // WORLD_local is "infinitely" far away, so that it is prioritized last
+                        distance = Number.MAX_SAFE_INTEGER;
+                    } else {
+                        // world objects are essentially infinitely far away (10 million meters) compared to regular objects
+                        // so that regular objects are prioritized over them
+                        distance = realityEditor.gui.ar.MAX_DISTANCE + distance;
+                    }
                 }
-            }
-            return {
-                objectKey: objectKey,
-                distance: distance,
-                isWorldObject: isWorldObject,
-                timestamp: object.timestamp || 0
-            };
-        }).sort(function (a, b) {
-            return (a.distance - b.distance);
-        });
+                return {
+                    objectKey: objectKey,
+                    distance: distance,
+                    isWorldObject: isWorldObject,
+                    timestamp: object.timestamp || 0,
+                };
+            })
+            .sort(function (a, b) {
+                return a.distance - b.distance;
+            });
     }
 
     /**
@@ -189,7 +201,7 @@ createNameSpace("realityEditor.network.availableFrames");
         if (possibleObjectKeys.length === 0) return null;
 
         // this works now that world objects have a sense of distance just like regular objects
-        return realityEditor.gui.ar.getClosestObject(function(objectKey) {
+        return realityEditor.gui.ar.getClosestObject(function (objectKey) {
             return possibleObjectKeys.indexOf(objectKey) > -1;
         })[0]; // getClosestObject returns [objectKey, frameKey, nodeKey], so result[0] is the objectKey
     }
@@ -202,35 +214,37 @@ createNameSpace("realityEditor.network.availableFrames");
      */
     function getPossibleObjectsForFrame(frameName, useAttachesTo) {
         // search framesPerServer for this frameName to see which server this can go on
-        
+
         var compatibleServerIPs = [];
-        
+
         for (var serverIP in framesPerServer) {
             var serverFrames = framesPerServer[serverIP];
             if (typeof serverFrames[frameName] !== 'undefined') {
                 compatibleServerIPs.push(serverIP);
             }
         }
-        
+
         // filter down visible objects if their IP (or proxyIP) is compatible
-        
+
         var compatibleObjects = [];
-        
-        Object.keys(realityEditor.gui.ar.draw.visibleObjects).filter(function(objectKey) {
-            if (typeof objects[objectKey] === 'undefined') {
-                return false;
-            }
-            if (objects[objectKey].type === 'human') {
-                return false;
-            }
-            return true;
-        }).forEach(function(objectKey) {
-            var proxyIP = getServerIPForObjectFrames(objectKey);
-            if (compatibleServerIPs.indexOf(proxyIP) > -1) {
-                compatibleObjects.push(objectKey);
-            }
-        });
-        
+
+        Object.keys(realityEditor.gui.ar.draw.visibleObjects)
+            .filter(function (objectKey) {
+                if (typeof objects[objectKey] === 'undefined') {
+                    return false;
+                }
+                if (objects[objectKey].type === 'human') {
+                    return false;
+                }
+                return true;
+            })
+            .forEach(function (objectKey) {
+                var proxyIP = getServerIPForObjectFrames(objectKey);
+                if (compatibleServerIPs.indexOf(proxyIP) > -1) {
+                    compatibleObjects.push(objectKey);
+                }
+            });
+
         // filter down objects even more if this frame type includes an attachesTo property
         // if the frame doesn't specify attachesTo, ignores this extra round of filtering
         if (useAttachesTo) {
@@ -238,7 +252,7 @@ createNameSpace("realityEditor.network.availableFrames");
             if (typeof attachesTo !== 'undefined') {
                 let incompatibleObjects = [];
                 // filter out objects based on "object" and "world" tags in the attachesTo list
-                compatibleObjects.forEach(function(objectKey) {
+                compatibleObjects.forEach(function (objectKey) {
                     let shouldInclude = false;
                     let object = realityEditor.getObject(objectKey);
                     if (attachesTo.includes('object')) {
@@ -253,7 +267,7 @@ createNameSpace("realityEditor.network.availableFrames");
                         incompatibleObjects.push(objectKey);
                     }
                 });
-                incompatibleObjects.forEach(function(objectKey) {
+                incompatibleObjects.forEach(function (objectKey) {
                     compatibleObjects.splice(compatibleObjects.indexOf(objectKey), 1);
                 });
             }
@@ -271,7 +285,7 @@ createNameSpace("realityEditor.network.availableFrames");
     function getFramesForPocket(closestObjectKey) {
         var serverIP = getServerIPForObjectFrames(closestObjectKey);
         var framesCopy = JSON.parse(JSON.stringify(framesPerServer[serverIP]));
-        Object.keys(framesCopy).forEach(function(frameName) {
+        Object.keys(framesCopy).forEach(function (frameName) {
             // if (!framesCopy[frameName].properties.showInPocket) {
             //     delete framesCopy[frameName];
             // }
@@ -319,7 +333,11 @@ createNameSpace("realityEditor.network.availableFrames");
      * @return {string} - image src path
      */
     function getFrameIconSrcByIP(serverIP, frameName) {
-        return realityEditor.network.getURL( serverIP, realityEditor.network.getPortByIp(serverIP), '/frames/' + frameName + '/icon.gif');
+        return realityEditor.network.getURL(
+            serverIP,
+            realityEditor.network.getPortByIp(serverIP),
+            '/frames/' + frameName + '/icon.gif'
+        );
     }
 
     /**
@@ -330,9 +348,13 @@ createNameSpace("realityEditor.network.availableFrames");
      */
     function getFrameSrc(objectKey, frameName) {
         var serverIP = getServerIPForObjectFrames(objectKey);
-        return realityEditor.network.getURL(serverIP, realityEditor.network.getPort(objects[objectKey]), '/frames/' + frameName + '/index.html');
+        return realityEditor.network.getURL(
+            serverIP,
+            realityEditor.network.getPort(objects[objectKey]),
+            '/frames/' + frameName + '/index.html'
+        );
     }
-    
+
     var serverFrameInfoUpdatedCallbacks = [];
 
     /**
@@ -348,23 +370,22 @@ createNameSpace("realityEditor.network.availableFrames");
      * Calls the callbacks for anything that subscribed to onServerFramesInfoUpdated
      */
     function triggerServerFramesInfoUpdatedCallbacks() {
-        serverFrameInfoUpdatedCallbacks.forEach(function(callback) {
+        serverFrameInfoUpdatedCallbacks.forEach(function (callback) {
             callback();
         });
     }
 
     exports.initService = initService;
     exports.getFramesForPocket = getFramesForPocket;
-    
+
     exports.getFrameSrc = getFrameSrc;
     exports.getFrameIconSrc = getFrameIconSrc;
-    
+
     exports.getPossibleObjectsForFrame = getPossibleObjectsForFrame;
     exports.getBestObjectInfoForFrame = getBestObjectInfoForFrame;
-    
+
     exports.onServerFramesInfoUpdated = onServerFramesInfoUpdated;
 
     exports.getFramesForAllVisibleObjects = getFramesForAllVisibleObjects;
     exports.sortByDistance = sortByDistance;
-
 })(realityEditor.network.availableFrames);

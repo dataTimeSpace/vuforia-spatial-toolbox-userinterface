@@ -1,28 +1,35 @@
-createNameSpace("realityEditor.device.tracking");
+createNameSpace('realityEditor.device.tracking');
 
 /**
  * @fileOverview
  * This module is responsible for responding to information about the device's tracking state and capabilities,
  * It can enable/disable/restart behavior as needed and communicate the tracking status to the user.
  */
-(function(exports) {
-
+(function (exports) {
     let isRelocalizing = false;
     let timeRelocalizing = 0;
     let relocalizingStartTime = null;
-    
+
     let currentStatusInfo = null;
 
     function initService() {
-        realityEditor.app.subscribeToAppLifeCycleEvents('realityEditor.device.tracking.onAppLifeCycleEvent');
+        realityEditor.app.subscribeToAppLifeCycleEvents(
+            'realityEditor.device.tracking.onAppLifeCycleEvent'
+        );
 
         realityEditor.app.callbacks.handleDeviceTrackingStatus(handleTrackingStatus);
 
-        let cameraExists = realityEditor.sceneGraph && realityEditor.sceneGraph.getSceneNodeById('CAMERA');
-        
+        let cameraExists =
+            realityEditor.sceneGraph && realityEditor.sceneGraph.getSceneNodeById('CAMERA');
+
         let isTrackingInitialized = !realityEditor.device.environment.waitForARTracking();
-        
-        if (cameraExists && !realityEditor.gui.ar.utilities.isIdentityMatrix(realityEditor.sceneGraph.getSceneNodeById('CAMERA').worldMatrix)) {
+
+        if (
+            cameraExists &&
+            !realityEditor.gui.ar.utilities.isIdentityMatrix(
+                realityEditor.sceneGraph.getSceneNodeById('CAMERA').worldMatrix
+            )
+        ) {
             isTrackingInitialized = true;
         }
 
@@ -32,18 +39,23 @@ createNameSpace("realityEditor.device.tracking");
     }
 
     function waitForTracking(noDescriptionText) {
-
         // hide all AR elements and canvas lines
         document.getElementById('GUI').classList.add('hiddenWhileLoading');
         document.getElementById('canvas').classList.add('hiddenWhileLoading');
 
         let headerText = 'Initializing AR Tracking...';
-        let descriptionText = noDescriptionText ? '' : 'Move your camera around to speed up the process';
-        
+        let descriptionText = noDescriptionText
+            ? ''
+            : 'Move your camera around to speed up the process';
+
         let notification = realityEditor.gui.modal.showSimpleNotification(
-            headerText, descriptionText, function () {
+            headerText,
+            descriptionText,
+            function () {
                 console.log('closed...');
-            }, realityEditor.device.environment.variables.layoutUIForPortrait);
+            },
+            realityEditor.device.environment.variables.layoutUIForPortrait
+        );
 
         const dismissNotification = () => {
             document.getElementById('GUI').classList.remove('hiddenWhileLoading');
@@ -76,7 +88,6 @@ createNameSpace("realityEditor.device.tracking");
         }
     }
 
-
     /*
      NORMAL,                             ///< Status is normal, ie not \ref NO_POSE or \ref LIMITED.
      UNKNOWN,                            ///< Unknown reason for the tracking status.
@@ -93,7 +104,6 @@ createNameSpace("realityEditor.device.tracking");
             // show the UI
             showLimitedTrackingUI(trackingStatusInfo);
             currentStatusInfo = trackingStatusInfo;
-
         } else {
             currentStatusInfo = null;
         }
@@ -118,7 +128,8 @@ createNameSpace("realityEditor.device.tracking");
                 //  shouldn't matter whether you restart tracking immediately
                 if (timeRelocalizing > 4000) {
                     if (willRelocalizingHaveEffect()) {
-                        readableStatus = 'Trouble re-localizing - move device to the same position it was at when the app was last closed, or tap here to restart AR tracking';
+                        readableStatus =
+                            'Trouble re-localizing - move device to the same position it was at when the app was last closed, or tap here to restart AR tracking';
                     } else {
                         realityEditor.app.restartDeviceTracker();
                     }
@@ -140,7 +151,7 @@ createNameSpace("realityEditor.device.tracking");
             default:
                 break;
         }
-        
+
         if (statusInfo !== 'RELOCALIZING') {
             isRelocalizing = false;
             relocalizingStartTime = null;
@@ -151,7 +162,12 @@ createNameSpace("realityEditor.device.tracking");
         // showBannerNotification removes notification after set time so no additional function is needed
         let trackingStatusUI = document.getElementById('trackingStatusUI');
         if (!trackingStatusUI) {
-            realityEditor.gui.modal.showBannerNotification(readableStatus, 'trackingStatusUI', 'trackingStatusText', 5000);
+            realityEditor.gui.modal.showBannerNotification(
+                readableStatus,
+                'trackingStatusUI',
+                'trackingStatusText',
+                5000
+            );
             let trackingStatusNotification = document.getElementById('trackingStatusUI');
             trackingStatusNotification.addEventListener('pointerup', statusBarPointerUp);
         }
@@ -159,8 +175,10 @@ createNameSpace("realityEditor.device.tracking");
 
     function willRelocalizingHaveEffect() {
         // if there are no tools attached to _WORLD_local, it doesn't matter, so just restart instead of prompting user
-        let localWorldObject = realityEditor.getObject(realityEditor.worldObjects.getLocalWorldId());
-        return (localWorldObject && Object.keys(localWorldObject.frames).length > 0);
+        let localWorldObject = realityEditor.getObject(
+            realityEditor.worldObjects.getLocalWorldId()
+        );
+        return localWorldObject && Object.keys(localWorldObject.frames).length > 0;
     }
 
     function statusBarPointerUp() {
@@ -172,5 +190,4 @@ createNameSpace("realityEditor.device.tracking");
 
     exports.initService = initService;
     exports.onAppLifeCycleEvent = onAppLifeCycleEvent; // public so accessible as native app API callback
-
-}(realityEditor.device.tracking));
+})(realityEditor.device.tracking);

@@ -47,9 +47,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.crafting.utilities");
+createNameSpace('realityEditor.gui.crafting.utilities');
 
-realityEditor.gui.crafting.utilities.toBlockJSON = function(type, name, blockSize, privateData, publicData, activeInputs, activeOutputs, nameInput, nameOutput) {
+realityEditor.gui.crafting.utilities.toBlockJSON = function (
+    type,
+    name,
+    blockSize,
+    privateData,
+    publicData,
+    activeInputs,
+    activeOutputs,
+    nameInput,
+    nameOutput
+) {
     return {
         type: type,
         name: name,
@@ -59,31 +69,30 @@ realityEditor.gui.crafting.utilities.toBlockJSON = function(type, name, blockSiz
         activeInputs: activeInputs,
         activeOutputs: activeOutputs,
         nameInput: nameInput,
-        nameOutput: nameOutput
+        nameOutput: nameOutput,
     };
 };
 
-realityEditor.gui.crafting.utilities.convertBlockLinkToServerFormat = function(blockLink) {
+realityEditor.gui.crafting.utilities.convertBlockLinkToServerFormat = function (blockLink) {
     var serverLink = {};
 
-    var keysToSkip = ["route"]; //, "nodeA", "nodeB"
+    var keysToSkip = ['route']; //, "nodeA", "nodeB"
     for (var key in blockLink) {
         if (!blockLink.hasOwnProperty(key)) continue;
         if (keysToSkip.indexOf(key) > -1) continue;
         serverLink[key] = blockLink[key];
     }
 
-    serverLink["route"] = null;
+    serverLink['route'] = null;
 
     return serverLink;
 };
 
 // strips away unnecessary data from logic node that can be easily regenerated
-realityEditor.gui.crafting.utilities.convertLogicToServerFormat = function(logic) {
-
+realityEditor.gui.crafting.utilities.convertLogicToServerFormat = function (logic) {
     var logicServer = {};
 
-    var keysToSkip = ["guiState", "grid", "blocks", "links"];
+    var keysToSkip = ['guiState', 'grid', 'blocks', 'links'];
     for (let key in logic) {
         if (!logic.hasOwnProperty(key)) continue;
         if (keysToSkip.indexOf(key) > -1) continue;
@@ -92,11 +101,11 @@ realityEditor.gui.crafting.utilities.convertLogicToServerFormat = function(logic
 
     // VERY IMPORTANT: otherwise the node will think it's already loaded
     // and won't load from the server next time you open the app
-    logicServer["loaded"] = false;
-    logicServer["visible"] = false;
+    logicServer['loaded'] = false;
+    logicServer['visible'] = false;
 
     // don't upload in/out blocks, those are always the same and live in the editor?
-    logicServer["blocks"] = {};
+    logicServer['blocks'] = {};
     // logicServer["blockData"] = {}; // TODO: did I hide a bug by adding this line
     for (let key in logic.blocks) {
         if (!logic.blocks.hasOwnProperty(key)) continue;
@@ -105,14 +114,14 @@ realityEditor.gui.crafting.utilities.convertLogicToServerFormat = function(logic
             logicServer.blocks[key] = logic.blocks[key]; // TODO: this used to cause a bug
         }
     }
-    
+
     // TODO: make sure this doesn't cause bugs somewhere else
-    logicServer["links"] = {};
+    logicServer['links'] = {};
     for (let key in logic.links) {
         if (!logic.links.hasOwnProperty(key)) continue;
         logicServer.links[key] = this.convertBlockLinkToServerFormat(logic.links[key]);
     }
-    
+
     return logicServer;
 };
 

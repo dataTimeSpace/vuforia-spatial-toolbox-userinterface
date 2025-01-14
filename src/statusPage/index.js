@@ -1,7 +1,7 @@
-import * as StatusCheck from './StatusCheck.js'
+import * as StatusCheck from './StatusCheck.js';
 
-createNameSpace("realityEditor.statusPage");
+createNameSpace('realityEditor.statusPage');
 
-(function(exports) {
+(function (exports) {
     exports.toggle = () => StatusCheck.toggleStatusPage();
-}(realityEditor.statusPage));
+})(realityEditor.statusPage);

@@ -9,7 +9,7 @@ import {
     SMALL_JOINT_FLAGS,
     SMALL_JOINT_SCALE_VEC,
     THIN_BONE_FLAGS,
-    THIN_BONE_SCALE_VEC
+    THIN_BONE_SCALE_VEC,
 } from './constants.js';
 
 /**
@@ -85,7 +85,7 @@ export class HumanPoseRenderer {
         this.jointsMesh = new THREE.InstancedMesh(
             geo,
             material,
-            JOINTS_PER_POSE * this.maxInstances,
+            JOINTS_PER_POSE * this.maxInstances
         );
         // Initialize instanceColor
         this.jointsMesh.setColorAt(0, COLOR_BASE);
@@ -95,11 +95,16 @@ export class HumanPoseRenderer {
 
         this.container.add(this.jointsMesh);
 
-        const geoCyl = new THREE.CylinderGeometry(BONE_RADIUS * SCALE, BONE_RADIUS * SCALE, SCALE, 3);
+        const geoCyl = new THREE.CylinderGeometry(
+            BONE_RADIUS * SCALE,
+            BONE_RADIUS * SCALE,
+            SCALE,
+            3
+        );
         this.bonesMesh = new THREE.InstancedMesh(
             geoCyl,
             material,
-            BONES_PER_POSE * this.maxInstances,
+            BONES_PER_POSE * this.maxInstances
         );
         // Initialize instanceColor
         this.bonesMesh.setColorAt(0, COLOR_BASE);
@@ -114,8 +119,7 @@ export class HumanPoseRenderer {
      * @return {boolean} whether every slot is taken
      */
     isFull() {
-        return this.nextInstanceSlot >= this.maxInstances &&
-            this.freeInstanceSlots.length === 0;
+        return this.nextInstanceSlot >= this.maxInstances && this.freeInstanceSlots.length === 0;
     }
 
     /**
@@ -169,12 +173,7 @@ export class HumanPoseRenderer {
             this.setVisible(false);
         }
 
-        let zeros = new THREE.Matrix4().set(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 1,
-        );
+        let zeros = new THREE.Matrix4().set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         for (let i = 0; i < JOINTS_PER_POSE; i++) {
             this.setJointMatrixAt(slot, i, zeros);
         }
@@ -207,14 +206,12 @@ export class HumanPoseRenderer {
      * @param {THREE.Vector3} position
      */
     setJointMatrixAt(slot, index, matrix) {
-        if(SMALL_JOINT_FLAGS[index]) { // scale down geometry if it is a small joint
+        if (SMALL_JOINT_FLAGS[index]) {
+            // scale down geometry if it is a small joint
             matrix.scale(SMALL_JOINT_SCALE_VEC);
         }
         const offset = slot * JOINTS_PER_POSE + index;
-        this.jointsMesh.setMatrixAt(
-            offset,
-            matrix,
-        );
+        this.jointsMesh.setMatrixAt(offset, matrix);
         const itemSize = this.jointsMesh.instanceMatrix.itemSize;
         const updateOffset = offset * itemSize;
         unionUpdateRange(this.jointsMesh.instanceMatrix, updateOffset, itemSize);
@@ -226,14 +223,12 @@ export class HumanPoseRenderer {
      * @param {THREE.Vector3} position
      */
     setBoneMatrixAt(slot, index, matrix) {
-        if(THIN_BONE_FLAGS[index]) { // scale down geometry if it is a thin bone
+        if (THIN_BONE_FLAGS[index]) {
+            // scale down geometry if it is a thin bone
             matrix.scale(THIN_BONE_SCALE_VEC);
         }
         const offset = slot * BONES_PER_POSE + index;
-        this.bonesMesh.setMatrixAt(
-            offset,
-            matrix,
-        );
+        this.bonesMesh.setMatrixAt(offset, matrix);
 
         const itemSize = this.bonesMesh.instanceMatrix.itemSize;
         const updateOffset = offset * itemSize;
@@ -246,10 +241,7 @@ export class HumanPoseRenderer {
      * @param {THREE.Color} color
      */
     setJointColorAt(slot, index, color) {
-        this.jointsMesh.setColorAt(
-            slot * JOINTS_PER_POSE + index,
-            color,
-        );
+        this.jointsMesh.setColorAt(slot * JOINTS_PER_POSE + index, color);
     }
 
     /**
@@ -258,10 +250,7 @@ export class HumanPoseRenderer {
      * @param {THREE.Color} color
      */
     setBoneColorAt(slot, index, color) {
-        this.bonesMesh.setColorAt(
-            slot * BONES_PER_POSE + index,
-            color,
-        );
+        this.bonesMesh.setColorAt(slot * BONES_PER_POSE + index, color);
     }
 
     /**
@@ -295,7 +284,6 @@ export class HumanPoseRenderer {
     setSlotBoneMatrices(slot, matrices) {
         setSliceSlot(this.bonesMesh.instanceMatrix, slot, BONES_PER_POSE, matrices);
     }
-
 
     /**
      * @param {number} slot

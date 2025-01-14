@@ -10,14 +10,14 @@ export class Region {
     constructor(startTime, endTime, value) {
         if (startTime > endTime) {
             this.startTime = endTime;
-            this.endTime = startTime
+            this.endTime = startTime;
         } else {
             this.startTime = startTime;
             this.endTime = endTime;
         }
         this.value = value;
     }
-    
+
     get duration() {
         return this.endTime - this.startTime;
     }
@@ -28,7 +28,11 @@ export class Region {
      * @returns {boolean}
      */
     equals(other) {
-        return this.startTime === other.startTime && this.endTime === other.endTime && this.value === other.value;
+        return (
+            this.startTime === other.startTime &&
+            this.endTime === other.endTime &&
+            this.value === other.value
+        );
     }
 
     /**
@@ -118,8 +122,8 @@ export class Region {
         if (this.isSupersetOf(other)) {
             return [
                 new Region(this.startTime, other.startTime, this.value),
-                new Region(other.endTime, this.endTime, this.value)
-            ].filter(region => region.startTime !== region.endTime);
+                new Region(other.endTime, this.endTime, this.value),
+            ].filter((region) => region.startTime !== region.endTime);
         }
         if (this.startTime < other.startTime) {
             return [new Region(this.startTime, other.startTime, this.value)];
@@ -137,7 +141,11 @@ export class Region {
         if (this.value !== other.value) {
             throw new Error('Cannot merge Regions of different values');
         }
-        return new Region(Math.min(this.startTime, other.startTime), Math.max(this.endTime, other.endTime), this.value);
+        return new Region(
+            Math.min(this.startTime, other.startTime),
+            Math.max(this.endTime, other.endTime),
+            this.value
+        );
     }
 
     /**
@@ -155,7 +163,7 @@ export class Region {
         return {
             startTime: this.startTime,
             endTime: this.endTime,
-            value: this.value
+            value: this.value,
         };
     }
 
@@ -186,9 +194,18 @@ export class Timeline {
      */
     addRegion(region) {
         for (let index = 0; index < this.regions.length; index++) {
-            if (this.regions[index].isAdjacentTo(region) && this.regions[index].value === region.value) {
-                if (index < this.regions.length - 1 && this.regions[index + 1].isAdjacentTo(region) && this.regions[index + 1].value === region.value) {
-                    const mergedRegion = this.regions[index].merge(region).merge(this.regions[index + 1]);
+            if (
+                this.regions[index].isAdjacentTo(region) &&
+                this.regions[index].value === region.value
+            ) {
+                if (
+                    index < this.regions.length - 1 &&
+                    this.regions[index + 1].isAdjacentTo(region) &&
+                    this.regions[index + 1].value === region.value
+                ) {
+                    const mergedRegion = this.regions[index]
+                        .merge(region)
+                        .merge(this.regions[index + 1]);
                     this.regions.splice(index, 2, mergedRegion);
                     return;
                 }
@@ -229,9 +246,9 @@ export class Timeline {
             if (newRegion.isSubsetOf(region)) {
                 this.removeRegion(region);
                 // There are (up to) two Regions on either side of newRegion that need to be re-added
-                region.subtract(newRegion).forEach(remainingRegion => {
+                region.subtract(newRegion).forEach((remainingRegion) => {
                     this.addRegion(remainingRegion);
-                })
+                });
                 return; // Only a single operation is needed, return immediately
             }
             if (newRegion.isSupersetOf(region)) {
@@ -276,7 +293,7 @@ export class Timeline {
      * @param {number} endTime - the end of the region
      */
     clear(startTime, endTime) {
-        const regionToClear = new Region(startTime, endTime, "");
+        const regionToClear = new Region(startTime, endTime, '');
         this.makeRoomForRegion(regionToClear);
     }
 
@@ -289,7 +306,9 @@ export class Timeline {
      */
     isRegionPresent(startTime, endTime, value) {
         const testRegion = new Region(startTime, endTime, value);
-        return this.regions.some(region => region.isSupersetOf(testRegion) && region.value === testRegion.value);
+        return this.regions.some(
+            (region) => region.isSupersetOf(testRegion) && region.value === testRegion.value
+        );
     }
 
     /**
@@ -297,7 +316,7 @@ export class Timeline {
      * @returns {*} - The value at the given time, null if no range matches that time
      */
     getValue(time) {
-        const region = this.regions.find(region => region.includes(time));
+        const region = this.regions.find((region) => region.includes(time));
         if (!region) {
             return null;
         }
@@ -311,7 +330,7 @@ export class Timeline {
      */
     getValueForRegion(startTime, endTime) {
         const testRegion = new Region(startTime, endTime, null);
-        const region = this.regions.find(region => region.isSupersetOf(testRegion));
+        const region = this.regions.find((region) => region.isSupersetOf(testRegion));
         if (region) {
             return region.value;
         }
@@ -326,22 +345,24 @@ export class Timeline {
     subset(startTime, endTime) {
         const subsetRegion = new Region(startTime, endTime, null);
         const timeline = new Timeline();
-        this.regions.filter(region => region.hasOverlapWith(subsetRegion)).forEach(region => {
-            if (!region.isSubsetOf(subsetRegion)) {
-                // Region needs to be cut off
-                if (region.isSupersetOf(subsetRegion)) {
-                    timeline.addRegion(new Region(startTime, endTime, region.value));
+        this.regions
+            .filter((region) => region.hasOverlapWith(subsetRegion))
+            .forEach((region) => {
+                if (!region.isSubsetOf(subsetRegion)) {
+                    // Region needs to be cut off
+                    if (region.isSupersetOf(subsetRegion)) {
+                        timeline.addRegion(new Region(startTime, endTime, region.value));
+                        return;
+                    }
+                    if (region.startTime < startTime) {
+                        timeline.addRegion(new Region(startTime, region.endTime, region.value));
+                        return;
+                    }
+                    timeline.addRegion(new Region(region.startTime, endTime, region.value));
                     return;
                 }
-                if (region.startTime < startTime) {
-                    timeline.addRegion(new Region(startTime, region.endTime, region.value));
-                    return;
-                }
-                timeline.addRegion(new Region(region.startTime, endTime, region.value));
-                return;
-            }
-            timeline.addRegion(region.clone());
-        });
+                timeline.addRegion(region.clone());
+            });
         return timeline;
     }
 
@@ -352,7 +373,7 @@ export class Timeline {
      */
     copy(other) {
         this.regions.splice(0, this.regions.length);
-        other.regions.forEach(region => {
+        other.regions.forEach((region) => {
             this.addRegion(region.clone());
         });
         return this;
@@ -363,7 +384,7 @@ export class Timeline {
      */
     toJSON() {
         return {
-            regions: this.regions.map(region => region.toJSON())
+            regions: this.regions.map((region) => region.toJSON()),
         };
     }
 
@@ -384,9 +405,11 @@ export class Timeline {
      */
     static fromJSON(json) {
         const timeline = new Timeline();
-        json.regions.map(regionData => Region.fromJSON(regionData)).forEach(region => {
-            timeline.addRegion(region);
-        });
+        json.regions
+            .map((regionData) => Region.fromJSON(regionData))
+            .forEach((region) => {
+                timeline.addRegion(region);
+            });
         return timeline;
     }
 }

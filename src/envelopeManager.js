@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.envelopeManager");
+createNameSpace('realityEditor.envelopeManager');
 
 /**
  * @fileOverview realityEditor.envelopeManager
@@ -8,8 +8,7 @@ createNameSpace("realityEditor.envelopeManager");
  * Also responsible for notifying envelopes when potential frames are added or removed from them.
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * @typedef {Object} Envelope
      * @property {string} object
@@ -34,7 +33,7 @@ createNameSpace("realityEditor.envelopeManager");
         onExitButtonShown: [],
         onExitButtonHidden: [],
         onFullscreenFull2DToggled: [],
-        
+
         // more straightforward event callbacks
         onOpen: [],
         onClose: [],
@@ -56,15 +55,15 @@ createNameSpace("realityEditor.envelopeManager");
         realityEditor.network.registerCallback('elementReloaded', onElementReloaded);
         realityEditor.network.registerCallback('elementLoaded', onElementReloaded);
         // realityEditor.gui.ar.draw.registerCallback('fullScreenEjected', onFullScreenEjected); // this is handled already in network/frameContentAPI the same way as it is for any exclusiveFullScreen frame, so no need to listen/handle the event here
-        realityEditor.network.registerCallback('vehicleReattached', function(params) {
-            setTimeout(function() {
+        realityEditor.network.registerCallback('vehicleReattached', function (params) {
+            setTimeout(function () {
                 onVehicleReattached(params);
             }, 500); // send after a delay so original messages have a chance to be processed first
         });
 
-        realityEditor.gui.pocket.addElementHighlightFilter(function(pocketFrameNames) {
+        realityEditor.gui.pocket.addElementHighlightFilter(function (pocketFrameNames) {
             var frameTypesToHighlight = getCurrentCompatibleFrameTypes();
-            return pocketFrameNames.filter(function(frameName) {
+            return pocketFrameNames.filter(function (frameName) {
                 return frameTypesToHighlight.indexOf(frameName) > -1;
             });
         });
@@ -78,10 +77,8 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {string} frameKey
      */
     function onEnvelopeRegistered(objectKey, frameKey) {
-
         var frame = realityEditor.getFrame(objectKey, frameKey);
         if (frame && typeof frame.autoAddedEnvelope !== 'undefined') {
-
             // then open the envelope you just added
             openEnvelope(frameKey);
 
@@ -92,7 +89,7 @@ createNameSpace("realityEditor.envelopeManager");
             onFrameAdded({
                 objectKey: frame.autoAddedEnvelope.containedFrameToAdd.objectKey,
                 frameKey: frame.autoAddedEnvelope.containedFrameToAdd.frameKey,
-                frameType: frame.autoAddedEnvelope.containedFrameToAdd.frameType
+                frameType: frame.autoAddedEnvelope.containedFrameToAdd.frameType,
             }); // todo: can simplify to just frame.autoAddedEnvelope.containedFrameToAdd
         }
 
@@ -122,7 +119,6 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {Object} fullMessageContent - the full JSON message posted by the frame, including ID of its object, frame, etc
      */
     function handleEnvelopeMessage(eventData, fullMessageContent) {
-
         // registers new envelopes with the system
         if (typeof eventData.isEnvelope !== 'undefined') {
             if (eventData.isEnvelope) {
@@ -130,7 +126,7 @@ createNameSpace("realityEditor.envelopeManager");
                     object: fullMessageContent.object,
                     frame: fullMessageContent.frame,
                     compatibleFrameTypes: eventData.compatibleFrameTypes,
-                    containedFrameIds: []
+                    containedFrameIds: [],
                 };
                 // check if registered envelope was autoAdded and needs to be configured
                 onEnvelopeRegistered(fullMessageContent.object, fullMessageContent.frame);
@@ -164,7 +160,8 @@ createNameSpace("realityEditor.envelopeManager");
         // keeps mapping of envelopes -> containedFrames up to date
         if (typeof eventData.containedFrameIds !== 'undefined') {
             if (knownEnvelopes[fullMessageContent.frame]) {
-                knownEnvelopes[fullMessageContent.frame].containedFrameIds = eventData.containedFrameIds;
+                knownEnvelopes[fullMessageContent.frame].containedFrameIds =
+                    eventData.containedFrameIds;
 
                 // if we added any new frames, and they are visible but the envelope is closed, then hide them
                 if (!knownEnvelopes[fullMessageContent.frame].isOpen) {
@@ -191,17 +188,17 @@ createNameSpace("realityEditor.envelopeManager");
         // callbacks inside the envelope are auto-triggered if it opens itself, but need to be triggered if opened externally
         if (!wasTriggeredByEnvelope) {
             sendMessageToEnvelope(frameId, {
-                open: true
+                open: true,
             });
         }
 
         // show all contained frames
         sendMessageToEnvelopeContents(frameId, {
-            showContainedFrame: true
+            showContainedFrame: true,
         });
 
         let containedFrameIds = envelope.containedFrameIds;
-        containedFrameIds.forEach(function(id) {
+        containedFrameIds.forEach(function (id) {
             let element = globalDOMCache['object' + id];
             if (element) {
                 element.classList.remove('hiddenEnvelopeContents');
@@ -219,7 +216,7 @@ createNameSpace("realityEditor.envelopeManager");
         realityEditor.gui.recentlyUsedBar.onOpen(envelope);
         realityEditor.gui.envelopeIconRenderer.onOpen(envelope);
 
-        callbacks.onOpen.forEach(cb => {
+        callbacks.onOpen.forEach((cb) => {
             cb(envelope);
         });
     }
@@ -239,20 +236,20 @@ createNameSpace("realityEditor.envelopeManager");
         // callbacks inside the envelope are auto-triggered if it opens itself, but need to be triggered if opened externally
         if (!wasTriggeredByEnvelope) {
             sendMessageToEnvelope(frameId, {
-                close: true
+                close: true,
             });
         }
 
         // hide all contained frames
         sendMessageToEnvelopeContents(frameId, {
-            showContainedFrame: false
+            showContainedFrame: false,
         });
 
         // TODO: hide contained frames at a higher level by giving them some property or CSS class
         // TODO: after 3 seconds, kill/unload them? (make sure it doesn't interfere with envelope when it opens again
 
         let containedFrameIds = envelope.containedFrameIds;
-        containedFrameIds.forEach(function(id) {
+        containedFrameIds.forEach(function (id) {
             let element = globalDOMCache['object' + id];
             if (element) {
                 element.classList.add('hiddenEnvelopeContents');
@@ -271,7 +268,7 @@ createNameSpace("realityEditor.envelopeManager");
         realityEditor.gui.recentlyUsedBar.onClose(envelope);
         realityEditor.gui.envelopeIconRenderer.onClose(envelope);
 
-        callbacks.onClose.forEach(cb => {
+        callbacks.onClose.forEach((cb) => {
             cb(envelope);
         });
     }
@@ -286,7 +283,7 @@ createNameSpace("realityEditor.envelopeManager");
         if (knownEnvelopes[frameId].hasFocus) return;
 
         // first, blur or close the current envelope if there is one focused
-        getOpenEnvelopes().forEach(openEnvelope => {
+        getOpenEnvelopes().forEach((openEnvelope) => {
             if (openEnvelope.hasFocus) {
                 if (openEnvelope.isFull2D) {
                     realityEditor.envelopeManager.closeEnvelope(openEnvelope.frame);
@@ -301,7 +298,7 @@ createNameSpace("realityEditor.envelopeManager");
         // callbacks inside the envelope are auto-triggered if it opens itself, but need to be triggered if opened externally
         if (!wasTriggeredByEnvelope) {
             sendMessageToEnvelope(frameId, {
-                focus: true
+                focus: true,
             });
         }
 
@@ -317,7 +314,7 @@ createNameSpace("realityEditor.envelopeManager");
         realityEditor.gui.envelopeIconRenderer.onFocus(knownEnvelopes[frameId]);
         // focusing an app also brings it to the front of the bar, same as opening it
         realityEditor.gui.recentlyUsedBar.onOpen(knownEnvelopes[frameId]);
-        callbacks.onFocus.forEach(cb => {
+        callbacks.onFocus.forEach((cb) => {
             cb(knownEnvelopes[frameId]);
         });
     }
@@ -336,7 +333,7 @@ createNameSpace("realityEditor.envelopeManager");
         // callbacks inside the envelope are auto-triggered if it opens itself, but need to be triggered if opened externally
         if (!wasTriggeredByEnvelope) {
             sendMessageToEnvelope(frameId, {
-                blur: true
+                blur: true,
             });
         }
 
@@ -350,7 +347,7 @@ createNameSpace("realityEditor.envelopeManager");
 
         realityEditor.gui.envelopeIconRenderer.onBlur(knownEnvelopes[frameId]);
 
-        callbacks.onBlur.forEach(cb => {
+        callbacks.onBlur.forEach((cb) => {
             cb(knownEnvelopes[frameId]);
         });
     }
@@ -363,8 +360,8 @@ createNameSpace("realityEditor.envelopeManager");
         exitButton.style.top = realityEditor.device.environment.variables.screenTopOffset + 'px';
         document.body.appendChild(exitButton);
 
-        exitButton.addEventListener('pointerup', function() {
-            getOpenEnvelopes().forEach(function(envelope) {
+        exitButton.addEventListener('pointerup', function () {
+            getOpenEnvelopes().forEach(function (envelope) {
                 if (envelope.hasFocus) {
                     closeEnvelope(envelope.frame);
                 }
@@ -378,12 +375,13 @@ createNameSpace("realityEditor.envelopeManager");
         minimizeButton.classList.add('envelopeMenuButton');
         minimizeButton.src = 'svg/envelope-collapse-button.svg';
         minimizeButton.id = 'minimizeEnvelopeButton';
-        minimizeButton.style.top = realityEditor.device.environment.variables.screenTopOffset + 'px';
+        minimizeButton.style.top =
+            realityEditor.device.environment.variables.screenTopOffset + 'px';
         document.body.appendChild(minimizeButton);
 
-        minimizeButton.addEventListener('pointerup', function() {
+        minimizeButton.addEventListener('pointerup', function () {
             // TODO: only minimize the envelope that has focus, not all of them
-            getOpenEnvelopes().forEach(function(envelope) {
+            getOpenEnvelopes().forEach(function (envelope) {
                 if (envelope.hasFocus) {
                     blurEnvelope(envelope.frame);
                 }
@@ -400,7 +398,9 @@ createNameSpace("realityEditor.envelopeManager");
         let numberOfOpenEnvelopes = getOpenEnvelopes().length;
         let numberOfFocusedEnvelopes = getFocusedEnvelopes().length;
         // Full2D tools are not "blurrable" because they don't have a 3D scene that can remain in the background when their 2D layer loses focus
-        let numberOfBlurrableEnvelopes = getFocusedEnvelopes().filter(envelope => !envelope.isFull2D).length;
+        let numberOfBlurrableEnvelopes = getFocusedEnvelopes().filter(
+            (envelope) => !envelope.isFull2D
+        ).length;
         let exitButton = document.getElementById('exitEnvelopeButton');
         let minimizeButton = document.getElementById('minimizeEnvelopeButton');
 
@@ -419,10 +419,10 @@ createNameSpace("realityEditor.envelopeManager");
         if (showExitButton) {
             if (!exitButton) exitButton = createExitButton();
             exitButton.style.display = 'inline';
-            callbacks.onExitButtonShown.forEach(cb => cb(exitButton, minimizeButton));
+            callbacks.onExitButtonShown.forEach((cb) => cb(exitButton, minimizeButton));
         } else {
             if (exitButton) exitButton.style.display = 'none';
-            callbacks.onExitButtonHidden.forEach(cb => cb(exitButton, minimizeButton));
+            callbacks.onExitButtonHidden.forEach((cb) => cb(exitButton, minimizeButton));
         }
     }
 
@@ -465,31 +465,59 @@ createNameSpace("realityEditor.envelopeManager");
             console.warn('error adding required envelope');
         }
 
-        attemptWithRetransmission(function() {
-            sendMessageToOpenEnvelopes({
-                onFrameAdded: {
-                    objectId: params.objectKey,
-                    frameId: params.frameKey,
-                    frameType: params.frameType
-                }
-            }, params.frameType, { requiresFocus: true });
-        }, function() {
-            return globalDOMCache['iframe' + params.frameKey] && globalDOMCache['iframe' + params.frameKey].getAttribute('loaded');
-        }, 500, 10);
+        attemptWithRetransmission(
+            function () {
+                sendMessageToOpenEnvelopes(
+                    {
+                        onFrameAdded: {
+                            objectId: params.objectKey,
+                            frameId: params.frameKey,
+                            frameType: params.frameType,
+                        },
+                    },
+                    params.frameType,
+                    { requiresFocus: true }
+                );
+            },
+            function () {
+                return (
+                    globalDOMCache['iframe' + params.frameKey] &&
+                    globalDOMCache['iframe' + params.frameKey].getAttribute('loaded')
+                );
+            },
+            500,
+            10
+        );
     }
 
-    function attemptWithRetransmission(callback, conditionToProceed, timeBetweenAttempts, numAttemptsLeft) {
+    function attemptWithRetransmission(
+        callback,
+        conditionToProceed,
+        timeBetweenAttempts,
+        numAttemptsLeft
+    ) {
         if (typeof conditionToProceed === 'undefined' || conditionToProceed()) {
             console.log('attempt transmission');
             callback();
         }
 
         if (typeof conditionToProceed === 'undefined' || !conditionToProceed()) {
-            console.log('condition not satisfied... retransmit in ' + timeBetweenAttempts + 'ms (' + (numAttemptsLeft-1) + ')');
-            setTimeout(function() {
+            console.log(
+                'condition not satisfied... retransmit in ' +
+                    timeBetweenAttempts +
+                    'ms (' +
+                    (numAttemptsLeft - 1) +
+                    ')'
+            );
+            setTimeout(function () {
                 numAttemptsLeft--;
                 if (numAttemptsLeft > 0) {
-                    attemptWithRetransmission(callback, conditionToProceed, timeBetweenAttempts, numAttemptsLeft); // keeps checking
+                    attemptWithRetransmission(
+                        callback,
+                        conditionToProceed,
+                        timeBetweenAttempts,
+                        numAttemptsLeft
+                    ); // keeps checking
                 }
             }, timeBetweenAttempts);
         }
@@ -501,26 +529,33 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {{objectKey: string, frameKey: string, additionalInfo:{frameType: string}|undefined }} params
      */
     function onVehicleDeleted(params) {
-        if (params.objectKey && params.frameKey && !params.nodeKey) { // only send message about frames, not nodes
+        if (params.objectKey && params.frameKey && !params.nodeKey) {
+            // only send message about frames, not nodes
             // right now messages all envelopes, not just the one that contained the deleted frame
             // TODO: test with more than one envelope open at a time (stackable envelopes)
             sendMessageToOpenEnvelopes({
                 onFrameDeleted: {
                     objectId: params.objectKey,
                     frameId: params.frameKey,
-                    frameType: params.additionalInfo.frameType
-                }
+                    frameType: params.additionalInfo.frameType,
+                },
             });
 
             // if deleted frame was an envelope, delete its contained frames too
             if (typeof knownEnvelopes[params.frameKey] !== 'undefined') {
                 let deletedEnvelope = knownEnvelopes[params.frameKey];
 
-                deletedEnvelope.containedFrameIds.forEach(function(containedFrameKey) {
+                deletedEnvelope.containedFrameIds.forEach(function (containedFrameKey) {
                     // contained frame always belongs to same object as envelope, so ok to use params.objectKey
                     var frameToDelete = realityEditor.getFrame(params.objectKey, containedFrameKey);
-                    if (!frameToDelete) { return; }
-                    realityEditor.device.deleteFrame(frameToDelete, params.objectKey, containedFrameKey);
+                    if (!frameToDelete) {
+                        return;
+                    }
+                    realityEditor.device.deleteFrame(
+                        frameToDelete,
+                        params.objectKey,
+                        containedFrameKey
+                    );
                 });
 
                 if (deletedEnvelope.isFull2D) {
@@ -540,27 +575,35 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {{objectKey: string, frameKey: string, nodeKey: string}} params
      */
     function onElementReloaded(params) {
-        if (params.nodeKey) { return; } // for now only frames can be in envelopes
+        if (params.nodeKey) {
+            return;
+        } // for now only frames can be in envelopes
 
         // see if it belongs to a closed envelope
-        Object.values(knownEnvelopes).filter(function(envelope) {
-            return !envelope.isOpen;
-        }).filter(function(envelope) {
-            return envelope.containedFrameIds.includes(params.frameKey);
-        }).forEach(function(envelope) {
-            // should belong to at most 1 envelope at a time.. but we'll do for each just in case that changes
-            closeEnvelope(envelope.frame);
-            console.log('closing parent envelope: ' + envelope.frame);
-        });
+        Object.values(knownEnvelopes)
+            .filter(function (envelope) {
+                return !envelope.isOpen;
+            })
+            .filter(function (envelope) {
+                return envelope.containedFrameIds.includes(params.frameKey);
+            })
+            .forEach(function (envelope) {
+                // should belong to at most 1 envelope at a time.. but we'll do for each just in case that changes
+                closeEnvelope(envelope.frame);
+                console.log('closing parent envelope: ' + envelope.frame);
+            });
 
         // send message to open envelopes so that it gets updates properly if a tool on another object loads
-        sendMessageToOpenEnvelopes({
-            onFrameLoaded: {
-                objectId: params.objectKey,
-                frameId: params.frameKey,
-                frameType: params.frameType
-            }
-        }, params.frameType);
+        sendMessageToOpenEnvelopes(
+            {
+                onFrameLoaded: {
+                    objectId: params.objectKey,
+                    frameId: params.frameKey,
+                    frameType: params.frameType,
+                },
+            },
+            params.frameType
+        );
     }
 
     /**
@@ -569,45 +612,63 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {{oldObjectKey: string, oldFrameKey: string, newObjectKey: string, newFrameKey: string, frameType: string}} params
      */
     function onVehicleReattached(params) {
-
-        attemptWithRetransmission(function() {
-            updateContainedFrameId(params.oldObjectKey, params.oldFrameKey, params.newObjectKey, params.newFrameKey, params.frameType);
-        },  undefined, //function() {
+        attemptWithRetransmission(
+            function () {
+                updateContainedFrameId(
+                    params.oldObjectKey,
+                    params.oldFrameKey,
+                    params.newObjectKey,
+                    params.newFrameKey,
+                    params.frameType
+                );
+            },
+            undefined, //function() {
             // return globalDOMCache['iframe' + params.frameKey] && globalDOMCache['iframe' +
             // params.frameKey].getAttribute('loaded');
-        // },
-        500, 10);
+            // },
+            500,
+            10
+        );
     }
 
-    function updateContainedFrameId(oldObjectKey, oldFrameKey, newObjectKey, newFrameKey, frameType) {
+    function updateContainedFrameId(
+        oldObjectKey,
+        oldFrameKey,
+        newObjectKey,
+        newFrameKey,
+        frameType
+    ) {
         // check if the old id belongs to any envelope
-        Object.values(knownEnvelopes).filter(function(envelope) {
-            return envelope.containedFrameIds.includes(oldFrameKey);
-        }).forEach(function(envelope) {
+        Object.values(knownEnvelopes)
+            .filter(function (envelope) {
+                return envelope.containedFrameIds.includes(oldFrameKey);
+            })
+            .forEach(function (envelope) {
+                console.log('reattach frame ' + oldFrameKey + ' in envelope ' + envelope.frame);
 
-            console.log('reattach frame ' + oldFrameKey + ' in envelope ' + envelope.frame);
-
-            // remove this frame from the envelope and replace it with the new id
-            sendMessageToEnvelope(envelope.frame, {
-                onFrameDeleted: {
-                    objectId: oldObjectKey,
-                    frameId: oldFrameKey,
-                    frameType: frameType
-                }
-            });
-
-            // add the new id to the envelope after slight delay
-            setTimeout(function() {
+                // remove this frame from the envelope and replace it with the new id
                 sendMessageToEnvelope(envelope.frame, {
-                    onFrameAdded: {
-                        objectId: newObjectKey,
-                        frameId: newFrameKey,
-                        frameType: frameType
-                    }
+                    onFrameDeleted: {
+                        objectId: oldObjectKey,
+                        frameId: oldFrameKey,
+                        frameType: frameType,
+                    },
                 });
-                console.log('reattached frame is now ' + newFrameKey + ' in envelope ' + envelope.frame);
-            }, 500);
-        });
+
+                // add the new id to the envelope after slight delay
+                setTimeout(function () {
+                    sendMessageToEnvelope(envelope.frame, {
+                        onFrameAdded: {
+                            objectId: newObjectKey,
+                            frameId: newFrameKey,
+                            frameType: frameType,
+                        },
+                    });
+                    console.log(
+                        'reattached frame is now ' + newFrameKey + ' in envelope ' + envelope.frame
+                    );
+                }, 500);
+            });
     }
 
     /**
@@ -618,9 +679,10 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {string} frameType - used to retrieve metadata for the frame type that was added
      */
     function addRequiredEnvelopeIfNeeded(objectKey, frameKey, frameType) {
-
         var realityElements = realityEditor.gui.pocket.getRealityElements();
-        var realityElement = realityElements.find(function(elt) { return elt.properties.name === frameType; });
+        var realityElement = realityElements.find(function (elt) {
+            return elt.properties.name === frameType;
+        });
 
         // check if an additional envelope frame needs to be added
         if (realityElement.requiredEnvelope) {
@@ -630,7 +692,7 @@ createNameSpace("realityEditor.envelopeManager");
 
             // check if an envelope of type frameTypeNeeded is already open
             var openEnvelopes = getOpenEnvelopes();
-            var openEnvelopeTypes = openEnvelopes.map(function(envelopeData) {
+            var openEnvelopeTypes = openEnvelopes.map(function (envelopeData) {
                 return getFrameTypeFromKey(envelopeData.object, envelopeData.frame);
             });
             var isRequiredEnvelopeOpen = openEnvelopeTypes.indexOf(frameTypeNeeded) > -1;
@@ -640,12 +702,14 @@ createNameSpace("realityEditor.envelopeManager");
                 // tell the pocket to createFrame(frameTypeNeeded, ...)
 
                 // get the realityElement for the necessary envelope
-                var envelopeData = realityElements.find(function(elt) { return elt.name === frameTypeNeeded; });
+                var envelopeData = realityElements.find(function (elt) {
+                    return elt.name === frameTypeNeeded;
+                });
                 // var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
 
                 var touchPosition = {
                     x: 100 + Math.random() * (globalStates.height - 200),
-                    y: 100 + Math.random() * (globalStates.width - 200)
+                    y: 100 + Math.random() * (globalStates.width - 200),
                 };
 
                 if (envelopeData) {
@@ -655,12 +719,15 @@ createNameSpace("realityEditor.envelopeManager");
                         height: envelopeData.height,
                         pageX: touchPosition.x,
                         pageY: touchPosition.y,
-                        noUserInteraction: true
+                        noUserInteraction: true,
                     });
 
                     console.log('added an envelope (maybe in time?)', addedElement);
 
-                    realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid);
+                    realityEditor.gui.ar.positioning.moveFrameToCamera(
+                        addedElement.objectId,
+                        addedElement.uuid
+                    );
 
                     // not loaded yet, so flag it with a certain property so we can catch it when it fully loads
                     addedElement.autoAddedEnvelope = {
@@ -668,13 +735,14 @@ createNameSpace("realityEditor.envelopeManager");
                         containedFrameToAdd: {
                             objectKey: objectKey,
                             frameKey: frameKey,
-                            frameType: frameType
-                        }
+                            frameType: frameType,
+                        },
                     };
                 }
-
             } else {
-                console.log('dont need to create a new envelope because the required one is already open');
+                console.log(
+                    'dont need to create a new envelope because the required one is already open'
+                );
             }
         }
     }
@@ -697,7 +765,7 @@ createNameSpace("realityEditor.envelopeManager");
         }
 
         var envelopeMessage = {
-            envelopeMessage: message
+            envelopeMessage: message,
         };
 
         realityEditor.network.postMessageIntoFrame(envelopeFrameKey, envelopeMessage);
@@ -710,7 +778,11 @@ createNameSpace("realityEditor.envelopeManager");
      * @param {string|undefined} compatibilityTypeRequirement
      * @param {*} options
      */
-    function sendMessageToOpenEnvelopes(message, compatibilityTypeRequirement, options = { requiresFocus: false}) {
+    function sendMessageToOpenEnvelopes(
+        message,
+        compatibilityTypeRequirement,
+        options = { requiresFocus: false }
+    ) {
         for (var frameKey in knownEnvelopes) {
             var envelope = knownEnvelopes[frameKey];
             if (envelope.isOpen && (envelope.hasFocus || !options.requiresFocus)) {
@@ -727,15 +799,17 @@ createNameSpace("realityEditor.envelopeManager");
     function sendMessageToEnvelopeContents(envelopeFrameKey, message) {
         var envelope = knownEnvelopes[envelopeFrameKey];
         if (!envelope) {
-            console.warn('couldn\'t find the envelope you are trying to message (' + envelopeFrameKey + ')');
+            console.warn(
+                "couldn't find the envelope you are trying to message (" + envelopeFrameKey + ')'
+            );
             return;
         }
 
         // the envelope doesn't need to be open for these messages to propagate to its children
         var envelopeMessage = {
             envelopeMessage: {
-                sendMessageToContents: message
-            }
+                sendMessageToContents: message,
+            },
         };
 
         // we send the message to the envelope, which forwards it to its contained frames
@@ -747,7 +821,7 @@ createNameSpace("realityEditor.envelopeManager");
      * @return {Array.<Envelope>}
      */
     function getOpenEnvelopes() {
-        return Object.values(knownEnvelopes).filter(function(envelope) {
+        return Object.values(knownEnvelopes).filter(function (envelope) {
             return envelope.isOpen; // && !envelope.hasFocus;
         });
     }
@@ -768,8 +842,8 @@ createNameSpace("realityEditor.envelopeManager");
      */
     function getCurrentCompatibleFrameTypes() {
         var allCompatibleFrameTypes = [];
-        getOpenEnvelopes().forEach(function(envelope) {
-            envelope.compatibleFrameTypes.forEach(function(frameType) {
+        getOpenEnvelopes().forEach(function (envelope) {
+            envelope.compatibleFrameTypes.forEach(function (frameType) {
                 if (allCompatibleFrameTypes.indexOf(frameType) === -1) {
                     allCompatibleFrameTypes.push(frameType);
                 }
@@ -813,10 +887,12 @@ createNameSpace("realityEditor.envelopeManager");
         }
 
         // hide all other frames and icons while the full2D frame is open
-        let otherFrames = Array.from(document.querySelectorAll('.visibleFrameContainer, .visibleFrame')).filter(element => {
+        let otherFrames = Array.from(
+            document.querySelectorAll('.visibleFrameContainer, .visibleFrame')
+        ).filter((element) => {
             return !element.id.includes(focusedFrameId);
         });
-        otherFrames.forEach(frame => {
+        otherFrames.forEach((frame) => {
             frame.classList.add('hiddenByFull2DBlurredBackground');
         });
 
@@ -827,10 +903,12 @@ createNameSpace("realityEditor.envelopeManager");
             webGlCanvas.classList.add('hiddenByFull2DBlurredBackground');
         }
 
-        callbacks.onFullscreenFull2DToggled.forEach(cb => cb({
-            frameId: focusedFrameId,
-            isFull2D: true
-        }));
+        callbacks.onFullscreenFull2DToggled.forEach((cb) =>
+            cb({
+                frameId: focusedFrameId,
+                isFull2D: true,
+            })
+        );
     }
 
     function hideBlurredBackground(focusedFrameId) {
@@ -850,21 +928,25 @@ createNameSpace("realityEditor.envelopeManager");
         }
 
         // show all frames and icons that were hidden when the full2D frame opened, and the webgl canvas
-        Array.from(document.querySelectorAll('.hiddenByFull2DBlurredBackground')).forEach(element => {
-            element.classList.remove('hiddenByFull2DBlurredBackground');
-        });
+        Array.from(document.querySelectorAll('.hiddenByFull2DBlurredBackground')).forEach(
+            (element) => {
+                element.classList.remove('hiddenByFull2DBlurredBackground');
+            }
+        );
 
-        callbacks.onFullscreenFull2DToggled.forEach(cb => cb({
-            frameId: focusedFrameId,
-            isFull2D: false
-        }));
+        callbacks.onFullscreenFull2DToggled.forEach((cb) =>
+            cb({
+                frameId: focusedFrameId,
+                isFull2D: false,
+            })
+        );
     }
 
     exports.initService = initService; // ideally, for a self-contained service, this is the only export.
 
-    exports.getKnownEnvelopes = function() {
+    exports.getKnownEnvelopes = function () {
         return knownEnvelopes;
-    }
+    };
 
     exports.showBlurredBackground = showBlurredBackground;
     exports.hideBlurredBackground = hideBlurredBackground;
@@ -876,5 +958,4 @@ createNameSpace("realityEditor.envelopeManager");
     exports.focusEnvelope = focusEnvelope;
     exports.blurEnvelope = blurEnvelope;
     exports.getFrameTypeFromKey = getFrameTypeFromKey;
-
-}(realityEditor.envelopeManager));
+})(realityEditor.envelopeManager);

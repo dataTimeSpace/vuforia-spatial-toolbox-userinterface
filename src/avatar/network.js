@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.avatar.network");
+createNameSpace('realityEditor.avatar.network');
 
 /**
  * @fileOverview realityEditor.avatar.network
@@ -6,7 +6,7 @@ createNameSpace("realityEditor.avatar.network");
  * realtime broadcast my avatar's state, and subscribe to the state of other avatars
  */
 
-(function(exports) {
+(function (exports) {
     const DATA_SEND_FPS_LIMIT = 30;
     let occlusionDownloadInterval = null;
     let cachedOcclusionObject = null;
@@ -29,17 +29,28 @@ createNameSpace("realityEditor.avatar.network");
             return;
         }
 
-        let postUrl = realityEditor.network.getURL(worldObject.ip, realityEditor.network.getPort(worldObject), '/');
-        let params = new URLSearchParams({action: 'new', name: clientId, isAvatar: true, worldId: worldId});
+        let postUrl = realityEditor.network.getURL(
+            worldObject.ip,
+            realityEditor.network.getPort(worldObject),
+            '/'
+        );
+        let params = new URLSearchParams({
+            action: 'new',
+            name: clientId,
+            isAvatar: true,
+            worldId: worldId,
+        });
         fetch(postUrl, {
             method: 'POST',
-            body: params
-        }).then(response => response.json())
-            .then(data => {
+            body: params,
+        })
+            .then((response) => response.json())
+            .then((data) => {
                 onSuccess(data);
-            }).catch(err => {
-            onError(err);
-        });
+            })
+            .catch((err) => {
+                onError(err);
+            });
     }
 
     // helper function that will trigger the callback for each avatar object previously or in-future discovered
@@ -52,7 +63,7 @@ createNameSpace("realityEditor.avatar.network");
         }
 
         // next, listen to newly discovered objects
-        realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
+        realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
             if (realityEditor.avatar.utils.isAvatarObject(object)) {
                 callback(object, objectKey);
             }
@@ -89,10 +100,14 @@ createNameSpace("realityEditor.avatar.network");
                 cachedWorldObject = null; // don't accept the local world object
             }
             if (cachedWorldObject && !cachedOcclusionObject) {
-                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(cachedWorldObject.objectId);
+                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(
+                    cachedWorldObject.objectId
+                );
                 if (cachedOcclusionObject) {
                     // trigger the callback and clear the interval
-                    callbacks.onLoadOcclusionObject.forEach(cb => cb(cachedWorldObject, cachedOcclusionObject));
+                    callbacks.onLoadOcclusionObject.forEach((cb) =>
+                        cb(cachedWorldObject, cachedOcclusionObject)
+                    );
                     clearInterval(occlusionDownloadInterval);
                     occlusionDownloadInterval = null;
                 }
@@ -109,7 +124,10 @@ createNameSpace("realityEditor.avatar.network");
         }
         const epsilon = 0.00001;
         for (let i = 0; i < 16; i++) {
-            if (Math.abs(lastSentCursorState.matrix.elements[i] - currentState.matrix.elements[i]) > epsilon) {
+            if (
+                Math.abs(lastSentCursorState.matrix.elements[i] - currentState.matrix.elements[i]) >
+                epsilon
+            ) {
                 // Matrix mismatch, have to check like this instead of matrix.equals(other) due to floating point errors
                 return true;
             }
@@ -127,10 +145,19 @@ createNameSpace("realityEditor.avatar.network");
     }
 
     // if the object has moved at all, and enough time has passed (FPS_LIMIT), realtime broadcast the new avatar matrix
-    function realtimeSendAvatarPosition(avatarObject, matrix, broadcastRateLimitFps = DATA_SEND_FPS_LIMIT) {
+    function realtimeSendAvatarPosition(
+        avatarObject,
+        matrix,
+        broadcastRateLimitFps = DATA_SEND_FPS_LIMIT
+    ) {
         // only send a data update if the matrix has changed since last time
-        if (avatarObject.matrix.length !== 16) { avatarObject.matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; }
-        let totalDifference = realityEditor.avatar.utils.sumOfElementDifferences(avatarObject.matrix, matrix);
+        if (avatarObject.matrix.length !== 16) {
+            avatarObject.matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+        }
+        let totalDifference = realityEditor.avatar.utils.sumOfElementDifferences(
+            avatarObject.matrix,
+            matrix
+        );
         if (totalDifference < 0.00001) {
             return;
         }
@@ -141,10 +168,16 @@ createNameSpace("realityEditor.avatar.network");
         // rate limit can be lowered below DATA_SEND_FPS_LIMIT by providing a broadcastRateLimitFps
         let rateLimitFps = Math.min(getDynamicFPSLimit(), broadcastRateLimitFps);
         // sceneGraph uploads object position to server every 1 second via REST, but we can stream updates in realtime here
-        if (Date.now() - lastBroadcastPositionTimestamp < (1000 / rateLimitFps)) {
+        if (Date.now() - lastBroadcastPositionTimestamp < 1000 / rateLimitFps) {
             return;
         }
-        realityEditor.network.realtime.broadcastUpdate(avatarObject.objectId, null, null, 'matrix', matrix);
+        realityEditor.network.realtime.broadcastUpdate(
+            avatarObject.objectId,
+            null,
+            null,
+            'matrix',
+            matrix
+        );
         // console.log('broadcast avatar position');
         lastBroadcastPositionTimestamp = Date.now();
     }
@@ -153,23 +186,43 @@ createNameSpace("realityEditor.avatar.network");
     function sendTouchState(keys, touchState, options) {
         let sendData = !(options && options.limitToFps) || !isTouchStateFpsLimited();
         if (sendData) {
-            realityEditor.network.realtime.writePublicData(keys.objectKey, keys.frameKey, keys.nodeKey, realityEditor.avatar.utils.PUBLIC_DATA_KEYS.touchState, touchState);
+            realityEditor.network.realtime.writePublicData(
+                keys.objectKey,
+                keys.frameKey,
+                keys.nodeKey,
+                realityEditor.avatar.utils.PUBLIC_DATA_KEYS.touchState,
+                touchState
+            );
             lastWritePublicDataTimestamp = Date.now();
         }
     }
-    
+
     // write the cursorState to the avatar object's storage node
     function sendSpatialCursorState(keys, cursorState, options) {
-        let sendData = (!(options && options.limitToFps) || !isCursorStateFpsLimited()) && hasCursorStateChanged(cursorState);
+        let sendData =
+            (!(options && options.limitToFps) || !isCursorStateFpsLimited()) &&
+            hasCursorStateChanged(cursorState);
         if (sendData) {
-            realityEditor.network.realtime.writePublicData(keys.objectKey, keys.frameKey, keys.nodeKey, realityEditor.avatar.utils.PUBLIC_DATA_KEYS.cursorState, cursorState);
+            realityEditor.network.realtime.writePublicData(
+                keys.objectKey,
+                keys.frameKey,
+                keys.nodeKey,
+                realityEditor.avatar.utils.PUBLIC_DATA_KEYS.cursorState,
+                cursorState
+            );
             lastWriteSpatialCursorTimestamp = Date.now();
             lastSentCursorState = cursorState;
         }
     }
-    
+
     function sendAiDialogue(keys, aiDialogueHTML) {
-        realityEditor.network.realtime.writePublicData(keys.objectKey, keys.frameKey, keys.nodeKey, realityEditor.avatar.utils.PUBLIC_DATA_KEYS.aiDialogue, aiDialogueHTML);
+        realityEditor.network.realtime.writePublicData(
+            keys.objectKey,
+            keys.frameKey,
+            keys.nodeKey,
+            realityEditor.avatar.utils.PUBLIC_DATA_KEYS.aiDialogue,
+            aiDialogueHTML
+        );
     }
 
     /**
@@ -177,12 +230,12 @@ createNameSpace("realityEditor.avatar.network");
      * @return {boolean}
      */
     function isTouchStateFpsLimited() {
-        return Date.now() - lastWritePublicDataTimestamp < (1000 / getDynamicFPSLimit());
+        return Date.now() - lastWritePublicDataTimestamp < 1000 / getDynamicFPSLimit();
     }
 
     // same as isTouchStateFpsLimited, but to limit the FPS of the spatial cursor data sending
     function isCursorStateFpsLimited() {
-        return Date.now() - lastWriteSpatialCursorTimestamp < (1000 / getDynamicFPSLimit());
+        return Date.now() - lastWriteSpatialCursorTimestamp < 1000 / getDynamicFPSLimit();
     }
 
     /**
@@ -191,12 +244,18 @@ createNameSpace("realityEditor.avatar.network");
      * @param {Object} userProfile - contains name, providerId, lockOnMode, sessionId, etc.
      */
     function sendUserProfile(keys, userProfile) {
-        realityEditor.network.realtime.writePublicData(keys.objectKey, keys.frameKey, keys.nodeKey, realityEditor.avatar.utils.PUBLIC_DATA_KEYS.userProfile, {
-            name: userProfile.name,
-            providerId: userProfile.providerId,
-            lockOnMode: userProfile.lockOnMode,
-            sessionId: userProfile.sessionId
-        });
+        realityEditor.network.realtime.writePublicData(
+            keys.objectKey,
+            keys.frameKey,
+            keys.nodeKey,
+            realityEditor.avatar.utils.PUBLIC_DATA_KEYS.userProfile,
+            {
+                name: userProfile.name,
+                providerId: userProfile.providerId,
+                lockOnMode: userProfile.lockOnMode,
+                sessionId: userProfile.sessionId,
+            }
+        );
     }
 
     // if we discover other avatar objects before we're localized in a world, queue them up to be initialized later
@@ -206,7 +265,9 @@ createNameSpace("realityEditor.avatar.network");
         }
 
         let objectIdList = pendingAvatarInitializations[cachedWorldObject.objectId];
-        if (!(objectIdList && objectIdList.length > 0)) { return; }
+        if (!(objectIdList && objectIdList.length > 0)) {
+            return;
+        }
 
         while (objectIdList.length > 0) {
             let thatAvatarObject = realityEditor.getObject(objectIdList.pop());
@@ -228,26 +289,38 @@ createNameSpace("realityEditor.avatar.network");
     // so that the corresponding callback will be triggered iff the corresponding data key is changed by another user
     function subscribeToAvatarPublicData(avatarObject, subscriptionCallbacks) {
         let avatarObjectKey = avatarObject.objectId;
-        let avatarFrameKey = Object.keys(avatarObject.frames).find(name => name.includes(realityEditor.avatar.utils.TOOL_NAME));
+        let avatarFrameKey = Object.keys(avatarObject.frames).find((name) =>
+            name.includes(realityEditor.avatar.utils.TOOL_NAME)
+        );
         let thatAvatarTool = realityEditor.getFrame(avatarObjectKey, avatarFrameKey);
         if (!thatAvatarTool) {
             console.warn('cannot find Avatar tool on Avatar object named ' + avatarObjectKey);
             return;
         }
-        let avatarNodeKey = Object.keys(thatAvatarTool.nodes).find(name => name.includes(realityEditor.avatar.utils.NODE_NAME));
+        let avatarNodeKey = Object.keys(thatAvatarTool.nodes).find((name) =>
+            name.includes(realityEditor.avatar.utils.NODE_NAME)
+        );
 
         Object.keys(subscriptionCallbacks).forEach((publicDataKey) => {
             let callback = subscriptionCallbacks[publicDataKey];
 
-            realityEditor.network.realtime.subscribeToPublicData(avatarObjectKey, avatarFrameKey, avatarNodeKey, publicDataKey, (msg) => {
-                callback(JSON.parse(msg));
-            });
+            realityEditor.network.realtime.subscribeToPublicData(
+                avatarObjectKey,
+                avatarFrameKey,
+                avatarNodeKey,
+                publicDataKey,
+                (msg) => {
+                    callback(JSON.parse(msg));
+                }
+            );
         });
     }
 
     // signal the server that this avatar object is still active and shouldn't be deleted
     function keepObjectAlive(objectKey) {
-        realityEditor.app.sendUDPMessage({action: {type: 'keepObjectAlive', objectKey: objectKey}});
+        realityEditor.app.sendUDPMessage({
+            action: { type: 'keepObjectAlive', objectKey: objectKey },
+        });
     }
 
     /**
@@ -264,9 +337,11 @@ createNameSpace("realityEditor.avatar.network");
         // it doesn't drop much from 30fps until 10ish users are present, then drops fast, then levels off close to 1 fps
         const maxFPS = DATA_SEND_FPS_LIMIT;
         const minFPS = 1;
-        const avatarMidPoint = 15;  // Controls the point where the steepest drop occurs
+        const avatarMidPoint = 15; // Controls the point where the steepest drop occurs
         const steepness = 0.3; // Controls how sharp the transition is
-        const dynamicLimit = minFPS + (maxFPS - minFPS) / (1 + Math.exp(steepness * (numConnectedAvatars - avatarMidPoint)));
+        const dynamicLimit =
+            minFPS +
+            (maxFPS - minFPS) / (1 + Math.exp(steepness * (numConnectedAvatars - avatarMidPoint)));
 
         return Math.min(DATA_SEND_FPS_LIMIT, dynamicLimit);
     }
@@ -285,5 +360,4 @@ createNameSpace("realityEditor.avatar.network");
     exports.addPendingAvatarInitialization = addPendingAvatarInitialization;
     exports.subscribeToAvatarPublicData = subscribeToAvatarPublicData;
     exports.keepObjectAlive = keepObjectAlive;
-
-}(realityEditor.avatar.network));
+})(realityEditor.avatar.network);

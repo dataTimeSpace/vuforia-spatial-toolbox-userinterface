@@ -1,6 +1,6 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import {createPointCloud, ShaderMode} from './Shaders.js';
-import {VisualDiff} from './VisualDiff.js';
+import { createPointCloud, ShaderMode } from './Shaders.js';
+import { VisualDiff } from './VisualDiff.js';
 
 /**
  * All data serialized to store a CameraVis patch (3d picture)
@@ -33,11 +33,11 @@ export class CameraVisPatch {
      */
     constructor(container, mesh, phoneMesh, pendingShaderMode, creationTime) {
         this.container = container;
-        /** 
+        /**
          * this shallow copy will make sure the mesh is rendered twice, first we overwrite the background scan depth with the depth of this object.
          * Because we disable depth checking for this object, we need to render it again with propper depth checking to make sure the front most pixel is rendered.
          * This will automaticaly solve issues with multiple patches rendering on top of each other.
-         * @type {THREE.Object3D} 
+         * @type {THREE.Object3D}
          */
         this.maskMesh = mesh.clone();
         this.maskMesh.renderOrder = realityEditor.gui.threejsScene.RENDER_ORDER_DEPTH_REPLACEMENT;
@@ -57,7 +57,7 @@ export class CameraVisPatch {
      */
     #updateMaskMaterial() {
         if (this.maskMaterial) this.maskMaterial.dispose();
-          /**
+        /**
          * we will copy the original material/shader and disable the color part of the shader for speed, since we are only interested in writing depth
          * @type {THREE.Material|undefined}
          */
@@ -72,10 +72,7 @@ export class CameraVisPatch {
         let matrix = this.phone.matrixWorld.clone();
 
         let initialVehicleMatrix = new THREE.Matrix4().fromArray([
-            -1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, -1, 0,
-            0, 0, 0, 1,
+            -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1,
         ]);
         matrix.multiply(initialVehicleMatrix);
 
@@ -124,14 +121,15 @@ export class CameraVisPatch {
 
             this.container.visible = true;
 
-            if ((this.shaderMode === ShaderMode.DIFF ||
-                 this.shaderMode === ShaderMode.DIFF_DEPTH) &&
-                     !this.visualDiff) {
+            if (
+                (this.shaderMode === ShaderMode.DIFF ||
+                    this.shaderMode === ShaderMode.DIFF_DEPTH) &&
+                !this.visualDiff
+            ) {
                 this.visualDiff = new VisualDiff();
             }
 
-            if (this.shaderMode === ShaderMode.DIFF ||
-                this.shaderMode === ShaderMode.DIFF_DEPTH) {
+            if (this.shaderMode === ShaderMode.DIFF || this.shaderMode === ShaderMode.DIFF_DEPTH) {
                 this.visualDiff.showCameraVisDiff(this);
             } else {
                 this.mesh.material = this.material;
@@ -150,7 +148,7 @@ export class CameraVisPatch {
 
     add() {
         let worldObjectId = realityEditor.sceneGraph.getWorldId();
-        realityEditor.gui.threejsScene.addToScene(this.container, { worldObjectId: worldObjectId } );
+        realityEditor.gui.threejsScene.addToScene(this.container, { worldObjectId: worldObjectId });
     }
 
     remove() {
@@ -168,7 +166,9 @@ export class CameraVisPatch {
         // Sets y to 0 because it will soon be positioned with a built-in groundplane offset
         containerMatrix.elements[13] = 0;
         toolMatrix.premultiply(containerMatrix);
-        toolMatrix.multiply(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, 0, Math.PI / 2)));
+        toolMatrix.multiply(
+            new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, 0, Math.PI / 2))
+        );
         toolMatrix.multiply(new THREE.Matrix4().makeTranslation(0, 0, 500));
 
         let addedTool = realityEditor.gui.pocket.createFrame('spatialPatch', {
@@ -184,12 +184,18 @@ export class CameraVisPatch {
         serialization.key = frameKey;
         const write = () => {
             realityEditor.network.realtime.writePublicData(
-                addedTool.objectId, frameKey, frameKey + 'storage',
-                'serialization', serialization
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'serialization',
+                serialization
             );
             realityEditor.network.realtime.writePublicData(
-                addedTool.objectId, frameKey, frameKey + 'storage',
-                'shaderMode', shaderMode
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'shaderMode',
+                shaderMode
             );
         };
         setTimeout(write, 500);
@@ -207,8 +213,14 @@ export class CameraVisPatch {
      * @param {ShaderMode} shaderMode - initial shader mode to set on the patches
      * @return {CameraVisPatch}
      */
-    static createPatch(containerMatrix, phoneMatrix, textureImage, textureDepthImage, creationTime, shaderMode) {
-        
+    static createPatch(
+        containerMatrix,
+        phoneMatrix,
+        textureImage,
+        textureDepthImage,
+        creationTime,
+        shaderMode
+    ) {
         let patch = new THREE.Group();
         patch.name = `CameraVisPatch_${creationTime}_patchContainer`;
         patch.matrix.copy(containerMatrix);
@@ -259,15 +271,15 @@ export class CameraVisPatch {
             // limit to 30fps
             let dt = Math.min(time - lastTime, 67);
             lastTime = time;
-            mesh.material.uniforms.patchLoading.value += 8 * dt / 1000;
+            mesh.material.uniforms.patchLoading.value += (8 * dt) / 1000;
             if (mesh.material.uniforms.patchLoading.value < 1) {
                 window.requestAnimationFrame(patchLoading);
             } else {
                 mesh.material.uniforms.patchLoading.value = 1;
                 cvPatch.finalizeLoadingAnimation();
             }
-            cvPatch.maskMaterial.uniforms.patchLoading.value = mesh.material.uniforms.patchLoading.value;
-            
+            cvPatch.maskMaterial.uniforms.patchLoading.value =
+                mesh.material.uniforms.patchLoading.value;
         }
         window.requestAnimationFrame(patchLoading);
 

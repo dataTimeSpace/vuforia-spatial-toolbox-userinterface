@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.gui.settings");
+createNameSpace('realityEditor.gui.settings');
 
 // TODO: import this from common source as settings.js gets it instead of redefining
 const InterfaceType = Object.freeze({
@@ -31,7 +31,9 @@ realityEditor.gui.settings.setSettings = function (id, state) {
         }
 
         // update associated text field if needed (for TOGGLE_WITH_FROZEN_TEXT)
-        let textfield = document.getElementById(id).parentElement.querySelector('.settingTextField');
+        let textfield = document
+            .getElementById(id)
+            .parentElement.querySelector('.settingTextField');
         if (textfield && textfield.classList.contains('frozen')) {
             textfield.disabled = document.getElementById(id).classList.contains('active');
         }
@@ -42,8 +44,9 @@ function setSliderValue(id, value) {
     let slider = document.getElementById(id);
     let sliderHandle = slider.querySelector('.slider-handle');
     let sliderFill = slider.querySelector('.slider-fill');
-    
-    if (slider.getClientRects()[0]) { // avoids error if slider isn't on screen
+
+    if (slider.getClientRects()[0]) {
+        // avoids error if slider isn't on screen
         sliderHandle.style.left = value * parseFloat(slider.getClientRects()[0].width) + 'px';
         sliderFill.style.width = value * parseFloat(slider.getClientRects()[0].width) + 'px';
     }
@@ -52,52 +55,55 @@ function setSliderValue(id, value) {
 realityEditor.gui.settings.loadSettingsPost = function () {
     let settingsRequest = {
         getSettings: true, // ask for the current values of all settings variables
-        getEnvironmentVariables: true // ask for the current environment variables
+        getEnvironmentVariables: true, // ask for the current environment variables
     };
 
     // this is a temporary fix to check if this script is being executed on the main settings vs the developer settings
     if (document.querySelector('.content').id === 'mainSettings') {
         settingsRequest.getMainDynamicSettings = true; // ask for which settings should be displayed on the main settings page
-
     } else if (document.querySelector('.content').id === 'developSettings') {
         settingsRequest.getDevelopDynamicSettings = true; // ask for which settings should be displayed on the main settings page
     }
 
     //  Get all the Setting states.
-    parent.postMessage(JSON.stringify({
-        settings: settingsRequest
-    }), "*");
+    parent.postMessage(
+        JSON.stringify({
+            settings: settingsRequest,
+        }),
+        '*'
+    );
 
-    window.addEventListener("message", function (e) {
-
-        var msg = {};
-        try {
-            msg = JSON.parse(e.data);
-        } catch (e) {
-            // console.warn(e);
-        }
-
-        if (typeof msg.getSettings !== 'undefined') {
-            onGetSettings(msg);
-        }
-
-        if (typeof msg.getMainDynamicSettings !== 'undefined') {
-            if (document.querySelector('.content').id === 'mainSettings') {
-                onGetMainDynamicSettings(msg.getMainDynamicSettings);
+    window.addEventListener(
+        'message',
+        function (e) {
+            var msg = {};
+            try {
+                msg = JSON.parse(e.data);
+            } catch (e) {
+                // console.warn(e);
             }
-        }
 
-        if (typeof msg.getDevelopDynamicSettings !== 'undefined') {
-            if (document.querySelector('.content').id === 'developSettings') {
-                onGetMainDynamicSettings(msg.getDevelopDynamicSettings); // TODO: see if I can re-use this function or need to create another
+            if (typeof msg.getSettings !== 'undefined') {
+                onGetSettings(msg);
             }
-        }
 
-        if (typeof msg.getEnvironmentVariables !== 'undefined') {
-            onGetEnvironmentVaribles(msg.getEnvironmentVariables);
-        }
+            if (typeof msg.getMainDynamicSettings !== 'undefined') {
+                if (document.querySelector('.content').id === 'mainSettings') {
+                    onGetMainDynamicSettings(msg.getMainDynamicSettings);
+                }
+            }
 
-    }.bind(realityEditor.gui.settings));
+            if (typeof msg.getDevelopDynamicSettings !== 'undefined') {
+                if (document.querySelector('.content').id === 'developSettings') {
+                    onGetMainDynamicSettings(msg.getDevelopDynamicSettings); // TODO: see if I can re-use this function or need to create another
+                }
+            }
+
+            if (typeof msg.getEnvironmentVariables !== 'undefined') {
+                onGetEnvironmentVaribles(msg.getEnvironmentVariables);
+            }
+        }.bind(realityEditor.gui.settings)
+    );
 
     var onGetSettings = function (msg) {
         for (let key in msg.getSettings) {
@@ -105,9 +111,16 @@ realityEditor.gui.settings.loadSettingsPost = function () {
             this.setSettings(key, this.states[key]);
         }
 
-        if (typeof realityEditor.gui.settings.logo !== "undefined" && this.states.settingsButton && !this.states.animationFrameRequested) {
+        if (
+            typeof realityEditor.gui.settings.logo !== 'undefined' &&
+            this.states.settingsButton &&
+            !this.states.animationFrameRequested
+        ) {
             this.states.animationFrameRequested = true;
-            if (realityEditor.gui.settings.logo && typeof (realityEditor.gui.settings.logo.step) === 'function') {
+            if (
+                realityEditor.gui.settings.logo &&
+                typeof realityEditor.gui.settings.logo.step === 'function'
+            ) {
                 window.requestAnimationFrame(realityEditor.gui.settings.logo.step);
             }
         }
@@ -116,14 +129,18 @@ realityEditor.gui.settings.loadSettingsPost = function () {
             this.states.animationFrameRequested = false;
         }
 
-        if (typeof this.callObjects !== "undefined" && this.states.settingsButton && !this.states.setInt) {
+        if (
+            typeof this.callObjects !== 'undefined' &&
+            this.states.settingsButton &&
+            !this.states.setInt
+        ) {
             this.states.setInt = true;
             this.objectInterval = setInterval(this.callObjects, 1000);
         }
 
         if (!this.states.settingsButton) {
             this.states.setInt = false;
-            if (typeof this.objectInterval !== "undefined") {
+            if (typeof this.objectInterval !== 'undefined') {
                 clearInterval(this.objectInterval);
             }
         }
@@ -137,7 +154,6 @@ realityEditor.gui.settings.loadSettingsPost = function () {
         }
 
         for (let key in dynamicSettings) {
-
             var settingInfo = dynamicSettings[key];
 
             // add HTML element for this toggle if it doesn't exist already
@@ -184,9 +200,10 @@ realityEditor.gui.settings.loadSettingsPost = function () {
                 description.className = 'description';
                 newElement.appendChild(description);
 
-                if (settingInfo.settingType === InterfaceType.TOGGLE_WITH_TEXT ||
-                    settingInfo.settingType === InterfaceType.TOGGLE_WITH_FROZEN_TEXT) {
-
+                if (
+                    settingInfo.settingType === InterfaceType.TOGGLE_WITH_TEXT ||
+                    settingInfo.settingType === InterfaceType.TOGGLE_WITH_FROZEN_TEXT
+                ) {
                     let textField = document.createElement('input');
                     textField.id = key + 'Text';
                     textField.classList.add('pull-left', 'settingTextField');
@@ -222,7 +239,7 @@ realityEditor.gui.settings.loadSettingsPost = function () {
                         urlView.dataset.href = settingInfo.associatedText.value;
                     }
 
-                    urlView.addEventListener('click', function() {
+                    urlView.addEventListener('click', function () {
                         navigator.share({
                             title: 'Pop-up Metaverse Access',
                             text: 'Pop-up Metaverse Access',
@@ -233,10 +250,11 @@ realityEditor.gui.settings.loadSettingsPost = function () {
                     newElement.appendChild(urlView);
                 }
 
-                if (settingInfo.settingType === InterfaceType.TOGGLE ||
+                if (
+                    settingInfo.settingType === InterfaceType.TOGGLE ||
                     settingInfo.settingType === InterfaceType.TOGGLE_WITH_TEXT ||
-                    settingInfo.settingType === InterfaceType.TOGGLE_WITH_FROZEN_TEXT) {
-
+                    settingInfo.settingType === InterfaceType.TOGGLE_WITH_FROZEN_TEXT
+                ) {
                     let toggle = document.createElement('div');
                     toggle.classList.add('toggle');
                     toggle.id = key;
@@ -245,9 +263,7 @@ realityEditor.gui.settings.loadSettingsPost = function () {
                     let toggleHandle = document.createElement('div');
                     toggleHandle.classList.add('toggle-handle');
                     toggle.appendChild(toggleHandle);
-
                 } else if (settingInfo.settingType === InterfaceType.SLIDER) {
-
                     let slider = document.createElement('div');
                     slider.classList.add('slider');
                     slider.id = key;
@@ -275,7 +291,6 @@ realityEditor.gui.settings.loadSettingsPost = function () {
             let settingInfo = dynamicSettings[key];
             this.setSettings(key, settingInfo.value);
         }
-
     }.bind(realityEditor.gui.settings);
 
     var onGetEnvironmentVaribles = function (environmentVariables) {
@@ -310,21 +325,26 @@ realityEditor.gui.settings.loadSettingsPost = function () {
         }
     }
 
-    document.addEventListener('pointermove', function(event) {
+    document.addEventListener('pointermove', function (event) {
         if (sliderDown) {
             let sliderHandle = sliderDown.querySelector('.slider-handle');
             let sliderFill = sliderDown.querySelector('.slider-fill');
             let parentLeft = sliderDown.getClientRects()[0].left;
-            let dx = Math.max(0, Math.min(sliderDown.getClientRects()[0].width, event.pageX - parentLeft));
-            sliderHandle.style.left = dx - sliderHandle.getClientRects()[0].width/2 + 'px';
-            sliderFill.style.width = dx - sliderHandle.getClientRects()[0].width/2 + 'px';
+            let dx = Math.max(
+                0,
+                Math.min(sliderDown.getClientRects()[0].width, event.pageX - parentLeft)
+            );
+            sliderHandle.style.left = dx - sliderHandle.getClientRects()[0].width / 2 + 'px';
+            sliderFill.style.width = dx - sliderHandle.getClientRects()[0].width / 2 + 'px';
         }
     });
-    
-    document.addEventListener('pointerup', function(_event) {
+
+    document.addEventListener('pointerup', function (_event) {
         if (sliderDown) {
             let sliderHandle = sliderDown.querySelector('.slider-handle');
-            let value = parseFloat(sliderHandle.style.left) / parseFloat(sliderDown.getClientRects()[0].width);
+            let value =
+                parseFloat(sliderHandle.style.left) /
+                parseFloat(sliderDown.getClientRects()[0].width);
             uploadSettingsForToggle(sliderDown.id, value);
         }
         sliderDown = null;
@@ -339,9 +359,10 @@ realityEditor.gui.settings.loadSettingsPost = function () {
         let element = document.getElementById(elementId);
         // check if it has an attached text field, and if so, send that text too
         if (element.parentElement.querySelector('.settingTextField')) {
-            msg.settings.setSettings[elementId + 'Text'] = element.parentElement.querySelector('.settingTextField').value;
+            msg.settings.setSettings[elementId + 'Text'] =
+                element.parentElement.querySelector('.settingTextField').value;
         }
-        parent.postMessage(JSON.stringify(msg), "*");
+        parent.postMessage(JSON.stringify(msg), '*');
     }
 
     function uploadSettingText(textElementId) {
@@ -349,13 +370,12 @@ realityEditor.gui.settings.loadSettingsPost = function () {
         msg.settings = {};
         msg.settings.setSettings = {};
         msg.settings.setSettings[textElementId] = document.getElementById(textElementId).value;
-        parent.postMessage(JSON.stringify(msg), "*");
+        parent.postMessage(JSON.stringify(msg), '*');
     }
-
 };
 
-window.onload = function() {
-    setTimeout(function() {
+window.onload = function () {
+    setTimeout(function () {
         realityEditor.gui.settings.loadSettingsPost();
-    }, 100);  // delay it or it happens too early to load settings
+    }, 100); // delay it or it happens too early to load settings
 };

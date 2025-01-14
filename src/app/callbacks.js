@@ -47,8 +47,7 @@ createNameSpace('realityEditor.app.callbacks');
  * Note: callbacks related to target downloading are located in the targetDownloader module.
  */
 
-(function(exports) {
-
+(function (exports) {
     // save this matrix in a local scope for faster retrieval
     realityEditor.app.callbacks.rotationXMatrix = rotationXMatrix;
 
@@ -56,8 +55,8 @@ createNameSpace('realityEditor.app.callbacks');
 
     // other modules can subscribe to what's happening here
     let subscriptions = {
-        onPoseReceived: []
-    }
+        onPoseReceived: [],
+    };
 
     /**
      * Callback for realityEditor.app.getVuforiaReady
@@ -67,29 +66,37 @@ createNameSpace('realityEditor.app.callbacks');
      */
     function vuforiaIsReady(success) {
         if (typeof success !== 'undefined' && !success) {
-
-            while (listeners.onVuforiaInitFailure.length > 0) { // dismiss the intializing pop-up that was waiting
+            while (listeners.onVuforiaInitFailure.length > 0) {
+                // dismiss the intializing pop-up that was waiting
                 let callback = listeners.onVuforiaInitFailure.pop();
                 callback();
             }
-            
+
             let headerText = 'Needs camera and microphone access';
             let descriptionText = `Please enable camera and microphone access in your device's Settings app, and try again.`;
 
             let notification = realityEditor.gui.modal.showSimpleNotification(
-                headerText, descriptionText, function () {}, realityEditor.device.environment.variables.layoutUIForPortrait);
+                headerText,
+                descriptionText,
+                function () {},
+                realityEditor.device.environment.variables.layoutUIForPortrait
+            );
             notification.domElements.fade.style.backgroundColor = 'rgba(0,0,0,0.5)';
             notification.domElements.container.classList.add('loaderContainerPortraitTall');
             return;
         }
         // projection matrix only needs to be retrieved once
-        realityEditor.app.getProjectionMatrix('realityEditor.app.callbacks.receivedProjectionMatrix');
+        realityEditor.app.getProjectionMatrix(
+            'realityEditor.app.callbacks.receivedProjectionMatrix'
+        );
 
         // subscribe to the model matrices from each recognized image or object target
         realityEditor.app.getMatrixStream('realityEditor.app.callbacks.receiveMatricesFromAR');
 
         // subscribe to the camera matrix from the positional device tracker
-        realityEditor.app.getCameraMatrixStream('realityEditor.app.callbacks.receiveCameraMatricesFromAR');
+        realityEditor.app.getCameraMatrixStream(
+            'realityEditor.app.callbacks.receiveCameraMatricesFromAR'
+        );
 
         // Subscribe to poses if available
         realityEditor.app.getPosesStream('realityEditor.app.callbacks.receivePoses');
@@ -100,7 +107,7 @@ createNameSpace('realityEditor.app.callbacks');
         // send three action UDP pings to start object discovery
         for (var i = 0; i < 3; i++) {
             setTimeout(function () {
-                realityEditor.app.sendUDPMessage({action: 'ping'});
+                realityEditor.app.sendUDPMessage({ action: 'ping' });
             }, 500 * i); // space out each message by 500ms
         }
 
@@ -114,19 +121,26 @@ createNameSpace('realityEditor.app.callbacks');
      * after that the tracker stops for performance optimization.
      */
     function startGroundPlaneTrackerIfNeeded() {
-        if (hasActiveGroundPlaneStream) { return; } // don't do this unnecessarily because it takes a lot of resources
-        if (!globalStates.useGroundPlane) { return; }
+        if (hasActiveGroundPlaneStream) {
+            return;
+        } // don't do this unnecessarily because it takes a lot of resources
+        if (!globalStates.useGroundPlane) {
+            return;
+        }
 
-        realityEditor.app.getGroundPlaneMatrixStream('realityEditor.app.callbacks.receiveGroundPlaneMatricesFromAR');
+        realityEditor.app.getGroundPlaneMatrixStream(
+            'realityEditor.app.callbacks.receiveGroundPlaneMatricesFromAR'
+        );
         hasActiveGroundPlaneStream = true;
-        
+
         // automatically stop after 1 second
-        setTimeout(function() {
+        setTimeout(function () {
             realityEditor.app.acceptGroundPlaneAndStop();
-            
+
             // prevent subsequent ground plane resets if the ground plane is snapped to a world object
             let worldObject = realityEditor.worldObjects.getBestWorldObject();
-            hasActiveGroundPlaneStream = (worldObject && worldObject.uuid !== realityEditor.worldObjects.getLocalWorldId());
+            hasActiveGroundPlaneStream =
+                worldObject && worldObject.uuid !== realityEditor.worldObjects.getLocalWorldId();
         }, 1000);
     }
 
@@ -164,17 +178,12 @@ createNameSpace('realityEditor.app.callbacks');
         }
 
         // upon a new object discovery message, add the object and download its target files
-        if (typeof message.id !== 'undefined' &&
-            typeof message.ip !== 'undefined') {
-            
+        if (typeof message.id !== 'undefined' && typeof message.ip !== 'undefined') {
             realityEditor.network.discovery.processHeartbeat(message);
 
             // forward the action message to the network module, to synchronize state across multiple clients
-        } else if (typeof message.ip !== 'undefined' &&
-            typeof message.services !== 'undefined') {
-
+        } else if (typeof message.ip !== 'undefined' && typeof message.services !== 'undefined') {
             realityEditor.network.discovery.processServerBeat(message);
-
         } else if (typeof message.action !== 'undefined') {
             realityEditor.network.onAction(message.action);
         }
@@ -184,18 +193,17 @@ createNameSpace('realityEditor.app.callbacks');
     }
 
     // callback will trigger with array of joints {x,y,z} when a pose is detected
-    exports.subscribeToPoses = function(callback) {
+    exports.subscribeToPoses = function (callback) {
         subscriptions.onPoseReceived.push(callback);
-    }
+    };
 
     /**
      * Callback for realityEditor.app.getPosesStream
      * @param {Array< {x: number, y: number, z: number, confidence: number} >} pose - joints (in world CS, in mm units)
-     * @param { {timestamp: number, imageSize: [number], focalLength: [number], principalPoint: [number], transformW2C: [number]} } frameData - frame data associated with the pose 
+     * @param { {timestamp: number, imageSize: [number], focalLength: [number], principalPoint: [number], transformW2C: [number]} } frameData - frame data associated with the pose
      *         (timestamp in miliseconds, but floating point number with nanosecond precision); image size which the pose was computed from; camera intrinsics and extrinsics
      */
     function receivePoses(pose, frameData) {
-
         let poseInWorld = [];
 
         for (let point of pose) {
@@ -210,7 +218,7 @@ createNameSpace('realityEditor.app.callbacks');
         realityEditor.humanPose.draw.draw2DPoses(pose, frameData.imageSize);
 
         // NOTE: if no pose detected, still send empty pose with a timestamp to notify other servers/clients that body tracking is 'lost'.
-        subscriptions.onPoseReceived.forEach(cb => cb(poseInWorld, frameData));
+        subscriptions.onPoseReceived.forEach((cb) => cb(poseInWorld, frameData));
     }
 
     /**
@@ -231,7 +239,7 @@ createNameSpace('realityEditor.app.callbacks');
         if (!realityEditor.worldObjects) {
             return;
         } // prevents tons of error messages while app is loading but Vuforia has started
-        
+
         // If viewing the VR map instead of the AR view, don't update objects/tools based on Vuforia
         if (!realityEditor.device.modeTransition.isARMode()) return;
 
@@ -243,7 +251,7 @@ createNameSpace('realityEditor.app.callbacks');
                 visibleObjects[key] = visibleTargets[key];
             } else {
                 // find the object whose targetId matches the key, and store the .matrix under the objectId key
-                let matchingObjectId = Object.keys(objects).find(objectKey => {
+                let matchingObjectId = Object.keys(objects).find((objectKey) => {
                     return objects[objectKey].targetId === key;
                 });
                 if (matchingObjectId) {
@@ -269,16 +277,20 @@ createNameSpace('realityEditor.app.callbacks');
         // don't render origin objects as themselves
         let originObjects = realityEditor.worldObjects.getOriginObjects();
         let detectedOrigins = {};
-        Object.keys(originObjects).forEach(function(originKey) {
+        Object.keys(originObjects).forEach(function (originKey) {
             if (visibleObjects.hasOwnProperty(originKey)) {
-
                 // if (worldObject.isJpgTarget) {
-                    let rotatedOriginMatrix = [];
-                    realityEditor.gui.ar.utilities.multiplyMatrix(rotationXMatrix, visibleObjects[originKey], rotatedOriginMatrix);
+                let rotatedOriginMatrix = [];
+                realityEditor.gui.ar.utilities.multiplyMatrix(
+                    rotationXMatrix,
+                    visibleObjects[originKey],
+                    rotatedOriginMatrix
+                );
                 // }
 
                 // detectedOrigins[originKey] = realityEditor.gui.ar.utilities.copyMatrix(visibleObjects[originKey]);
-                detectedOrigins[originKey] = realityEditor.gui.ar.utilities.copyMatrix(rotatedOriginMatrix);
+                detectedOrigins[originKey] =
+                    realityEditor.gui.ar.utilities.copyMatrix(rotatedOriginMatrix);
 
                 // this part is just to enable the the SceneGraph/network.js to know when the origin moves enough to upload the originOffset
                 let sceneNode = realityEditor.sceneGraph.getSceneNodeById(originKey);
@@ -293,47 +305,64 @@ createNameSpace('realityEditor.app.callbacks');
         // this next section adjusts each world origin to be centered on their image target if it ever gets recognized
         realityEditor.worldObjects.getWorldObjectKeys().forEach(function (worldObjectKey) {
             if (visibleObjects.hasOwnProperty(worldObjectKey)) {
-                let matchingOrigin = realityEditor.worldObjects.getMatchingOriginObject(worldObjectKey);
+                let matchingOrigin =
+                    realityEditor.worldObjects.getMatchingOriginObject(worldObjectKey);
                 let worldObject = realityEditor.getObject(worldObjectKey);
 
                 let worldOriginMatrix = [];
                 let hasMatchingOrigin = !!matchingOrigin;
-                let isMatchingOriginVisible = (matchingOrigin && typeof detectedOrigins[matchingOrigin.uuid] !== 'undefined');
+                let isMatchingOriginVisible =
+                    matchingOrigin && typeof detectedOrigins[matchingOrigin.uuid] !== 'undefined';
                 let hasOriginOffset = typeof worldObject.originOffset !== 'undefined';
-                
+
                 if (!hasMatchingOrigin) {
-                    worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(visibleObjects[worldObjectKey]);
+                    worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(
+                        visibleObjects[worldObjectKey]
+                    );
                 } else {
                     if (!isMatchingOriginVisible) {
                         if (!hasOriginOffset) {
-                            worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(visibleObjects[worldObjectKey]);
+                            worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(
+                                visibleObjects[worldObjectKey]
+                            );
                         } else {
                             // calculate origin matrix using originOffset and visibleObjects[worldObjectKey]
-                            
+
                             // inverseWorld * originMatrix = relative;
                             // therefore:
                             // originMatrix = world * relative
-                            
-                            realityEditor.gui.ar.utilities.multiplyMatrix(visibleObjects[worldObjectKey], worldObject.originOffset, worldOriginMatrix);
+
+                            realityEditor.gui.ar.utilities.multiplyMatrix(
+                                visibleObjects[worldObjectKey],
+                                worldObject.originOffset,
+                                worldOriginMatrix
+                            );
                         }
                     } else {
                         if (!hasOriginOffset) {
                             realityEditor.app.tap(); // haptic feedback the first time it localizes against origin
                         }
                         let relative = [];
-                        let inverseWorld = realityEditor.gui.ar.utilities.invertMatrix(visibleObjects[worldObjectKey]);
-                        realityEditor.gui.ar.utilities.multiplyMatrix(inverseWorld, detectedOrigins[matchingOrigin.uuid], relative);
+                        let inverseWorld = realityEditor.gui.ar.utilities.invertMatrix(
+                            visibleObjects[worldObjectKey]
+                        );
+                        realityEditor.gui.ar.utilities.multiplyMatrix(
+                            inverseWorld,
+                            detectedOrigins[matchingOrigin.uuid],
+                            relative
+                        );
                         worldObject.originOffset = relative;
-                        worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(detectedOrigins[matchingOrigin.uuid]);
+                        worldOriginMatrix = realityEditor.gui.ar.utilities.copyMatrix(
+                            detectedOrigins[matchingOrigin.uuid]
+                        );
                     }
                 }
 
                 realityEditor.worldObjects.setOrigin(worldObjectKey, worldOriginMatrix);
-                
+
                 if (worldObjectKey !== realityEditor.worldObjects.getLocalWorldId()) {
                     let bestWorldObject = realityEditor.worldObjects.getBestWorldObject();
                     if (!bestWorldObject || worldObjectKey === bestWorldObject.uuid) {
-                        
                         let sceneNode = realityEditor.sceneGraph.getSceneNodeById(worldObjectKey);
                         if (sceneNode) {
                             sceneNode.setLocalMatrix(worldOriginMatrix);
@@ -345,7 +374,11 @@ createNameSpace('realityEditor.app.callbacks');
                                 let offset = [];
                                 let floorOffset = 0;
                                 try {
-                                    let navmesh = JSON.parse(window.localStorage.getItem(`realityEditor.navmesh.${worldObject.uuid}`));
+                                    let navmesh = JSON.parse(
+                                        window.localStorage.getItem(
+                                            `realityEditor.navmesh.${worldObject.uuid}`
+                                        )
+                                    );
                                     floorOffset = navmesh.floorOffset * 1000;
                                 } catch (e) {
                                     console.warn('No navmesh', worldObject, e);
@@ -353,13 +386,30 @@ createNameSpace('realityEditor.app.callbacks');
                                 let buffer = 100;
                                 floorOffset += buffer;
                                 let groundPlaneOffsetMatrix = [
-                                    1, 0, 0, 0,
-                                    0, 1, 0, 0,
-                                    0, 0, 1, 0,
-                                    0, floorOffset, 0, 1
+                                    1,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    1,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    1,
+                                    0,
+                                    0,
+                                    floorOffset,
+                                    0,
+                                    1,
                                 ];
-                                let worldObjectSceneNode = realityEditor.sceneGraph.getSceneNodeById(worldObject.uuid);
-                                realityEditor.gui.ar.utilities.multiplyMatrix(groundPlaneOffsetMatrix, worldObjectSceneNode.localMatrix, offset);
+                                let worldObjectSceneNode =
+                                    realityEditor.sceneGraph.getSceneNodeById(worldObject.uuid);
+                                realityEditor.gui.ar.utilities.multiplyMatrix(
+                                    groundPlaneOffsetMatrix,
+                                    worldObjectSceneNode.localMatrix,
+                                    offset
+                                );
                                 realityEditor.sceneGraph.setGroundPlanePosition(offset);
                             }
                         }
@@ -379,14 +429,23 @@ createNameSpace('realityEditor.app.callbacks');
                 sceneNode.setLocalMatrix(visibleObjects[objectKey]);
 
                 let dontBroadcast = false;
-                if (!dontBroadcast && realityEditor.device.environment.isSourceOfObjectPositions()) {
+                if (
+                    !dontBroadcast &&
+                    realityEditor.device.environment.isSourceOfObjectPositions()
+                ) {
                     // if it's an object, post object position relative to a world object
                     let worldObjectId = realityEditor.sceneGraph.getWorldId();
                     if (worldObjectId) {
                         let worldNode = realityEditor.sceneGraph.getSceneNodeById(worldObjectId);
                         sceneNode.updateWorldMatrix();
                         let relativeMatrix = sceneNode.getMatrixRelativeTo(worldNode);
-                        realityEditor.network.realtime.broadcastUpdate(objectKey, null, null, 'matrix', relativeMatrix);
+                        realityEditor.network.realtime.broadcastUpdate(
+                            objectKey,
+                            null,
+                            null,
+                            'matrix',
+                            relativeMatrix
+                        );
                     }
                 }
             }
@@ -432,7 +491,7 @@ createNameSpace('realityEditor.app.callbacks');
             let trackingStatus = cameraInfo.status;
             let trackingStatusInfo = cameraInfo.statusInfo;
 
-            listeners.onDeviceTrackingStatus.forEach(function(callback) {
+            listeners.onDeviceTrackingStatus.forEach(function (callback) {
                 callback(trackingStatus, trackingStatusInfo);
             });
 
@@ -452,13 +511,18 @@ createNameSpace('realityEditor.app.callbacks');
      */
     function receiveGroundPlaneMatricesFromAR(groundPlaneMatrix) {
         // only update groundPlane if unfrozen and at least one thing is has requested groundPlane usage
-        if (globalStates.useGroundPlane && !globalStates.freezeButtonState && realityEditor.device.modeTransition.isARMode()) {
-            
+        if (
+            globalStates.useGroundPlane &&
+            !globalStates.freezeButtonState &&
+            realityEditor.device.modeTransition.isARMode()
+        ) {
             let worldObject = realityEditor.worldObjects.getBestWorldObject();
 
             // snap groundPlane to world origin, if available
             if (worldObject && worldObject.uuid !== realityEditor.worldObjects.getLocalWorldId()) {
-                let worldObjectSceneNode = realityEditor.sceneGraph.getSceneNodeById(worldObject.uuid);
+                let worldObjectSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                    worldObject.uuid
+                );
                 if (worldObjectSceneNode) {
                     // note: if sceneGraph hierarchy gets more complicated (if ground plane and world objects have
                     // different parents in the scene graph), remember to switch worldObjectSceneNode.localMatrix
@@ -466,12 +530,18 @@ createNameSpace('realityEditor.app.callbacks');
                     if (worldObject.isJpgTarget) {
                         // let rotated = [];
                         // realityEditor.gui.ar.utilities.multiplyMatrix(this.rotationXMatrix, worldObjectSceneNode.localMatrix, rotated);
-                        realityEditor.sceneGraph.setGroundPlanePosition(worldObjectSceneNode.localMatrix);
+                        realityEditor.sceneGraph.setGroundPlanePosition(
+                            worldObjectSceneNode.localMatrix
+                        );
                     } else {
                         let offset = [];
                         let floorOffset = 0;
                         try {
-                            let navmesh = JSON.parse(window.localStorage.getItem(`realityEditor.navmesh.${worldObject.uuid}`));
+                            let navmesh = JSON.parse(
+                                window.localStorage.getItem(
+                                    `realityEditor.navmesh.${worldObject.uuid}`
+                                )
+                            );
                             floorOffset = navmesh.floorOffset * 1000;
                         } catch (e) {
                             console.warn('No navmesh', worldObject, e);
@@ -479,12 +549,28 @@ createNameSpace('realityEditor.app.callbacks');
                         let buffer = 100;
                         floorOffset += buffer;
                         let groundPlaneOffsetMatrix = [
-                            1, 0, 0, 0,
-                            0, 1, 0, 0,
-                            0, 0, 1, 0,
-                            0, floorOffset, 0, 1
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            floorOffset,
+                            0,
+                            1,
                         ];
-                        realityEditor.gui.ar.utilities.multiplyMatrix(groundPlaneOffsetMatrix, worldObjectSceneNode.localMatrix, offset);
+                        realityEditor.gui.ar.utilities.multiplyMatrix(
+                            groundPlaneOffsetMatrix,
+                            worldObjectSceneNode.localMatrix,
+                            offset
+                        );
                         realityEditor.sceneGraph.setGroundPlanePosition(offset);
                         // realityEditor.sceneGraph.setGroundPlanePosition(JSON.parse(JSON.stringify(worldObjectSceneNode.localMatrix)));
                     }
@@ -500,32 +586,32 @@ createNameSpace('realityEditor.app.callbacks');
     let listeners = {
         onVuforiaInitFailure: [], // triggers when vuforia is first initialized
         onTrackingStarted: [], // triggers when we first get a device position (again each time we lose and regain tracking)
-        onDeviceTrackingStatus: [] // constantly receive the camera's tracking status and statusInfo
-    }
+        onDeviceTrackingStatus: [], // constantly receive the camera's tracking status and statusInfo
+    };
 
     /**
      * Adds a callback that will trigger one time when tracking resumes (when the camera reports a new position)
      * The callback will be discarded afterwards.
      * @param {function} callback
      */
-    exports.onTrackingInitialized = function(callback) {
+    exports.onTrackingInitialized = function (callback) {
         listeners.onTrackingStarted.push(callback);
-    }
+    };
 
     /**
      * Adds an event handler which will constantly receive the camera's tracking status and statusInfo
      * @param {function} callback
      */
-    exports.handleDeviceTrackingStatus = function(callback) {
+    exports.handleDeviceTrackingStatus = function (callback) {
         listeners.onDeviceTrackingStatus.push(callback);
-    }
+    };
 
     /**
      * @param {function} callback
      */
-    exports.onVuforiaInitFailure = function(callback) {
+    exports.onVuforiaInitFailure = function (callback) {
         listeners.onVuforiaInitFailure.push(callback);
-    }
+    };
 
     // public methods (anything triggered by a native app callback needs to be public
     exports.vuforiaIsReady = vuforiaIsReady;
@@ -537,5 +623,4 @@ createNameSpace('realityEditor.app.callbacks');
     exports.receiveCameraMatricesFromAR = receiveCameraMatricesFromAR;
 
     exports.startGroundPlaneTrackerIfNeeded = startGroundPlaneTrackerIfNeeded;
-
 })(realityEditor.app.callbacks);

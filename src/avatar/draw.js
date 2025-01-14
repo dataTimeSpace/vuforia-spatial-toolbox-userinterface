@@ -1,11 +1,11 @@
-createNameSpace("realityEditor.avatar.draw");
+createNameSpace('realityEditor.avatar.draw');
 
 /**
  * @fileOverview realityEditor.avatar.draw
  * Contains a variety of helper functions for avatar/index.js to render all visuals related to avatars
  */
 
-(function(exports) {
+(function (exports) {
     const RENDER_DEVICE_CUBE = false; // turn on to show a cube at each of the avatar positions, in addition to the beams
     const SMOOTH_AVATAR_POSITIONS = false; // try to animate the positions of the avatars – doesn't work too well yet
 
@@ -25,14 +25,19 @@ createNameSpace("realityEditor.avatar.draw");
                 renderAvatar(objectKey, avatarTouchState, avatarNames[objectKey]);
             }
             for (const [objectKey, avatarCursorState] of Object.entries(avatarCursorStates)) {
-                realityEditor.spatialCursor.renderOtherSpatialCursor(objectKey,
-                    avatarCursorState.matrix, avatarCursorState.colorHSL, avatarCursorState.isColored, avatarCursorState.worldId);
+                realityEditor.spatialCursor.renderOtherSpatialCursor(
+                    objectKey,
+                    avatarCursorState.matrix,
+                    avatarCursorState.colorHSL,
+                    avatarCursorState.isColored,
+                    avatarCursorState.worldId
+                );
             }
         } catch (e) {
             console.warn('error rendering other avatars', e);
         }
     }
-    
+
     function renderMyAvatar(myAvatarObject, myAvatarTouchState) {
         if (!myAvatarObject) return;
         if (!myAvatarTouchState) return;
@@ -46,10 +51,19 @@ createNameSpace("realityEditor.avatar.draw");
             }
 
             // it only makes sense to draw the laser beam on our own screen if at least one other user is connected
-            let numConnectedAvatars = Object.keys(realityEditor.avatar.getConnectedAvatarList()).length;
+            let numConnectedAvatars = Object.keys(
+                realityEditor.avatar.getConnectedAvatarList()
+            ).length;
             if (numConnectedAvatars < 1) return;
 
-            drawLaserBeam(myAvatarObject.objectId, null, realityEditor.avatar.utils.getColor(myAvatarObject), realityEditor.avatar.utils.getColorLighter(myAvatarObject), myAvatarTouchState.screenX, myAvatarTouchState.screenY);
+            drawLaserBeam(
+                myAvatarObject.objectId,
+                null,
+                realityEditor.avatar.utils.getColor(myAvatarObject),
+                realityEditor.avatar.utils.getColorLighter(myAvatarObject),
+                myAvatarTouchState.screenX,
+                myAvatarTouchState.screenY
+            );
         } catch (e) {
             console.warn(e);
         }
@@ -61,12 +75,14 @@ createNameSpace("realityEditor.avatar.draw");
     function quadraticRemap(x, lowIn, highIn, lowOut, highOut) {
         if (x < lowIn) return highOut;
         else if (x > highIn) return lowOut;
-        else return ((highOut - lowOut) / Math.pow((highIn - lowIn), 2)) * Math.pow((highIn - x), 2);
+        else return ((highOut - lowOut) / Math.pow(highIn - lowIn, 2)) * Math.pow(highIn - x, 2);
     }
 
     // main rendering function for a single avatar – creates a beam, a sphere at the endpoint, and a text label if a name is provided
     function renderAvatar(objectKey, touchState, avatarName) {
-        if (!touchState) { return; }
+        if (!touchState) {
+            return;
+        }
 
         realityEditor.avatar.setLinkCanvasNeedsClear(true);
 
@@ -82,11 +98,12 @@ createNameSpace("realityEditor.avatar.draw");
         }
 
         const THREE = realityEditor.gui.threejsScene.THREE;
-        const color = realityEditor.avatar.utils.getColor(realityEditor.getObject(objectKey)) || 'hsl(60, 100%, 50%)';
+        const color =
+            realityEditor.avatar.utils.getColor(realityEditor.getObject(objectKey)) ||
+            'hsl(60, 100%, 50%)';
 
         // lazy-create the meshes and text label if they don't exist yet
         if (typeof avatarMeshes[objectKey] === 'undefined') {
-
             let pointerGroup = new THREE.Group();
             let pointerSphere = sphereMesh(color, objectKey + 'pointer', 50);
             pointerGroup.add(pointerSphere);
@@ -98,11 +115,17 @@ createNameSpace("realityEditor.avatar.draw");
 
             avatarMeshes[objectKey] = {
                 pointer: pointerGroup,
-                beam: cylinderMesh(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 0, 0), color),
-                textLabel: createTextLabel(objectKey, initials)
-            }
-            if (RENDER_DEVICE_CUBE) { // debug option to show where the avatars are located
-                avatarMeshes[objectKey].device = boxMesh(color, objectKey + 'device')
+                beam: cylinderMesh(
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(1, 0, 0),
+                    new THREE.Vector3(1, 0, 0),
+                    color
+                ),
+                textLabel: createTextLabel(objectKey, initials),
+            };
+            if (RENDER_DEVICE_CUBE) {
+                // debug option to show where the avatars are located
+                avatarMeshes[objectKey].device = boxMesh(color, objectKey + 'device');
                 avatarMeshes[objectKey].device.matrixAutoUpdate = false;
                 realityEditor.gui.threejsScene.addToScene(avatarMeshes[objectKey].device);
             }
@@ -113,17 +136,28 @@ createNameSpace("realityEditor.avatar.draw");
 
         // get the scene position of the avatar by multiplying the avatar matrix (which is relative to world) by the world origin matrix
         let thatAvatarSceneNode = realityEditor.sceneGraph.getSceneNodeById(objectKey);
-        let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+        let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.getWorldId()
+        );
         let worldMatrixThree = new THREE.Matrix4();
-        realityEditor.gui.threejsScene.setMatrixFromArray(worldMatrixThree, worldSceneNode.worldMatrix);
+        realityEditor.gui.threejsScene.setMatrixFromArray(
+            worldMatrixThree,
+            worldSceneNode.worldMatrix
+        );
         let avatarObjectMatrixThree = new THREE.Matrix4();
-        realityEditor.gui.threejsScene.setMatrixFromArray(avatarObjectMatrixThree, thatAvatarSceneNode.worldMatrix);
+        realityEditor.gui.threejsScene.setMatrixFromArray(
+            avatarObjectMatrixThree,
+            thatAvatarSceneNode.worldMatrix
+        );
         avatarObjectMatrixThree.premultiply(worldMatrixThree);
 
         // then transform the final avatar position into groundplane coordinates since the threejsScene is relative to groundplane
         let groundPlaneSceneNode = realityEditor.sceneGraph.getGroundPlaneNode();
         let groundPlaneMatrix = new THREE.Matrix4();
-        realityEditor.gui.threejsScene.setMatrixFromArray(groundPlaneMatrix, groundPlaneSceneNode.worldMatrix);
+        realityEditor.gui.threejsScene.setMatrixFromArray(
+            groundPlaneMatrix,
+            groundPlaneSceneNode.worldMatrix
+        );
         avatarObjectMatrixThree.premultiply(groundPlaneMatrix.invert());
 
         // show all the meshes, etc, for this avatar
@@ -132,7 +166,7 @@ createNameSpace("realityEditor.avatar.draw");
         avatarMeshes[objectKey].beam.visible = true;
         if (RENDER_DEVICE_CUBE) {
             avatarMeshes[objectKey].device.visible = true;
-            avatarMeshes[objectKey].device.matrixAutoUpdate = false
+            avatarMeshes[objectKey].device.matrixAutoUpdate = false;
             avatarMeshes[objectKey].device.matrix.copy(avatarObjectMatrixThree);
         }
 
@@ -143,16 +177,29 @@ createNameSpace("realityEditor.avatar.draw");
 
         if (touchState.worldIntersectPoint) {
             // worldIntersectPoint was converted to world coordinates. need to convert back to groundPlane coordinates in this system
-            let groundPlaneRelativeToWorldToolbox = worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode);
-            let groundPlaneRelativeToWorldThree = new realityEditor.gui.threejsScene.THREE.Matrix4();
-            realityEditor.gui.threejsScene.setMatrixFromArray(groundPlaneRelativeToWorldThree, groundPlaneRelativeToWorldToolbox);
+            let groundPlaneRelativeToWorldToolbox =
+                worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode);
+            let groundPlaneRelativeToWorldThree =
+                new realityEditor.gui.threejsScene.THREE.Matrix4();
+            realityEditor.gui.threejsScene.setMatrixFromArray(
+                groundPlaneRelativeToWorldThree,
+                groundPlaneRelativeToWorldToolbox
+            );
             // convertedEndPosition = new THREE.Vector3(touchState.worldIntersectPoint.x, touchState.worldIntersectPoint.y, touchState.worldIntersectPoint.z);
-            convertedEndPosition.set(touchState.worldIntersectPoint.x, touchState.worldIntersectPoint.y, touchState.worldIntersectPoint.z);
+            convertedEndPosition.set(
+                touchState.worldIntersectPoint.x,
+                touchState.worldIntersectPoint.y,
+                touchState.worldIntersectPoint.z
+            );
             convertedEndPosition.applyMatrix4(groundPlaneRelativeToWorldThree);
             // move the pointer sphere to the raycast intersect position
 
             avatarMeshes[objectKey].pointer.visible = true;
-            avatarMeshes[objectKey].pointer.position.set(convertedEndPosition.x, convertedEndPosition.y, convertedEndPosition.z);
+            avatarMeshes[objectKey].pointer.position.set(
+                convertedEndPosition.x,
+                convertedEndPosition.y,
+                convertedEndPosition.z
+            );
 
             // get the 2D screen coordinates of the pointer, and render a text bubble centered on it with the name of the sender
             let pointerWorldPosition = new THREE.Vector3();
@@ -166,11 +213,15 @@ createNameSpace("realityEditor.avatar.draw");
             let delta = {
                 x: camPos.x - convertedEndPosition.x,
                 y: camPos.y - convertedEndPosition.y,
-                z: camPos.z - convertedEndPosition.z
+                z: camPos.z - convertedEndPosition.z,
             };
-            let distanceToCamera = Math.max(0.001, Math.sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z));
+            let distanceToCamera = Math.max(
+                0.001,
+                Math.sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z)
+            );
             let scale = Math.max(0.5, Math.min(2, 2000 / distanceToCamera)); // biggest when <1m, smallest when >4m
-            avatarMeshes[objectKey].textLabel.style.transform = 'translateX(-50%) translateY(-50%) translateZ(3000px) scale(' + scale + ')';
+            avatarMeshes[objectKey].textLabel.style.transform =
+                'translateX(-50%) translateY(-50%) translateZ(3000px) scale(' + scale + ')';
             avatarMeshes[objectKey].textLabel.style.left = screenCoords.x + 'px'; // position it centered on the pointer sphere
             avatarMeshes[objectKey].textLabel.style.top = screenCoords.y + 'px';
         } else {
@@ -182,49 +233,96 @@ createNameSpace("realityEditor.avatar.draw");
             let rayDirectionRelativeToWorldObject = touchState.rayDirection;
             const RAY_LENGTH_MM = 100 * 1000; // render it 100 meters long
             let arUtils = realityEditor.gui.ar.utilities;
-            let rayOriginRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem([0, 0, 0], thatAvatarSceneNode, worldSceneNode);
-            let endRelativeToWorldObject = arUtils.add(rayOriginRelativeToWorldObject, arUtils.scalarMultiply(rayDirectionRelativeToWorldObject, RAY_LENGTH_MM));
-            let endRelativeToGroundPlane = realityEditor.sceneGraph.convertToNewCoordSystem(endRelativeToWorldObject, worldSceneNode, groundPlaneSceneNode);
-            convertedEndPosition.set(endRelativeToGroundPlane[0], endRelativeToGroundPlane[1], endRelativeToGroundPlane[2]);
+            let rayOriginRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem(
+                [0, 0, 0],
+                thatAvatarSceneNode,
+                worldSceneNode
+            );
+            let endRelativeToWorldObject = arUtils.add(
+                rayOriginRelativeToWorldObject,
+                arUtils.scalarMultiply(rayDirectionRelativeToWorldObject, RAY_LENGTH_MM)
+            );
+            let endRelativeToGroundPlane = realityEditor.sceneGraph.convertToNewCoordSystem(
+                endRelativeToWorldObject,
+                worldSceneNode,
+                groundPlaneSceneNode
+            );
+            convertedEndPosition.set(
+                endRelativeToGroundPlane[0],
+                endRelativeToGroundPlane[1],
+                endRelativeToGroundPlane[2]
+            );
         }
 
         // the position of the avatar in space
-        let startPosition = new THREE.Vector3(avatarObjectMatrixThree.elements[12], avatarObjectMatrixThree.elements[13], avatarObjectMatrixThree.elements[14]);
+        let startPosition = new THREE.Vector3(
+            avatarObjectMatrixThree.elements[12],
+            avatarObjectMatrixThree.elements[13],
+            avatarObjectMatrixThree.elements[14]
+        );
         // the position of the destination of the laser pointer (where that clicked on the environment)
-        let endPosition = new THREE.Vector3(convertedEndPosition.x, convertedEndPosition.y, convertedEndPosition.z);
+        let endPosition = new THREE.Vector3(
+            convertedEndPosition.x,
+            convertedEndPosition.y,
+            convertedEndPosition.z
+        );
 
-        if (SMOOTH_AVATAR_POSITIONS && wasBeamVisible) { // animate start position if already visible
+        if (SMOOTH_AVATAR_POSITIONS && wasBeamVisible) {
+            // animate start position if already visible
             let currentStartPosition = [
                 avatarMeshes[objectKey].beam.position.x,
                 avatarMeshes[objectKey].beam.position.y,
-                avatarMeshes[objectKey].beam.position.z
+                avatarMeshes[objectKey].beam.position.z,
             ];
             let newStartPosition = [
                 avatarObjectMatrixThree.elements[12],
                 avatarObjectMatrixThree.elements[13],
-                avatarObjectMatrixThree.elements[14]
+                avatarObjectMatrixThree.elements[14],
             ];
             // animation option 1: move the cursor faster the further away it is from the new position, so it eases out
             // let animatedStartPosition = realityEditor.gui.ar.utilities.tweenMatrix(currentStartPosition, newStartPosition, 0.05);
             // animation option 2: move the cursor linearly at 30*[FPS] millimeters per second
-            let animatedStartPosition = realityEditor.gui.ar.utilities.animationVectorLinear(currentStartPosition, newStartPosition, 30);
-            startPosition = new THREE.Vector3(animatedStartPosition[0], animatedStartPosition[1], animatedStartPosition[2]);
+            let animatedStartPosition = realityEditor.gui.ar.utilities.animationVectorLinear(
+                currentStartPosition,
+                newStartPosition,
+                30
+            );
+            startPosition = new THREE.Vector3(
+                animatedStartPosition[0],
+                animatedStartPosition[1],
+                animatedStartPosition[2]
+            );
         }
 
         // replace the old laser beam cylinder with a new one that goes from the avatar position to the beam destination
-        avatarMeshes[objectKey].beam = updateCylinderMesh(avatarMeshes[objectKey].beam, startPosition, endPosition, color);
+        avatarMeshes[objectKey].beam = updateCylinderMesh(
+            avatarMeshes[objectKey].beam,
+            startPosition,
+            endPosition,
+            color
+        );
         avatarMeshes[objectKey].beam.name = objectKey + 'beam';
         // realityEditor.gui.threejsScene.addToScene(avatarMeshes[objectKey].beam);
         // if laser beam is off screen, add an arrow pointing to the laser beam destination position
-        let lightColor = realityEditor.avatar.utils.getColorLighter(realityEditor.getObject(objectKey)) || 'hsl(60, 100%, 50%)';
+        let lightColor =
+            realityEditor.avatar.utils.getColorLighter(realityEditor.getObject(objectKey)) ||
+            'hsl(60, 100%, 50%)';
         // get the world position of the laser pointer sphere, and draw arrow to it if off screen
         let endWorldPosition = new THREE.Vector3();
         if (avatarMeshes[objectKey].pointer.visible) {
             avatarMeshes[objectKey].pointer.getWorldPosition(endWorldPosition);
         } else {
             let endWorldPositionArray = [endPosition.x, endPosition.y, endPosition.z];
-            endWorldPositionArray = realityEditor.sceneGraph.convertToNewCoordSystem(endWorldPositionArray, groundPlaneSceneNode, worldSceneNode);
-            endWorldPosition.set(endWorldPositionArray[0], endWorldPositionArray[1], endWorldPositionArray[2]);
+            endWorldPositionArray = realityEditor.sceneGraph.convertToNewCoordSystem(
+                endWorldPositionArray,
+                groundPlaneSceneNode,
+                worldSceneNode
+            );
+            endWorldPosition.set(
+                endWorldPositionArray[0],
+                endWorldPositionArray[1],
+                endWorldPositionArray[2]
+            );
         }
         drawLaserBeam(objectKey, endWorldPosition, color, lightColor);
     }
@@ -232,7 +330,12 @@ createNameSpace("realityEditor.avatar.draw");
     function drawLaserBeam(objectKey, endWorldPosition, color, lightColor, screenX, screenY) {
         const THREE = realityEditor.gui.threejsScene.THREE;
         // realityEditor.gui.spatialArrow.drawArrowBasedOnWorldPosition(endWorldPosition, color, lightColor);
-        realityEditor.gui.spatialArrow.addLaserBeamIndicator(objectKey, endWorldPosition, color, lightColor);
+        realityEditor.gui.spatialArrow.addLaserBeamIndicator(
+            objectKey,
+            endWorldPosition,
+            color,
+            lightColor
+        );
         // todo Steve: draw a fake 3d line from avatar icon to the position of the laser pointer sphere (endWorldPosition)
         let linkCanvasInfo = realityEditor.avatar.getLinkCanvasInfo();
         let avatarIconElement = document.getElementById('avatarIcon' + objectKey);
@@ -252,8 +355,11 @@ createNameSpace("realityEditor.avatar.draw");
                 avatarIconElementRect = avatarIconContainer.getBoundingClientRect();
             }
         }
-        let linkStartPos = [avatarIconElementRect.x + avatarIconElementRect.width / 2, avatarIconElementRect.y + avatarIconElementRect.height / 2];
-        
+        let linkStartPos = [
+            avatarIconElementRect.x + avatarIconElementRect.width / 2,
+            avatarIconElementRect.y + avatarIconElementRect.height / 2,
+        ];
+
         // for laser beams coming from other devices, draw to the worldPosition
         // for laser beams from this device, draw to the (screenX, screenY) where the user touches
         let endScreenXY = null;
@@ -267,14 +373,16 @@ createNameSpace("realityEditor.avatar.draw");
         } else if (screenX && screenY) {
             endScreenXY = {
                 x: screenX,
-                y: screenY
+                y: screenY,
             };
-            let linkDistance = Math.sqrt(Math.pow((screenX - linkStartPos[0]), 2) + Math.pow((screenY - linkStartPos[1]), 2));
+            let linkDistance = Math.sqrt(
+                Math.pow(screenX - linkStartPos[0], 2) + Math.pow(screenY - linkStartPos[1], 2)
+            );
             lineEndThicknessRatio = quadraticRemap(linkDistance, 0, 10000, 0.1, 1);
         } else {
             return;
         }
-        
+
         let linkEndPos = [endScreenXY.x, endScreenXY.y];
         let colorArr = HSLStrToRGBArr(color);
         let lightColorArr = HSLStrToRGBArr(lightColor);
@@ -285,12 +393,26 @@ createNameSpace("realityEditor.avatar.draw");
 
         // for unknown reason, using the default line width looks much thinner in AR mode and needs to be compensated for
         let arModeScaleFactor = 5.0;
-        let lineWeight = 1.5 * (realityEditor.device.environment.isARMode() ? arModeScaleFactor : 1.0);
+        let lineWeight =
+            1.5 * (realityEditor.device.environment.isARMode() ? arModeScaleFactor : 1.0);
         // thinner lines outside of AR mode are a little overwhelming if they're too fast
         let lineSpeed = realityEditor.device.environment.isARMode() ? 1.0 : 0.5;
-        realityEditor.gui.ar.lines.drawLine(linkCanvasInfo.ctx, linkStartPos, linkEndPos, lineWeight, lineWeight * lineEndThicknessRatio, linkObjects[objectKey], timeCorrection, lightColorArr, colorArr, lineSpeed, 1, 1);
+        realityEditor.gui.ar.lines.drawLine(
+            linkCanvasInfo.ctx,
+            linkStartPos,
+            linkEndPos,
+            lineWeight,
+            lineWeight * lineEndThicknessRatio,
+            linkObjects[objectKey],
+            timeCorrection,
+            lightColorArr,
+            colorArr,
+            lineSpeed,
+            1,
+            1
+        );
     }
-    
+
     function HSLStrToRGBArr(hslStr) {
         let hslObj = parseHSLStr(hslStr);
         return HSLToRGB(hslObj.h, hslObj.s, hslObj.l);
@@ -300,16 +422,15 @@ createNameSpace("realityEditor.avatar.draw");
     function parseHSLStr(hslStr) {
         const regex = /-?\d+(?:\.\d+)?/g;
         const [h, s, l] = hslStr.match(regex).map(Number);
-        return {h, s, l};
+        return { h, s, l };
     }
 
-    function HSLToRGB (h, s, l) {
+    function HSLToRGB(h, s, l) {
         s /= 100;
         l /= 100;
-        const k = n => (n + h / 30) % 12;
+        const k = (n) => (n + h / 30) % 12;
         const a = s * Math.min(l, 1 - l);
-        const f = n =>
-            l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
         return [255 * f(0), 255 * f(8), 255 * f(4)];
     }
 
@@ -317,7 +438,7 @@ createNameSpace("realityEditor.avatar.draw");
     function boxMesh(color, name) {
         const THREE = realityEditor.gui.threejsScene.THREE;
         const geo = new THREE.BoxGeometry(100, 100, 100);
-        const mat = new THREE.MeshBasicMaterial({color: color});
+        const mat = new THREE.MeshBasicMaterial({ color: color });
         const box = new THREE.Mesh(geo, mat);
         box.name = name;
         return box;
@@ -326,7 +447,7 @@ createNameSpace("realityEditor.avatar.draw");
     // helper to create a sphere mesh
     function sphereMesh(color, name, radius) {
         const THREE = realityEditor.gui.threejsScene.THREE;
-        const geo = new THREE.SphereGeometry((radius || 50), 8, 6, 0, 2 * Math.PI, 0, Math.PI);
+        const geo = new THREE.SphereGeometry(radius || 50, 8, 6, 0, 2 * Math.PI, 0, Math.PI);
         const mat = new THREE.MeshBasicMaterial({ color: color });
         const sphere = new THREE.Mesh(geo, mat);
         sphere.name = name;
@@ -362,7 +483,7 @@ createNameSpace("realityEditor.avatar.draw");
     // and fades out to 0 or 0.1 after a meter or two, so that it just indicates the direction without being too intense
     function getBeamMaterial(color) {
         const THREE = realityEditor.gui.threejsScene.THREE;
-        return new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: 0.5});
+        return new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.5 });
     }
 
     // replace the existing cylinderMesh object with a new cylinderMesh with updated start and end points
@@ -441,10 +562,13 @@ createNameSpace("realityEditor.avatar.draw");
             statusUI.classList.add('topLeftInfoText');
             statusUI.style.opacity = '0.5';
             statusUI.style.left = '5px';
-            statusUI.style.top = (realityEditor.device.environment.variables.screenTopOffset + 5) + 'px';
+            statusUI.style.top =
+                realityEditor.device.environment.variables.screenTopOffset + 5 + 'px';
             document.body.appendChild(statusUI);
         }
-        if (hasConnectionFeedbackBeenShown) { return; }
+        if (hasConnectionFeedbackBeenShown) {
+            return;
+        }
         if (isConnected) {
             hasConnectionFeedbackBeenShown = true;
             statusUI.innerText = '';
@@ -467,7 +591,9 @@ createNameSpace("realityEditor.avatar.draw");
     // show some debug text fields in the top left corner of the screen to track data connections and transmission
     function renderConnectionDebugInfo(connectionStatus, debugConnectionStatus, myId, debugMode) {
         if (!debugMode) {
-            if (debugUI) { debugUI.style.display = 'none'; }
+            if (debugUI) {
+                debugUI.style.display = 'none';
+            }
             return;
         }
 
@@ -478,32 +604,67 @@ createNameSpace("realityEditor.avatar.draw");
             debugUI.style.top = realityEditor.device.environment.variables.screenTopOffset + 'px';
             document.body.appendChild(debugUI);
         }
-        let sendText = debugConnectionStatus.didSendAnything && debugConnectionStatus.didRecentlySend ? 'TRUE' : debugConnectionStatus.didSendAnything ? 'true' : 'false';
-        let receiveText = debugConnectionStatus.didReceiveAnything && debugConnectionStatus.didRecentlyReceive ? 'TRUE' : debugConnectionStatus.didReceiveAnything ? 'true' : 'false';
+        let sendText =
+            debugConnectionStatus.didSendAnything && debugConnectionStatus.didRecentlySend
+                ? 'TRUE'
+                : debugConnectionStatus.didSendAnything
+                  ? 'true'
+                  : 'false';
+        let receiveText =
+            debugConnectionStatus.didReceiveAnything && debugConnectionStatus.didRecentlyReceive
+                ? 'TRUE'
+                : debugConnectionStatus.didReceiveAnything
+                  ? 'true'
+                  : 'false';
 
         debugUI.style.display = '';
-        debugUI.innerHTML = 'Localized? (' + connectionStatus.isLocalized +').  ' +
-            'Created? (' + connectionStatus.isMyAvatarCreated + ').' +
+        debugUI.innerHTML =
+            'Localized? (' +
+            connectionStatus.isLocalized +
+            ').  ' +
+            'Created? (' +
+            connectionStatus.isMyAvatarCreated +
+            ').' +
             '<br/>' +
-            'Verified? (' + connectionStatus.isMyAvatarInitialized + ').  ' +
-            'Occlusion? (' + connectionStatus.isWorldOcclusionObjectAdded + ').' +
+            'Verified? (' +
+            connectionStatus.isMyAvatarInitialized +
+            ').  ' +
+            'Occlusion? (' +
+            connectionStatus.isWorldOcclusionObjectAdded +
+            ').' +
             '<br/>' +
-            'Subscribed? (' + debugConnectionStatus.subscribedToHowMany + ').  ' +
+            'Subscribed? (' +
+            debugConnectionStatus.subscribedToHowMany +
+            ').  ' +
             '<br/>' +
-            'Did Send? (' + sendText + ').  ' +
-            'Did Receive? (' + receiveText + ')' +
+            'Did Send? (' +
+            sendText +
+            ').  ' +
+            'Did Receive? (' +
+            receiveText +
+            ')' +
             '<br/>' +
-            'Did Fail? (' + debugConnectionStatus.didCreationFail + ')' +
+            'Did Fail? (' +
+            debugConnectionStatus.didCreationFail +
+            ')' +
             '<br/>' +
-            'My ID: ' + (myId ? myId : 'null');
+            'My ID: ' +
+            (myId ? myId : 'null');
     }
 
     function deleteAvatarMeshes(objectKey) {
         if (avatarMeshes[objectKey]) {
-            Object.values(avatarMeshes[objectKey]).forEach(elt => {
-                if (typeof elt.isObject3D !== 'undefined' && elt.isObject3D && typeof elt.removeFromParent !== 'undefined') {
+            Object.values(avatarMeshes[objectKey]).forEach((elt) => {
+                if (
+                    typeof elt.isObject3D !== 'undefined' &&
+                    elt.isObject3D &&
+                    typeof elt.removeFromParent !== 'undefined'
+                ) {
                     elt.removeFromParent();
-                } else if (elt.tagName !== 'undefined' && typeof elt.parentElement !== 'undefined') {
+                } else if (
+                    elt.tagName !== 'undefined' &&
+                    typeof elt.parentElement !== 'undefined'
+                ) {
                     elt.parentElement.removeChild(elt);
                 }
             });
@@ -518,5 +679,4 @@ createNameSpace("realityEditor.avatar.draw");
     exports.renderConnectionFeedback = renderConnectionFeedback;
     exports.renderConnectionDebugInfo = renderConnectionDebugInfo;
     exports.deleteAvatarMeshes = deleteAvatarMeshes;
-
-}(realityEditor.avatar.draw));
+})(realityEditor.avatar.draw);

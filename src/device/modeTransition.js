@@ -1,11 +1,11 @@
-createNameSpace("realityEditor.device.modeTransition");
+createNameSpace('realityEditor.device.modeTransition');
 
 import { PinchGestureRecognizer } from './PinchGestureRecognizer.js';
 
 const MAX_PINCH_AMOUNT = 1000; // how far you need to drag to trigger the full transition
 const MODES = Object.freeze({
     AR: 'AR',
-    REMOTE_OPERATOR: 'REMOTE_OPERATOR'
+    REMOTE_OPERATOR: 'REMOTE_OPERATOR',
 });
 let currentMode = null;
 let pinchAmount = 0;
@@ -17,18 +17,17 @@ let callbacks = {
     onTransitionPercent: [],
     onDeviceCameraPosition: [],
     onModeTransitionPinchStart: [],
-    onModeTransitionPinchEnd: []
-}
+    onModeTransitionPinchEnd: [],
+};
 
 let prevEnvironmentVariables = {};
 let prevMatrices = {
     projection: null,
     realProjection: null,
-    unflippedRealProjection: null
+    unflippedRealProjection: null,
 };
 
-(function(exports) {
-
+(function (exports) {
     function initService() {
         currentMode = getInitialMode();
 
@@ -40,17 +39,17 @@ let prevMatrices = {
         // set up the pinch gesture to transition from AR to VR mode
         let pinchGestureRecognizer = new PinchGestureRecognizer();
 
-        pinchGestureRecognizer.onPinchStart(_ => {
-            callbacks.onModeTransitionPinchStart.forEach(callback => {
-                callback();
-            })
-        });
-        pinchGestureRecognizer.onPinchEnd(_ => {
-            callbacks.onModeTransitionPinchEnd.forEach(callback => {
+        pinchGestureRecognizer.onPinchStart((_) => {
+            callbacks.onModeTransitionPinchStart.forEach((callback) => {
                 callback();
             });
         });
-        pinchGestureRecognizer.onPinchChange(scrollAmount => {
+        pinchGestureRecognizer.onPinchEnd((_) => {
+            callbacks.onModeTransitionPinchEnd.forEach((callback) => {
+                callback();
+            });
+        });
+        pinchGestureRecognizer.onPinchChange((scrollAmount) => {
             pinchAmount += scrollAmount;
             pinchAmount = Math.max(0, Math.min(MAX_PINCH_AMOUNT, pinchAmount));
             setTransitionPercent(Math.min(1, Math.max(0, pinchAmount / MAX_PINCH_AMOUNT)));
@@ -58,9 +57,9 @@ let prevMatrices = {
     }
 
     function getInitialMode() {
-        return realityEditor.device.environment.isWithinToolboxApp() ?
-            MODES.AR :
-            MODES.REMOTE_OPERATOR;
+        return realityEditor.device.environment.isWithinToolboxApp()
+            ? MODES.AR
+            : MODES.REMOTE_OPERATOR;
     }
 
     function switchToAR() {
@@ -69,7 +68,7 @@ let prevMatrices = {
         currentMode = MODES.AR;
 
         // this will tell the addon to hide the 3D model
-        callbacks.onRemoteOperatorHidden.forEach(cb => {
+        callbacks.onRemoteOperatorHidden.forEach((cb) => {
             cb();
         });
 
@@ -83,7 +82,9 @@ let prevMatrices = {
         // restore the projection matrix from Vuforia
         globalStates.projectionMatrix = JSON.parse(JSON.stringify(prevMatrices.projection));
         globalStates.realProjectionMatrix = JSON.parse(JSON.stringify(prevMatrices.realProjection));
-        globalStates.unflippedRealProjectionMatrix = JSON.parse(JSON.stringify(prevMatrices.unflippedRealProjection));
+        globalStates.unflippedRealProjectionMatrix = JSON.parse(
+            JSON.stringify(prevMatrices.unflippedRealProjection)
+        );
 
         if (backgroundDiv) {
             document.body.removeChild(backgroundDiv);
@@ -97,10 +98,12 @@ let prevMatrices = {
         // store the AR values of the projection matrices
         prevMatrices.projection = JSON.parse(JSON.stringify(globalStates.projectionMatrix));
         prevMatrices.realProjection = JSON.parse(JSON.stringify(globalStates.realProjectionMatrix));
-        prevMatrices.unflippedRealProjection = JSON.parse(JSON.stringify(globalStates.unflippedRealProjectionMatrix));
+        prevMatrices.unflippedRealProjection = JSON.parse(
+            JSON.stringify(globalStates.unflippedRealProjectionMatrix)
+        );
 
         // trigger the remote operator addon to initialize
-        callbacks.onRemoteOperatorShown.forEach(cb => {
+        callbacks.onRemoteOperatorShown.forEach((cb) => {
             cb();
         });
 
@@ -155,7 +158,7 @@ let prevMatrices = {
             switchToRemoteOperator(percent);
         }
 
-        callbacks.onTransitionPercent.forEach(cb => {
+        callbacks.onTransitionPercent.forEach((cb) => {
             cb(percent);
         });
 
@@ -171,7 +174,7 @@ let prevMatrices = {
 
     // we can transition back to the correct place by using this
     function setDeviceCameraPosition(cameraMatrix) {
-        callbacks.onDeviceCameraPosition.forEach(cb => {
+        callbacks.onDeviceCameraPosition.forEach((cb) => {
             cb(cameraMatrix);
         });
     }
@@ -184,13 +187,24 @@ let prevMatrices = {
     exports.setDeviceCameraPosition = setDeviceCameraPosition;
 
     // Callback handlers
-    exports.onRemoteOperatorShown = (callback) => { callbacks.onRemoteOperatorShown.push(callback); }
-    exports.onRemoteOperatorHidden = (callback) => { callbacks.onRemoteOperatorHidden.push(callback); }
-    exports.onTransitionPercent = (callback) => { callbacks.onTransitionPercent.push(callback); }
-    exports.onDeviceCameraPosition = (callback) => { callbacks.onDeviceCameraPosition.push(callback); }
-    exports.onModeTransitionPinchStart = (callback) => { callbacks.onModeTransitionPinchStart.push(callback); }
-    exports.onModeTransitionPinchEnd = (callback) => { callbacks.onModeTransitionPinchEnd.push(callback); }
-
-}(realityEditor.device.modeTransition));
+    exports.onRemoteOperatorShown = (callback) => {
+        callbacks.onRemoteOperatorShown.push(callback);
+    };
+    exports.onRemoteOperatorHidden = (callback) => {
+        callbacks.onRemoteOperatorHidden.push(callback);
+    };
+    exports.onTransitionPercent = (callback) => {
+        callbacks.onTransitionPercent.push(callback);
+    };
+    exports.onDeviceCameraPosition = (callback) => {
+        callbacks.onDeviceCameraPosition.push(callback);
+    };
+    exports.onModeTransitionPinchStart = (callback) => {
+        callbacks.onModeTransitionPinchStart.push(callback);
+    };
+    exports.onModeTransitionPinchEnd = (callback) => {
+        callbacks.onModeTransitionPinchEnd.push(callback);
+    };
+})(realityEditor.device.modeTransition);
 
 export const initService = realityEditor.device.modeTransition.initService;

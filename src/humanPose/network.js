@@ -1,5 +1,5 @@
-import {isHumanPoseObject} from './utils.js';
-import {JOINTS} from './constants.js';
+import { isHumanPoseObject } from './utils.js';
+import { JOINTS } from './constants.js';
 
 // Tell the server (corresponding to this world object) to create a new human object with the specified ID
 function addHumanPoseObject(worldId, objectName, onSuccess, onError) {
@@ -9,19 +9,31 @@ function addHumanPoseObject(worldId, objectName, onSuccess, onError) {
         return;
     }
 
-    let postUrl = realityEditor.network.getURL(worldObject.ip, realityEditor.network.getPort(worldObject), '/');
+    let postUrl = realityEditor.network.getURL(
+        worldObject.ip,
+        realityEditor.network.getPort(worldObject),
+        '/'
+    );
     let poseJointSchema = JSON.stringify(JOINTS);
-    let params = new URLSearchParams({action: 'new', name: objectName, isHuman: JSON.stringify(true), worldId: worldId, poseJointSchema: poseJointSchema});
+    let params = new URLSearchParams({
+        action: 'new',
+        name: objectName,
+        isHuman: JSON.stringify(true),
+        worldId: worldId,
+        poseJointSchema: poseJointSchema,
+    });
     // TODO: we may need to include the pose joints or at least a list of which joints are provided by this source
     fetch(postUrl, {
         method: 'POST',
-        body: params
-    }).then(response => response.json())
-        .then(data => {
+        body: params,
+    })
+        .then((response) => response.json())
+        .then((data) => {
             onSuccess(data);
-        }).catch(err => {
-        onError(err);
-    });
+        })
+        .catch((err) => {
+            onError(err);
+        });
 }
 
 // helper function that will trigger the callback for each human pose object previously or in-future discovered
@@ -34,7 +46,7 @@ function onHumanPoseObjectDiscovered(callback) {
     }
 
     // next, listen to newly discovered objects
-    realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
+    realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
         if (isHumanPoseObject(object)) {
             callback(object, objectKey);
         }
@@ -47,8 +59,4 @@ function onHumanPoseObjectDeleted(callback) {
     });
 }
 
-export {
-    addHumanPoseObject,
-    onHumanPoseObjectDiscovered,
-    onHumanPoseObjectDeleted,
-};
+export { addHumanPoseObject, onHumanPoseObjectDiscovered, onHumanPoseObjectDeleted };

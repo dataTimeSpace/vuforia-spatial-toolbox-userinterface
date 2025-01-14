@@ -25,7 +25,7 @@ class RecentlyUsedBar {
 
         this.callbacks = {
             onIconStartDrag: [],
-            onIconStopDrag: []
+            onIconStopDrag: [],
         };
 
         this.dragState = {
@@ -34,9 +34,9 @@ class RecentlyUsedBar {
             target: {
                 icon: null,
                 objectId: null,
-                frameId: null
+                frameId: null,
             },
-            draggedIcon: null
+            draggedIcon: null,
         };
 
         this.onVehicleDeleted = this.onVehicleDeleted.bind(this);
@@ -71,13 +71,16 @@ class RecentlyUsedBar {
         // if we have a draggedIcon, remove it
         if (draggedIcon && draggedIcon.parentElement) {
             let boundingRect = draggedIcon.getBoundingClientRect();
-            let x = parseInt(draggedIcon.style.left) + boundingRect.width/2;
-            let y = parseInt(draggedIcon.style.top) + boundingRect.height/2;
+            let x = parseInt(draggedIcon.style.left) + boundingRect.width / 2;
+            let y = parseInt(draggedIcon.style.top) + boundingRect.height / 2;
 
             // delete the associated tool if the icon is over the trash zone
             if (realityEditor.device.isPointerInTrashZone(x, y)) {
                 // delete it
-                let frame = realityEditor.getFrame(this.dragState.target.objectId, this.dragState.target.frameId);
+                let frame = realityEditor.getFrame(
+                    this.dragState.target.objectId,
+                    this.dragState.target.frameId
+                );
                 if (frame) {
                     realityEditor.device.tryToDeleteSelectedVehicle(frame);
                 }
@@ -91,12 +94,12 @@ class RecentlyUsedBar {
             target: {
                 icon: null,
                 objectId: null,
-                frameId: null
+                frameId: null,
             },
-            draggedIcon: null
-        }
+            draggedIcon: null,
+        };
 
-        this.callbacks.onIconStopDrag.forEach(cb => cb());
+        this.callbacks.onIconStopDrag.forEach((cb) => cb());
     }
 
     setDragTarget(objectId, frameId) {
@@ -135,7 +138,7 @@ class RecentlyUsedBar {
         this.dragState.pointerDown = false;
 
         let alreadyFocused = false;
-        realityEditor.envelopeManager.getOpenEnvelopes().forEach(function(envelope) {
+        realityEditor.envelopeManager.getOpenEnvelopes().forEach(function (envelope) {
             if (envelope.hasFocus) {
                 if (envelope.frame === frameId && isFirstIcon) {
                     alreadyFocused = true;
@@ -167,8 +170,10 @@ class RecentlyUsedBar {
         this.hoverAnimation.hoveredFrameId = null;
 
         const iconElt = event.target;
-        if (this.dragState.pointerDown &&
-            this.dragState.target.frameId === iconElt.dataset.frameId) {
+        if (
+            this.dragState.pointerDown &&
+            this.dragState.target.frameId === iconElt.dataset.frameId
+        ) {
             this.activateDrag();
         }
     }
@@ -185,7 +190,7 @@ class RecentlyUsedBar {
         document.body.appendChild(draggedIcon);
         this.dragState.draggedIcon = draggedIcon;
 
-        this.callbacks.onIconStartDrag.forEach(cb => cb());
+        this.callbacks.onIconStartDrag.forEach((cb) => cb());
     }
 
     onPointerMove(event) {
@@ -195,8 +200,8 @@ class RecentlyUsedBar {
 
         let boundingRect = this.dragState.draggedIcon.getBoundingClientRect();
 
-        this.dragState.draggedIcon.style.left = `${event.pageX - boundingRect.width/2}px`;
-        this.dragState.draggedIcon.style.top = `${event.pageY - boundingRect.height/2}px`;
+        this.dragState.draggedIcon.style.left = `${event.pageX - boundingRect.width / 2}px`;
+        this.dragState.draggedIcon.style.top = `${event.pageY - boundingRect.height / 2}px`;
 
         if (realityEditor.device.isPointerInTrashZone(event.pageX, event.pageY)) {
             overlayDiv.classList.add('overlayNegative');
@@ -266,7 +271,11 @@ class RecentlyUsedBar {
             icon.dataset.frameId = frame.uuid;
             icon.dataset.objectId = frame.objectId;
             let name = frame.src;
-            icon.src = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/frames/' + name + '/icon.gif');
+            icon.src = realityEditor.network.getURL(
+                object.ip,
+                realityEditor.network.getPort(object),
+                '/frames/' + name + '/icon.gif'
+            );
         }
 
         return icon;
@@ -301,24 +310,27 @@ class RecentlyUsedBar {
         const animDur = 200;
 
         this.iconElts.sort((a, b) => {
-            return parseFloat(b.dataset.lastActive) -
-                parseFloat(a.dataset.lastActive);
+            return parseFloat(b.dataset.lastActive) - parseFloat(a.dataset.lastActive);
         });
-        realityEditor.gui.utilities.animateTranslations(this.iconElts, () => {
-            // Match DOM order with our internal order
-            for (let iconElt of this.iconElts) {
-                if (iconElt.dataset.newlyAdded) {
-                    delete iconElt.dataset.newlyAdded;
-                    iconElt.style.position = '';
-                    iconElt.style.transform = '';
+        realityEditor.gui.utilities.animateTranslations(
+            this.iconElts,
+            () => {
+                // Match DOM order with our internal order
+                for (let iconElt of this.iconElts) {
+                    if (iconElt.dataset.newlyAdded) {
+                        delete iconElt.dataset.newlyAdded;
+                        iconElt.style.position = '';
+                        iconElt.style.transform = '';
+                    }
+                    this.container.removeChild(iconElt);
+                    this.container.appendChild(iconElt);
                 }
-                this.container.removeChild(iconElt);
-                this.container.appendChild(iconElt);
+            },
+            {
+                duration: animDur,
+                easing: 'ease-out',
             }
-        }, {
-            duration: animDur,
-            easing: 'ease-out',
-        });
+        );
 
         for (let i = 0; i < this.capacity && i < this.iconElts.length; i++) {
             let iconInBar = this.iconElts[i];
@@ -326,14 +338,20 @@ class RecentlyUsedBar {
                 continue;
             }
             iconInBar.style.display = '';
-            iconInBar.animate([{
-                opacity: 0,
-            }, {
-                opacity: 1,
-            }], {
-                duration: animDur * 0.5,
-                fill: 'both',
-            });
+            iconInBar.animate(
+                [
+                    {
+                        opacity: 0,
+                    },
+                    {
+                        opacity: 1,
+                    },
+                ],
+                {
+                    duration: animDur * 0.5,
+                    fill: 'both',
+                }
+            );
         }
 
         for (let i = this.capacity; i < this.iconElts.length; i++) {
@@ -341,14 +359,20 @@ class RecentlyUsedBar {
             if (iconOutOfBar.style.display === 'none') {
                 continue;
             }
-            iconOutOfBar.animate([{
-                opacity: 1,
-            }, {
-                opacity: 0,
-            }], {
-                duration: animDur * 0.5,
-                fill: 'both',
-            });
+            iconOutOfBar.animate(
+                [
+                    {
+                        opacity: 1,
+                    },
+                    {
+                        opacity: 0,
+                    },
+                ],
+                {
+                    duration: animDur * 0.5,
+                    fill: 'both',
+                }
+            );
 
             setTimeout(() => {
                 iconOutOfBar.style.display = 'none';
@@ -403,13 +427,19 @@ class RecentlyUsedBar {
      * @return {LineToFrameAnimation}
      */
     createAnimation(frameId, startFromSearch, startFromAI, aiStartPos) {
-        let animation = new LineToFrameAnimation(this.ctx, frameId, startFromSearch, startFromAI, aiStartPos);
+        let animation = new LineToFrameAnimation(
+            this.ctx,
+            frameId,
+            startFromSearch,
+            startFromAI,
+            aiStartPos
+        );
         this.animations.push(animation);
         return animation;
     }
 
     removeAnimation(animation) {
-        this.animations = this.animations.filter(a => a !== animation);
+        this.animations = this.animations.filter((a) => a !== animation);
     }
 
     updateReferenceMap(referenceId, position) {
@@ -436,14 +466,18 @@ class LineToFrameAnimation {
     updateAnimationPercent(dt) {
         // the line animates forwards and backwards over time
         if (this.hoveredFrameId) {
-            this.hoverAnimationPercent = Math.min(1,
-                this.hoverAnimationPercent + (dt / this.hoverAnimationDurationMs));
+            this.hoverAnimationPercent = Math.min(
+                1,
+                this.hoverAnimationPercent + dt / this.hoverAnimationDurationMs
+            );
         } else {
             // https://www.nngroup.com/articles/animation-duration/
             // "animating objects appearing or entering the screen usually need
             // a subtly longer duration than objects disappearing or exiting the screen"
-            this.hoverAnimationPercent = Math.max(0,
-                this.hoverAnimationPercent - 1.5 * (dt / this.hoverAnimationDurationMs));
+            this.hoverAnimationPercent = Math.max(
+                0,
+                this.hoverAnimationPercent - 1.5 * (dt / this.hoverAnimationDurationMs)
+            );
         }
     }
 
@@ -454,7 +488,7 @@ class LineToFrameAnimation {
 
         let frameScreenPosition = {
             x: window.innerWidth / 2,
-            y: window.innerHeight / 2
+            y: window.innerHeight / 2,
         };
 
         // for non-tools, the ID might correspond to a location in the referenceMap (e.g. addons can store part locations)
@@ -462,9 +496,9 @@ class LineToFrameAnimation {
         if (spatialReference) {
             frameScreenPosition = realityEditor.gui.threejsScene.getScreenXY(spatialReference);
         } else {
-            frameScreenPosition = this.hoveredFrameId ?
-                realityEditor.sceneGraph.getScreenPosition(this.hoveredFrameId, [0, 0, 0, 1]) :
-                this.lastAnimationPositions.frame;
+            frameScreenPosition = this.hoveredFrameId
+                ? realityEditor.sceneGraph.getScreenPosition(this.hoveredFrameId, [0, 0, 0, 1])
+                : this.lastAnimationPositions.frame;
         }
 
         let lineStartX = 0;
@@ -483,9 +517,9 @@ class LineToFrameAnimation {
             }
 
             let iconRect = this.hoveredFrameId ? iconElt.getBoundingClientRect() : null;
-            let iconBottom = this.hoveredFrameId ?
-                { x: iconRect.left + iconRect.width / 2,  y: iconRect.bottom } :
-                this.lastAnimationPositions.icon;
+            let iconBottom = this.hoveredFrameId
+                ? { x: iconRect.left + iconRect.width / 2, y: iconRect.bottom }
+                : this.lastAnimationPositions.icon;
 
             lineStartX = iconBottom.x;
             lineStartY = iconBottom.y + 5;
@@ -498,10 +532,10 @@ class LineToFrameAnimation {
         let animationLayers = [
             { speed: 1, opacity: 0.4 },
             { speed: 2, opacity: 0.2 },
-            { speed: 3, opacity: 0.1 }
+            { speed: 3, opacity: 0.1 },
         ];
 
-        animationLayers.forEach(layer => {
+        animationLayers.forEach((layer) => {
             this.ctx.beginPath();
             this.ctx.lineWidth = 2;
             this.ctx.strokeStyle = `rgba(255,255,255,${layer.opacity})`;
@@ -513,12 +547,23 @@ class LineToFrameAnimation {
             // this calculates an animated endpoint for the line based on the hoverAnimationPercent
             let horizontalDistance = frameScreenPosition.x - lineStartX;
             let verticalDistance = frameScreenPosition.y - lineNextY;
-            let horizontalPercent = Math.abs(horizontalDistance) / (Math.abs(horizontalDistance) + Math.abs(verticalDistance));
-            let lineEndX = lineStartX + horizontalDistance *
-                Math.min(1, adjustedAnimPercent / horizontalPercent);
+            let horizontalPercent =
+                Math.abs(horizontalDistance) /
+                (Math.abs(horizontalDistance) + Math.abs(verticalDistance));
+            let lineEndX =
+                lineStartX +
+                horizontalDistance * Math.min(1, adjustedAnimPercent / horizontalPercent);
             this.ctx.lineTo(lineEndX, lineNextY);
-            let lineEndY = lineNextY + verticalDistance *
-                Math.max(0, Math.min(1, (adjustedAnimPercent - horizontalPercent) / (1 - horizontalPercent)));
+            let lineEndY =
+                lineNextY +
+                verticalDistance *
+                    Math.max(
+                        0,
+                        Math.min(
+                            1,
+                            (adjustedAnimPercent - horizontalPercent) / (1 - horizontalPercent)
+                        )
+                    );
             this.ctx.lineTo(lineEndX, lineEndY);
 
             this.ctx.stroke();
@@ -530,8 +575,8 @@ class LineToFrameAnimation {
         if (this.hoveredFrameId) {
             this.lastAnimationPositions = {
                 icon: { x: lineStartX, y: lineStartY - 5 },
-                frame: { x: frameScreenPosition.x, y: frameScreenPosition.y }
-            }
+                frame: { x: frameScreenPosition.x, y: frameScreenPosition.y },
+            };
         }
     }
 }

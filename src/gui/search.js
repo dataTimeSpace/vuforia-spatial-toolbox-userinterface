@@ -18,7 +18,7 @@ function getFrameText(frame) {
         return text;
     } else if (frame.src === 'spatialPatch') {
         const storage = Object.values(frame.nodes)[0];
-        const serialization =  storage.publicData.serialization;
+        const serialization = storage.publicData.serialization;
         if (!serialization) {
             return 'photo';
         }
@@ -31,7 +31,7 @@ function getFrameText(frame) {
     return frame.src;
 }
 
-export {getFrameText};
+export { getFrameText };
 
 function createSearch() {
     searchElement = document.createElement('div');
@@ -41,14 +41,14 @@ function createSearch() {
     searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.classList.add('search-input');
-    searchInput.addEventListener('keyup', e => e.stopPropagation());
-    searchInput.addEventListener('keydown', e => {
+    searchInput.addEventListener('keyup', (e) => e.stopPropagation());
+    searchInput.addEventListener('keydown', (e) => {
         e.stopPropagation();
     });
     searchInput.addEventListener('input', () => {
         updateSearchHighlights();
     });
-    searchInput.addEventListener('keypress', e => e.stopPropagation());
+    searchInput.addEventListener('keypress', (e) => e.stopPropagation());
 
     searchElement.appendChild(searchInput);
     document.body.appendChild(searchElement);
@@ -78,7 +78,6 @@ function setFrameHighlight(frame, isHighlighted) {
         animation.hoveredFrameId = frameId;
     }
 }
-
 
 function updateSearchHighlights() {
     let frames = realityEditor.worldObjects.getBestWorldObject().frames;

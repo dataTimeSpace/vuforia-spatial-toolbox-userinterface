@@ -1,6 +1,6 @@
-import {SensorActiveLens} from '../humanPose/SensorActiveLens.js';
-import {defaultLensProvider} from '../humanPose/LensProvider.js';
-import {isPointInsideWalls} from './isPointInsideWalls.js';
+import { SensorActiveLens } from '../humanPose/SensorActiveLens.js';
+import { defaultLensProvider } from '../humanPose/LensProvider.js';
+import { isPointInsideWalls } from './isPointInsideWalls.js';
 // import {scorePose} from './utils.js';
 // import {baselineJoints} from './baselinePose.js';
 
@@ -61,7 +61,7 @@ export class MotionStudySensors {
         realityEditor.network.postMessageIntoFrame(frame, {
             analyticsSetSensorColor: {
                 color,
-            }
+            },
         });
     }
 
@@ -69,7 +69,7 @@ export class MotionStudySensors {
         realityEditor.network.postMessageIntoFrame(frame, {
             analyticsSetSensorPlaybackActive: {
                 active,
-            }
+            },
         });
     }
 
@@ -90,10 +90,12 @@ export class MotionStudySensors {
         const maxZ = sensorPosition.z + (sensorDepth * mToUnit) / 2;
         for (const jointName in pose.joints) {
             const joint = pose.joints[jointName];
-            if (joint.position.x > minX &&
+            if (
+                joint.position.x > minX &&
                 joint.position.x < maxX &&
                 joint.position.z > minZ &&
-                joint.position.z < maxZ) {
+                joint.position.z < maxZ
+            ) {
                 return true;
             }
         }
@@ -108,13 +110,12 @@ export class MotionStudySensors {
 
         for (const jointName in pose.joints) {
             const joint = pose.joints[jointName];
-            let pos = {x: joint.position.x, y: joint.position.z};
+            let pos = { x: joint.position.x, y: joint.position.z };
             if (isPointInsideWalls(pos, points)) {
                 return true;
             }
         }
         return false;
-
     }
 
     isPositionInSensor(frame, position) {
@@ -129,10 +130,7 @@ export class MotionStudySensors {
         const maxX = sensorPosition.x + (sensorWidth * mToUnit) / 2;
         const minZ = sensorPosition.z - (sensorDepth * mToUnit) / 2;
         const maxZ = sensorPosition.z + (sensorDepth * mToUnit) / 2;
-        if (position.x > minX &&
-            position.x < maxX &&
-            position.z > minZ &&
-            position.z < maxZ) {
+        if (position.x > minX && position.x < maxX && position.z > minZ && position.z < maxZ) {
             return true;
         }
         return false;

@@ -38,7 +38,9 @@ class SceneCapture {
         }
         let pendingCapture = this.pendingCaptures[canvasId];
         if (!pendingCapture) {
-            console.warn(`capture called on ${canvasId} when there are no pendingCaptures waiting on this data`);
+            console.warn(
+                `capture called on ${canvasId} when there are no pendingCaptures waiting on this data`
+            );
             return;
         }
 
@@ -94,14 +96,21 @@ class PendingCapture {
      * @param {boolean} useJpgCompression
      * @param {number} jpgQuality
      */
-    constructor(sceneCaptureInstance, canvasId, outputWidth, outputHeight, useJpgCompression, jpgQuality) {
+    constructor(
+        sceneCaptureInstance,
+        canvasId,
+        outputWidth,
+        outputHeight,
+        useJpgCompression,
+        jpgQuality
+    ) {
         this.sceneCaptureInstance = sceneCaptureInstance;
         this.canvasId = canvasId;
         this.outputWidth = outputWidth;
         this.outputHeight = outputHeight;
         this.jpgCompression = {
             useJpg: useJpgCompression,
-            quality: jpgQuality
+            quality: jpgQuality,
         };
         this.promiseResolve = null; // gets set after initialization
     }
@@ -110,7 +119,12 @@ class PendingCapture {
      * Triggers the actual capture
      */
     performCapture() {
-        this.sceneCaptureInstance.capture(this.canvasId, this.outputWidth, this.outputHeight, this.jpgCompression);
+        this.sceneCaptureInstance.capture(
+            this.canvasId,
+            this.outputWidth,
+            this.outputHeight,
+            this.jpgCompression
+        );
     }
 }
 
@@ -127,11 +141,26 @@ const sceneCapture = new SceneCapture();
  * @param {number} [options.jpgQuality=0.7] - The quality of the JPG compression, if used. Value should be between 0 and 1.
  * @return {Promise<string>} - resolves with the screenshot src as a base-64 encoded string (from `canvas.toDataURL`)
  */
-export const captureScreenshot = (canvasId, options = {outputWidth: undefined, outputHeight: undefined, useJpgCompression: false, jpgQuality: 0.7}) => {
-    if (sceneCapture.pendingCaptures[canvasId]) console.warn('wait for previous capture to finish before capturing again');
+export const captureScreenshot = (
+    canvasId,
+    options = {
+        outputWidth: undefined,
+        outputHeight: undefined,
+        useJpgCompression: false,
+        jpgQuality: 0.7,
+    }
+) => {
+    if (sceneCapture.pendingCaptures[canvasId])
+        console.warn('wait for previous capture to finish before capturing again');
 
-    let pendingCapture = new PendingCapture(sceneCapture, canvasId,
-        options.outputWidth, options.outputHeight, options.useJpgCompression, options.jpgQuality);
+    let pendingCapture = new PendingCapture(
+        sceneCapture,
+        canvasId,
+        options.outputWidth,
+        options.outputHeight,
+        options.useJpgCompression,
+        options.jpgQuality
+    );
 
     sceneCapture.pendingCaptures[canvasId] = pendingCapture;
 
@@ -148,6 +177,3 @@ export const captureScreenshot = (canvasId, options = {outputWidth: undefined, o
 export const getPendingCapture = (canvasId) => {
     return sceneCapture.pendingCaptures[canvasId];
 };
-
-
-

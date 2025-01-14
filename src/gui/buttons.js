@@ -47,7 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.buttons");
+createNameSpace('realityEditor.gui.buttons');
 
 /**
  * @fileOverview realityEditor.gui.buttons.js
@@ -56,8 +56,7 @@ createNameSpace("realityEditor.gui.buttons");
  * and provides an interface for other modules to register callbacks for custom button behavior.
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * @typedef {PointerEvent} ButtonEvent
      * @desc A pointerevent with an additional property containing the button id that was pressed
@@ -69,44 +68,42 @@ createNameSpace("realityEditor.gui.buttons");
     /**
      * @type {Readonly<{GUI: string, LOGIC: string, RESET: string, COMMIT: string, UNCONSTRAINED: string, DISTANCE: string, SETTING: string, LOGIC_SETTING: string, FREEZE: string, LOCK: string, HALF_LOCK: string, UNLOCK: string, RECORD: string, POCKET: string, LOGIC_POCKET: string, BIG_POCKET: string, HALF_POCKET: string, REALITY_GUI: string, REALITY_INFO: string, REALITY_TAG: string, REALITY_SEARCH: string, REALITY_WORK: string}>}
      */
-    var ButtonNames = Object.freeze(
-        {
-            GUI: 'gui',
-            LOGIC: 'logic',
-            RESET: 'reset',
-            COMMIT: 'commit',
-            UNCONSTRAINED: 'unconstrained',
-            DISTANCE: 'distance',
-            DISTANCE_GREEN: 'distanceGreen',
-            SETTING: 'setting',
-            LOGIC_SETTING: 'logicSetting',
-            FREEZE: 'freeze',
-            LOCK: 'lock',
-            HALF_LOCK: 'halflock',
-            UNLOCK: 'unlock',
-            RECORD: 'record',
-            POCKET: 'pocket',
-            LOGIC_POCKET: 'logicPocket',
-            BIG_POCKET: 'bigPocket',
-            HALF_POCKET: 'halfPocket',
-            REALITY_GUI: 'realityGui',
-            REALITY_INFO: 'realityInfo',
-            REALITY_TAG: 'realityTag',
-            REALITY_SEARCH: 'realitySearch',
-            REALITY_WORK: 'realityWork',
-            BACK: 'back',
-            GROUNDPLANE_RESET: 'groundPlaneReset'
-        });
+    var ButtonNames = Object.freeze({
+        GUI: 'gui',
+        LOGIC: 'logic',
+        RESET: 'reset',
+        COMMIT: 'commit',
+        UNCONSTRAINED: 'unconstrained',
+        DISTANCE: 'distance',
+        DISTANCE_GREEN: 'distanceGreen',
+        SETTING: 'setting',
+        LOGIC_SETTING: 'logicSetting',
+        FREEZE: 'freeze',
+        LOCK: 'lock',
+        HALF_LOCK: 'halflock',
+        UNLOCK: 'unlock',
+        RECORD: 'record',
+        POCKET: 'pocket',
+        LOGIC_POCKET: 'logicPocket',
+        BIG_POCKET: 'bigPocket',
+        HALF_POCKET: 'halfPocket',
+        REALITY_GUI: 'realityGui',
+        REALITY_INFO: 'realityInfo',
+        REALITY_TAG: 'realityTag',
+        REALITY_SEARCH: 'realitySearch',
+        REALITY_WORK: 'realityWork',
+        BACK: 'back',
+        GROUNDPLANE_RESET: 'groundPlaneReset',
+    });
 
     /**
      * @type {Readonly<{UP: string, DOWN: string, ENTERED: string}>}
      */
-    var ButtonStates = Object.freeze(
-        {
-            UP: 'up',
-            DOWN: 'down',
-            ENTERED: 'entered'
-        });
+    var ButtonStates = Object.freeze({
+        UP: 'up',
+        DOWN: 'down',
+        ENTERED: 'entered',
+    });
 
     /**
      * Contains the up/down state of every button.
@@ -121,7 +118,7 @@ createNameSpace("realityEditor.gui.buttons");
      * @param {string} buttonName
      * @return {string}
      */
-    var getButtonState = function(buttonName) {
+    var getButtonState = function (buttonName) {
         return buttonStates[buttonName];
     };
 
@@ -129,7 +126,7 @@ createNameSpace("realityEditor.gui.buttons");
      * Utility to set the buttonName button to state DOWN
      * @param {string} buttonName
      */
-    var setButtonStateDown = function(buttonName) {
+    var setButtonStateDown = function (buttonName) {
         buttonStates[buttonName] = ButtonStates.DOWN;
     };
 
@@ -137,7 +134,7 @@ createNameSpace("realityEditor.gui.buttons");
      * Utility to set the buttonName button to state UP
      * @param {string} buttonName
      */
-    var setButtonStateUp = function(buttonName) {
+    var setButtonStateUp = function (buttonName) {
         buttonStates[buttonName] = ButtonStates.UP;
     };
 
@@ -145,7 +142,7 @@ createNameSpace("realityEditor.gui.buttons");
      * Utility to set the buttonName button to state ENTERED
      * @param {string} buttonName
      */
-    var setButtonStateEntered = function(buttonName) {
+    var setButtonStateEntered = function (buttonName) {
         buttonStates[buttonName] = ButtonStates.ENTERED;
     };
 
@@ -202,69 +199,81 @@ createNameSpace("realityEditor.gui.buttons");
     /**
      * Called from device/onLoad to initialize the buttons with assets and event listeners
      */
-    var initButtons = function() {
-
+    var initButtons = function () {
         // loop over all buttons (as defined in the ButtonNames enum), and generate default state and event handlers
-        Object.keys(ButtonNames).forEach(function(buttonKey) {
-            var buttonName = ButtonNames[buttonKey];
+        Object.keys(ButtonNames).forEach(
+            function (buttonKey) {
+                var buttonName = ButtonNames[buttonKey];
 
-            // populate the default states for each button
-            buttonStates[buttonName] = ButtonStates.UP;
+                // populate the default states for each button
+                buttonStates[buttonName] = ButtonStates.UP;
 
-            // generate onButtonDown functions... they trigger externally-registered callbacks and update the buttonState
-            var functionName = buttonName + 'ButtonDown';
-            /** @param {ButtonEvent} event */
-            exports[functionName] = function(event) {
-                if (event.button !== buttonName) return;
-                callbackHandler.triggerCallbacks(event.button, {buttonName: event.button, newButtonState: 'down'});
-                setButtonStateDown(event.button);
-            };
+                // generate onButtonDown functions... they trigger externally-registered callbacks and update the buttonState
+                var functionName = buttonName + 'ButtonDown';
+                /** @param {ButtonEvent} event */
+                exports[functionName] = function (event) {
+                    if (event.button !== buttonName) return;
+                    callbackHandler.triggerCallbacks(event.button, {
+                        buttonName: event.button,
+                        newButtonState: 'down',
+                    });
+                    setButtonStateDown(event.button);
+                };
 
-            // ...generate onButtonUp functions
-            functionName = buttonName + 'ButtonUp';
-            /** @param {ButtonEvent} event */
-            exports[functionName] = function(event) {
-                if (event.button !== buttonName) return;
-                // only works if the tap down originated on the button
-                if (!event.ignoreIsDown && buttonStates[event.button] !== ButtonStates.DOWN) return;
-                callbackHandler.triggerCallbacks(event.button, {buttonName: event.button, newButtonState: 'up'});
-                setButtonStateUp(event.button);
-            };
+                // ...generate onButtonUp functions
+                functionName = buttonName + 'ButtonUp';
+                /** @param {ButtonEvent} event */
+                exports[functionName] = function (event) {
+                    if (event.button !== buttonName) return;
+                    // only works if the tap down originated on the button
+                    if (!event.ignoreIsDown && buttonStates[event.button] !== ButtonStates.DOWN)
+                        return;
+                    callbackHandler.triggerCallbacks(event.button, {
+                        buttonName: event.button,
+                        newButtonState: 'up',
+                    });
+                    setButtonStateUp(event.button);
+                };
 
-            // ...generate onButtonEnter functions
-            functionName = buttonName + 'ButtonEnter';
-            /** @param {ButtonEvent} event */
-            exports[functionName] = function(event) {
-                if (event.button !== buttonName) return;
-                callbackHandler.triggerCallbacks(event.button, {buttonName: event.button, newButtonState: 'enter'});
-                setButtonStateEntered(event.button);
-            };
+                // ...generate onButtonEnter functions
+                functionName = buttonName + 'ButtonEnter';
+                /** @param {ButtonEvent} event */
+                exports[functionName] = function (event) {
+                    if (event.button !== buttonName) return;
+                    callbackHandler.triggerCallbacks(event.button, {
+                        buttonName: event.button,
+                        newButtonState: 'enter',
+                    });
+                    setButtonStateEntered(event.button);
+                };
 
-            // ...generate onButtonLeave functions
-            functionName = buttonName + 'ButtonLeave';
-            /** @param {ButtonEvent} event */
-            exports[functionName] = function(event) {
-                if (event.button !== buttonName) return;
-                callbackHandler.triggerCallbacks(event.button, {buttonName: event.button, newButtonState: 'leave'});
-                setButtonStateEntered(event.button);
-            };
+                // ...generate onButtonLeave functions
+                functionName = buttonName + 'ButtonLeave';
+                /** @param {ButtonEvent} event */
+                exports[functionName] = function (event) {
+                    if (event.button !== buttonName) return;
+                    callbackHandler.triggerCallbacks(event.button, {
+                        buttonName: event.button,
+                        newButtonState: 'leave',
+                    });
+                    setButtonStateEntered(event.button);
+                };
 
-            // ensure pointer enter and pointer leave events get triggered
-            var buttonElement = document.getElementById(buttonName + 'Button');
-            var buttonDivElement = document.getElementById(buttonName + 'ButtonDiv');
-            if (buttonElement) {
-                buttonElement.addEventListener('gotpointercapture', function(evt) {
-                    evt.target.releasePointerCapture(evt.pointerId);
-                });
-            }
-            if (buttonDivElement) {
-                buttonDivElement.addEventListener('gotpointercapture', function(evt) {
-                    evt.target.releasePointerCapture(evt.pointerId);
-                });
-            }
-
-        }.bind(this));
-
+                // ensure pointer enter and pointer leave events get triggered
+                var buttonElement = document.getElementById(buttonName + 'Button');
+                var buttonDivElement = document.getElementById(buttonName + 'ButtonDiv');
+                if (buttonElement) {
+                    buttonElement.addEventListener('gotpointercapture', function (evt) {
+                        evt.target.releasePointerCapture(evt.pointerId);
+                    });
+                }
+                if (buttonDivElement) {
+                    buttonDivElement.addEventListener('gotpointercapture', function (evt) {
+                        evt.target.releasePointerCapture(evt.pointerId);
+                    });
+                }
+            }.bind(this)
+        );
     };
 
     /**
@@ -278,11 +287,10 @@ createNameSpace("realityEditor.gui.buttons");
         }
         callbackHandler.registerCallback(buttonName, callback);
     }
-    
+
     exports.initButtons = initButtons;
     exports.ButtonNames = ButtonNames;
     exports.ButtonStates = ButtonStates;
     exports.registerCallbackForButton = registerCallbackForButton;
     exports.getButtonState = getButtonState;
-
 })(realityEditor.gui.buttons);

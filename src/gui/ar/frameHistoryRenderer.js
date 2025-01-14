@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
+createNameSpace('realityEditor.gui.ar.frameHistoryRenderer');
 
 /**
  * @fileOverview realityEditor.gui.ar.frameHistoryRenderer.js
@@ -6,82 +6,85 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
  * their previously-saved git position, if they've been moved since then.
  */
 
-(function(exports) {
-
+(function (exports) {
     var linesToDraw = [];
     var missingLinksToDraw = [];
 
     var privateState = {
         visibleObjects: {},
-        ghostsAdded: []
+        ghostsAdded: [],
     };
-    
+
     var isUpdateListenerRegistered = false;
 
     /**
      * Public init method to enable rendering ghosts of edited frames while in editing mode.
      */
     function initService() {
-
         // register callbacks to various buttons to perform commits
-        realityEditor.gui.buttons.registerCallbackForButton('reset', function(params) {
+        realityEditor.gui.buttons.registerCallbackForButton('reset', function (params) {
             if (params.newButtonState === 'up') {
                 for (var objectKey in objects) {
                     if (!objects.hasOwnProperty(objectKey)) continue;
                     // only reset currently visible objects to their last commit, not everything
-                    if (!realityEditor.gui.ar.draw.visibleObjects.hasOwnProperty(objectKey)) continue;
-                    
+                    if (!realityEditor.gui.ar.draw.visibleObjects.hasOwnProperty(objectKey))
+                        continue;
+
                     realityEditor.network.sendResetToLastCommit(objectKey);
                 }
             }
         });
 
         // register callbacks to various buttons to perform commits
-        realityEditor.gui.buttons.registerCallbackForButton('commit', function(params) {
+        realityEditor.gui.buttons.registerCallbackForButton('commit', function (params) {
             if (params.newButtonState === 'up') {
-                
                 var objectKeysToDelete = [];
                 for (var objectKey in objects) {
                     if (!objects.hasOwnProperty(objectKey)) continue;
                     // only commit currently visible objects, not everything
-                    if (!realityEditor.gui.ar.draw.visibleObjects.hasOwnProperty(objectKey)) continue;
+                    if (!realityEditor.gui.ar.draw.visibleObjects.hasOwnProperty(objectKey))
+                        continue;
                     objectKeysToDelete.push(objectKey);
                 }
-                
-                var objectNames = objectKeysToDelete.map(function(objectKey) {
+
+                var objectNames = objectKeysToDelete.map(function (objectKey) {
                     return realityEditor.getObject(objectKey).name;
                 });
-                
+
                 var description = 'The following objects will be saved: ' + objectNames.join(', ');
                 console.log(description);
-                
-                realityEditor.gui.modal.openRealityModal('Cancel', 'Overwrite Saved State', function() {
-                    console.log('commit cancelled');
-                }, function() {
-                    console.log('commit confirmed!');
-                    
-                    objectKeysToDelete.forEach(function(objectKey) {
-                        realityEditor.network.sendSaveCommit(objectKey);
-                        // update local history instantly so that client and server are synchronized
-                        var thisObject = realityEditor.getObject(objectKey);
-                        thisObject.framesHistory = JSON.parse(JSON.stringify(thisObject.frames));
-                        refreshGhosts();
-                    });
-                    
-                });
-                
+
+                realityEditor.gui.modal.openRealityModal(
+                    'Cancel',
+                    'Overwrite Saved State',
+                    function () {
+                        console.log('commit cancelled');
+                    },
+                    function () {
+                        console.log('commit confirmed!');
+
+                        objectKeysToDelete.forEach(function (objectKey) {
+                            realityEditor.network.sendSaveCommit(objectKey);
+                            // update local history instantly so that client and server are synchronized
+                            var thisObject = realityEditor.getObject(objectKey);
+                            thisObject.framesHistory = JSON.parse(
+                                JSON.stringify(thisObject.frames)
+                            );
+                            refreshGhosts();
+                        });
+                    }
+                );
             }
         });
 
         // only adds the render update listener for frame history ghosts after you enter editing mode for the first time
         // saves resources when we don't use the service
-        realityEditor.device.registerCallback('setEditingMode', function(params) {
+        realityEditor.device.registerCallback('setEditingMode', function (params) {
             if (!isUpdateListenerRegistered && params.newEditingMode) {
                 isUpdateListenerRegistered = true;
 
                 // registers a callback to the gui.ar.draw.update loop so that this module can manage its own rendering
-                realityEditor.gui.ar.draw.addUpdateListener(function(visibleObjects) {
-
+                realityEditor.gui.ar.draw.addUpdateListener(function (visibleObjects) {
                     // renders ghosts only in editing mode, which is when the commit and revert buttons are visible
                     if (globalStates.editingMode) {
                         missingLinksToDraw = [];
@@ -90,7 +93,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                         if (globalStates.guiState === 'ui') {
                             hideNodeGhosts(visibleObjects);
                             renderFrameGhostsForVisibleObjects(visibleObjects);
-
                         } else if (globalStates.guiState === 'node') {
                             hideFrameGhosts(visibleObjects);
                             renderNodeGhostsForVisibleObjects(visibleObjects);
@@ -106,13 +108,10 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
 
                         // cache the most recent visible objects so we can detect when one disappears
                         privateState.visibleObjects = visibleObjects;
-
                     } else {
                         hideAllGhosts();
                     }
-
                 });
-                
             }
         });
     }
@@ -121,7 +120,7 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * Helper function to remove any ghost frame/node/link that is currently added to the scene
      */
     function hideAllGhosts() {
-        privateState.ghostsAdded.forEach(function(ghostKey) {
+        privateState.ghostsAdded.forEach(function (ghostKey) {
             hideGhost(ghostKey);
         });
     }
@@ -131,7 +130,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function hideFrameGhosts(visibleObjects) {
-
         for (var objectKey in visibleObjects) {
             if (!visibleObjects.hasOwnProperty(objectKey)) continue;
             var thisObject = realityEditor.getObject(objectKey);
@@ -139,15 +137,15 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
             // framesHistory will contain a key/object pair for each frame that existed at the last commit
             if (thisObject.hasOwnProperty('framesHistory')) {
                 var frameHistory = thisObject.framesHistory;
-                
+
                 for (var ghostFrameKey in frameHistory) {
                     if (!frameHistory.hasOwnProperty(ghostFrameKey)) continue;
-                    
+
                     hideGhost(ghostFrameKey);
                 }
             }
         }
-        
+
         // also needs to reset any lines drawn from old frame position to new frame position
         linesToDraw = [];
     }
@@ -157,7 +155,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function hideNodeGhosts(visibleObjects) {
-
         for (var objectKey in visibleObjects) {
             if (!visibleObjects.hasOwnProperty(objectKey)) continue;
 
@@ -171,7 +168,7 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                     if (!frameHistory.hasOwnProperty(ghostFrameKey)) continue;
 
                     var ghostFrame = frameHistory[ghostFrameKey];
-                    
+
                     // hide the ghost for any nodes that that the ghost frame contains
                     for (var ghostNodeKey in ghostFrame.nodes) {
                         if (!ghostFrame.nodes.hasOwnProperty(ghostNodeKey)) continue;
@@ -191,7 +188,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function renderLinkGhostsForVisibleObjects(visibleObjects) {
-        
         for (var objectKey in visibleObjects) {
             if (!visibleObjects.hasOwnProperty(objectKey)) continue;
 
@@ -202,32 +198,39 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
 
                 for (var frameKey in frameHistory) {
                     if (!frameHistory.hasOwnProperty(frameKey)) continue;
-                    
+
                     // iterate over all links in the last commit
                     for (var linkKey in frameHistory[frameKey].links) {
                         if (!frameHistory[frameKey].links.hasOwnProperty(linkKey)) continue;
 
                         var ghostLink = frameHistory[frameKey].links[linkKey];
-                        
+
                         var realFrame = realityEditor.getFrame(objectKey, frameKey);
                         var wasFrameDeleted = !realFrame;
-                        
+
                         // if we deleted the frame since the last commit, don't bother rendering its old links
                         if (!wasFrameDeleted) {
                             var realLink = realFrame.links[linkKey];
-                            
+
                             // if an old link existed and it doesn't anymore, record its start and endpoint coordinates
                             if (ghostLink && !realLink) {
+                                var startNode = realityEditor.getNode(
+                                    ghostLink.objectA,
+                                    ghostLink.frameA,
+                                    ghostLink.nodeA
+                                );
+                                var endNode = realityEditor.getNode(
+                                    ghostLink.objectB,
+                                    ghostLink.frameB,
+                                    ghostLink.nodeB
+                                );
 
-                                var startNode = realityEditor.getNode(ghostLink.objectA, ghostLink.frameA, ghostLink.nodeA);
-                                var endNode = realityEditor.getNode(ghostLink.objectB, ghostLink.frameB, ghostLink.nodeB);
-                                
                                 if (startNode && endNode) {
                                     missingLinksToDraw.push({
                                         startX: startNode.screenX,
                                         startY: startNode.screenY,
                                         endX: endNode.screenX,
-                                        endY: endNode.screenY
+                                        endY: endNode.screenY,
                                     });
                                 }
                             }
@@ -236,7 +239,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                 }
             }
         }
-        
     }
 
     /**
@@ -246,7 +248,6 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function renderNodeGhostsForVisibleObjects(visibleObjects) {
-
         // reset linesToDraw, which will be populated with lines from old (ghost) node positions to new node positions
         linesToDraw = [];
 
@@ -260,35 +261,58 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
 
                 for (var ghostFrameKey in frameHistory) {
                     if (!frameHistory.hasOwnProperty(ghostFrameKey)) continue;
-                    
+
                     // get the ghost frame and check if it still exists
                     var ghostFrame = frameHistory[ghostFrameKey];
                     var wasFrameDeleted = !realityEditor.getFrame(objectKey, ghostFrameKey);
 
                     for (var ghostNodeKey in ghostFrame.nodes) {
                         if (!ghostFrame.nodes.hasOwnProperty(ghostNodeKey)) continue;
-                        
+
                         // get the ghost node and its corresponding current node
                         var ghostNode = ghostFrame.nodes[ghostNodeKey];
-                        var realNode = realityEditor.getNode(objectKey, ghostFrameKey, ghostNodeKey);
-                        
+                        var realNode = realityEditor.getNode(
+                            objectKey,
+                            ghostFrameKey,
+                            ghostNodeKey
+                        );
+
                         var wasNodeDeleted = !realNode;
 
                         // if neither the frame nor the node have been deleted since the last commit,
                         //   get the positions of the node then and now
                         if (!wasFrameDeleted && !wasNodeDeleted) {
-                            var ghostPosition = JSON.parse(JSON.stringify(realityEditor.gui.ar.positioning.getPositionData(ghostNode)));
-                            var realPosition = JSON.parse(JSON.stringify(realityEditor.gui.ar.positioning.getPositionData(realNode)));
+                            var ghostPosition = JSON.parse(
+                                JSON.stringify(
+                                    realityEditor.gui.ar.positioning.getPositionData(ghostNode)
+                                )
+                            );
+                            var realPosition = JSON.parse(
+                                JSON.stringify(
+                                    realityEditor.gui.ar.positioning.getPositionData(realNode)
+                                )
+                            );
                         }
 
                         // we need to render a ghost outline at the old node position if:
                         //   1) we deleted the frame that contains it
                         //   2) we deleted the node itself
                         //   3) the node was repositioned (x, y, scale, or matrix)
-                        if (wasFrameDeleted || wasNodeDeleted || didPositionChange(ghostPosition, realPosition)) {
-
+                        if (
+                            wasFrameDeleted ||
+                            wasNodeDeleted ||
+                            didPositionChange(ghostPosition, realPosition)
+                        ) {
                             // actually draw the outline as a DOM element
-                            renderGhost(objectKey, ghostFrameKey, ghostNodeKey, ghostFrame, ghostNode, visibleObjects[objectKey], wasFrameDeleted || wasNodeDeleted);
+                            renderGhost(
+                                objectKey,
+                                ghostFrameKey,
+                                ghostNodeKey,
+                                ghostFrame,
+                                ghostNode,
+                                visibleObjects[objectKey],
+                                wasFrameDeleted || wasNodeDeleted
+                            );
 
                             // in addition to rendering a ghost outline, we should draw a line from the old position to the new position,
                             //   if the reason for drawing the ghost was that it was repositioned (not deleted)
@@ -297,10 +321,9 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                                     startX: ghostNode.screenX,
                                     startY: ghostNode.screenY,
                                     endX: realNode.screenX,
-                                    endY: realNode.screenY
+                                    endY: realNode.screenY,
                                 });
                             }
-
                         } else {
                             // if we shouldn't render the ghost, make sure the ghost is hidden
                             hideGhost(ghostNodeKey);
@@ -310,13 +333,12 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
             }
         }
     }
-    
+
     /**
      *
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function renderFrameGhostsForVisibleObjects(visibleObjects) {
-
         // reset linesToDraw, which will be populated with lines from old (ghost) frame positions to new frame positions
         linesToDraw = [];
 
@@ -334,22 +356,31 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                     // get the ghost frame and its corresponding current frame
                     var ghostFrame = frameHistory[ghostFrameKey];
                     var realFrame = realityEditor.getFrame(objectKey, ghostFrameKey);
-                    
+
                     var wasFrameDeleted = !realFrame;
 
                     // if the frame still exists, get the positions of the frame then and now
                     if (!wasFrameDeleted) {
-                        var ghostPosition = realityEditor.gui.ar.positioning.getPositionData(ghostFrame);
-                        var realPosition = realityEditor.gui.ar.positioning.getPositionData(realFrame);
+                        var ghostPosition =
+                            realityEditor.gui.ar.positioning.getPositionData(ghostFrame);
+                        var realPosition =
+                            realityEditor.gui.ar.positioning.getPositionData(realFrame);
                     }
 
                     // we need to render a ghost outline at the old node position if:
                     //   1) we deleted the frame
                     //   3) the frame was repositioned (x, y, scale, or matrix)
                     if (wasFrameDeleted || didPositionChange(ghostPosition, realPosition)) {
-                        
                         // actually render the outline as a DOM element
-                        renderGhost(objectKey, ghostFrameKey, null, ghostFrame, null, visibleObjects[objectKey], wasFrameDeleted);
+                        renderGhost(
+                            objectKey,
+                            ghostFrameKey,
+                            null,
+                            ghostFrame,
+                            null,
+                            visibleObjects[objectKey],
+                            wasFrameDeleted
+                        );
 
                         // in addition to rendering a ghost outline, we should draw a line from the old position to the new position,
                         //   if the reason for drawing the ghost was that it was repositioned (not deleted)
@@ -358,10 +389,9 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
                                 startX: ghostFrame.screenX,
                                 startY: ghostFrame.screenY,
                                 endX: realFrame.screenX,
-                                endY: realFrame.screenY
-                            });                            
+                                endY: realFrame.screenY,
+                            });
                         }
-
                     } else {
                         // if we shouldn't render the ghost, make sure the ghost is hidden
                         hideGhost(ghostFrameKey);
@@ -377,14 +407,12 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Object.<string, Array.<number>>} visibleObjects
      */
     function removeGhostsOfInvisibleObjects(visibleObjects) {
-
         // look at all objects that were visible last frame
         for (var oldObjectKey in privateState.visibleObjects) {
             if (!privateState.visibleObjects.hasOwnProperty(oldObjectKey)) continue;
 
             // only remove ones that don't exist anymore
             if (!visibleObjects.hasOwnProperty(oldObjectKey)) {
-
                 var thisObject = realityEditor.getObject(oldObjectKey);
 
                 if (thisObject.hasOwnProperty('framesHistory')) {
@@ -406,17 +434,20 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * // TODO: eventually register a buttonPressed callback to invert the dependency
      */
     function refreshGhosts() {
-
         // gets the DOM ids of all ghost-related divs
-        var existingGhostFrameKeys = [].slice.apply(document.getElementById('GUI').children).map(function(elt){
-            return elt.id;
-        }).filter(function(id) {
-            return id.indexOf('ghost') === 0;
-        }).map(function(id) {
-            return id.substring('ghost'.length);
-        });
+        var existingGhostFrameKeys = [].slice
+            .apply(document.getElementById('GUI').children)
+            .map(function (elt) {
+                return elt.id;
+            })
+            .filter(function (id) {
+                return id.indexOf('ghost') === 0;
+            })
+            .map(function (id) {
+                return id.substring('ghost'.length);
+            });
 
-        existingGhostFrameKeys.forEach(function(frameKey) {
+        existingGhostFrameKeys.forEach(function (frameKey) {
             hideGhost(frameKey);
         });
     }
@@ -425,11 +456,23 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * Draws dotted arrows from start to end coordinates for any ghost frames/nodes that have been repositioned
      */
     function drawLinesFromGhosts() {
-        linesToDraw.forEach(function(line) {
+        linesToDraw.forEach(function (line) {
             // only draw lines if the node has moved a noticeable distance
-            var distance = Math.sqrt( (line.startX - line.endX)*(line.startX - line.endX) + (line.startY - line.endY)*(line.startY - line.endY) );
+            var distance = Math.sqrt(
+                (line.startX - line.endX) * (line.startX - line.endX) +
+                    (line.startY - line.endY) * (line.startY - line.endY)
+            );
             if (distance > 50) {
-                drawArrow(globalCanvas.context, line.startX, line.startY, line.endX, line.endY, 'rgba(0, 0, 0, 0.5)', 1, 7);
+                drawArrow(
+                    globalCanvas.context,
+                    line.startX,
+                    line.startY,
+                    line.endX,
+                    line.endY,
+                    'rgba(0, 0, 0, 0.5)',
+                    1,
+                    7
+                );
                 globalCanvas.hasContent = true; // need to set this flag to clear the canvas each frame
             }
         });
@@ -439,8 +482,17 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * Draws dotted arrows for each of the links that have been deleted since the last commit
      */
     function drawMissingLinks() {
-        missingLinksToDraw.forEach(function(line) {
-            drawArrow(globalCanvas.context, line.startX, line.startY, line.endX, line.endY, 'rgba(255, 0, 124, 0.5)', 1, 7);
+        missingLinksToDraw.forEach(function (line) {
+            drawArrow(
+                globalCanvas.context,
+                line.startX,
+                line.startY,
+                line.endX,
+                line.endY,
+                'rgba(255, 0, 124, 0.5)',
+                1,
+                7
+            );
             globalCanvas.hasContent = true; // need to set this flag to clear the canvas each frame
         });
     }
@@ -456,31 +508,40 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {Array.<number>} targetMatrix - the visibleObjects[objectKey] matrix
      * @param {boolean} wasFrameDeleted
      */
-    function renderGhost(objectKey, frameKey, nodeKey, ghostFrame, ghostNode, targetMatrix, wasFrameDeleted) {
-        
+    function renderGhost(
+        objectKey,
+        frameKey,
+        nodeKey,
+        ghostFrame,
+        ghostNode,
+        targetMatrix,
+        wasFrameDeleted
+    ) {
         // some logic lets us customize the same function to render ghosts for frames and nodes
         var isNode = !!nodeKey;
         var ghostVehicle = isNode ? ghostNode : ghostFrame;
         var activeKey = isNode ? nodeKey : frameKey;
-        
+
         // don't render ghost until real frame is rendered (fixes bug)
         if (!globalDOMCache['iframe' + activeKey] && !wasFrameDeleted) {
             return;
         }
-        
+
         // recreate ghost for deleted frame so it changes color
         if (wasFrameDeleted && globalDOMCache['ghost' + activeKey]) {
-            if (!globalDOMCache['ghost' + activeKey].classList.contains('frameHistoryGhostDeleted')) {
+            if (
+                !globalDOMCache['ghost' + activeKey].classList.contains('frameHistoryGhostDeleted')
+            ) {
                 // hideGhost(objectKey, frameKey);
                 globalDOMCache['ghost' + activeKey].classList.add('frameHistoryGhostDeleted');
             }
         }
-        
+
         // create div for ghost if needed
         if (!globalDOMCache['ghost' + activeKey]) {
             createGhostElement(objectKey, activeKey, wasFrameDeleted);
         }
-        
+
         // add to sceneGraph if needed
         let elementName = 'ghost' + activeKey;
         let ghostElementId = null;
@@ -495,19 +556,24 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
             }
 
             // elementName, optionalParent, linkedDataObject (includes x,y,scale), initialLocalMatrix
-            ghostElementId = realityEditor.sceneGraph.addVisualElement(elementName, parentSceneNode, ghostVehicle, ghostPosition.matrix);
-        
+            ghostElementId = realityEditor.sceneGraph.addVisualElement(
+                elementName,
+                parentSceneNode,
+                ghostVehicle,
+                ghostPosition.matrix
+            );
         } else {
             let ghostSceneNode = realityEditor.sceneGraph.getVisualElement(elementName);
             ghostSceneNode.linkedVehicle = ghostVehicle; // make sure this points to up-to-date vehicle for x,y,scale
             ghostSceneNode.setLocalMatrix(ghostPosition.matrix);
             ghostElementId = ghostSceneNode.id;
         }
-        
+
         let finalMatrix = realityEditor.sceneGraph.getCSSMatrix(ghostElementId);
 
         // actually adjust the CSS to draw it with the correct transformation
-        globalDOMCache['ghost' + activeKey].style.transform = 'matrix3d(' + finalMatrix.toString() + ')';
+        globalDOMCache['ghost' + activeKey].style.transform =
+            'matrix3d(' + finalMatrix.toString() + ')';
 
         // store the screenX and screenY within the ghost to help us later draw lines to the ghosts
         var ghostCenterPosition = getDomElementCenterPosition(globalDOMCache['ghost' + activeKey]);
@@ -521,17 +587,17 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {string} vehicleKey
      */
     function hideGhost(vehicleKey) {
-        
         if (globalDOMCache['ghost' + vehicleKey]) {
             // remove the DOM element
-            globalDOMCache['ghost' + vehicleKey].parentNode.removeChild(globalDOMCache['ghost' + vehicleKey]);
+            globalDOMCache['ghost' + vehicleKey].parentNode.removeChild(
+                globalDOMCache['ghost' + vehicleKey]
+            );
             delete globalDOMCache['ghost' + vehicleKey];
 
             // remove from ghostsAdded list
             var index = privateState.ghostsAdded.indexOf(vehicleKey);
             if (index !== -1) privateState.ghostsAdded.splice(index, 1);
         }
-        
     }
 
     /**
@@ -543,24 +609,30 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {boolean} wasFrameDeleted
      */
     function createGhostElement(objectKey, vehicleKey, wasFrameDeleted) {
-        
         var ghostDiv = document.createElement('div');
         ghostDiv.id = 'ghost' + vehicleKey;
-        ghostDiv.classList.add('frameHistoryGhost', 'main', 'ignorePointerEvents', 'visibleFrameContainer');
+        ghostDiv.classList.add(
+            'frameHistoryGhost',
+            'main',
+            'ignorePointerEvents',
+            'visibleFrameContainer'
+        );
         if (wasFrameDeleted) {
             ghostDiv.classList.add('frameHistoryGhostDeleted');
         }
-        
+
         // we use the width and height of the real frame DOM element to make this one match that size // TODO: check, does this still work when the real frame was deleted?
         if (globalDOMCache['iframe' + vehicleKey]) {
-            ghostDiv.style.width = parseInt(globalDOMCache['iframe' + vehicleKey].style.width) + 'px';
-            ghostDiv.style.height = parseInt(globalDOMCache['iframe' + vehicleKey].style.height) + 'px';
+            ghostDiv.style.width =
+                parseInt(globalDOMCache['iframe' + vehicleKey].style.width) + 'px';
+            ghostDiv.style.height =
+                parseInt(globalDOMCache['iframe' + vehicleKey].style.height) + 'px';
             ghostDiv.style.left = parseInt(globalDOMCache['iframe' + vehicleKey].style.left) + 'px';
             ghostDiv.style.top = parseInt(globalDOMCache['iframe' + vehicleKey].style.top) + 'px';
         }
         document.getElementById('GUI').appendChild(ghostDiv);
         globalDOMCache['ghost' + vehicleKey] = ghostDiv;
-        
+
         // maintain a ghostsAdded list so that we can remove them all on demand
         privateState.ghostsAdded.push(vehicleKey);
     }
@@ -573,11 +645,12 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      */
     function didPositionChange(oldPosition, newPosition) {
         if (!oldPosition || !newPosition) return false;
-        
-        return (oldPosition.x !== newPosition.x ||
-                oldPosition.y !== newPosition.y ||
-                oldPosition.scale !== newPosition.scale ||
-                JSON.stringify(oldPosition.matrix) !== JSON.stringify(newPosition.matrix)
+
+        return (
+            oldPosition.x !== newPosition.x ||
+            oldPosition.y !== newPosition.y ||
+            oldPosition.scale !== newPosition.scale ||
+            JSON.stringify(oldPosition.matrix) !== JSON.stringify(newPosition.matrix)
         );
     }
 
@@ -588,9 +661,9 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      */
     function getDomElementCenterPosition(domElement) {
         return {
-            x: domElement.getClientRects()[0].left + domElement.getClientRects()[0].width/2,
-            y: domElement.getClientRects()[0].top + domElement.getClientRects()[0].height/2
-        }
+            x: domElement.getClientRects()[0].left + domElement.getClientRects()[0].width / 2,
+            y: domElement.getClientRects()[0].top + domElement.getClientRects()[0].height / 2,
+        };
     }
 
     /**
@@ -604,16 +677,16 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
      * @param {number} lineWidth
      * @param {number} headLength
      */
-    function drawArrow(ctx, startX, startY, endX, endY, color, lineWidth, headLength){
+    function drawArrow(ctx, startX, startY, endX, endY, color, lineWidth, headLength) {
         // variables to be used when creating the arrow
         var headlen = headLength || 10;
-        var angle = Math.atan2(endY-startY,endX-startX);
+        var angle = Math.atan2(endY - startY, endX - startX);
 
         // starting path of the arrow from the start square to the end square and drawing the stroke
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
-        ctx.strokeStyle = color || "#cc0000";
+        ctx.strokeStyle = color || '#cc0000';
         ctx.lineWidth = lineWidth || 22;
         ctx.setLineDash([lineWidth * 3]);
         ctx.stroke();
@@ -621,24 +694,32 @@ createNameSpace("realityEditor.gui.ar.frameHistoryRenderer");
         // starting a new path from the head of the arrow to one of the sides of the point
         ctx.beginPath();
         ctx.moveTo(endX, endY);
-        ctx.lineTo(endX-headlen*Math.cos(angle-Math.PI/7),endY-headlen*Math.sin(angle-Math.PI/7));
+        ctx.lineTo(
+            endX - headlen * Math.cos(angle - Math.PI / 7),
+            endY - headlen * Math.sin(angle - Math.PI / 7)
+        );
 
         // path from the side point of the arrow, to the other side point
-        ctx.lineTo(endX-headlen*Math.cos(angle+Math.PI/7),endY-headlen*Math.sin(angle+Math.PI/7));
+        ctx.lineTo(
+            endX - headlen * Math.cos(angle + Math.PI / 7),
+            endY - headlen * Math.sin(angle + Math.PI / 7)
+        );
 
         // path from the side point back to the tip of the arrow, and then again to the opposite side point
         ctx.lineTo(endX, endY);
-        ctx.lineTo(endX-headlen*Math.cos(angle-Math.PI/7),endY-headlen*Math.sin(angle-Math.PI/7));
+        ctx.lineTo(
+            endX - headlen * Math.cos(angle - Math.PI / 7),
+            endY - headlen * Math.sin(angle - Math.PI / 7)
+        );
 
         // draws the paths created above
-        ctx.strokeStyle = color || "#cc0000";
+        ctx.strokeStyle = color || '#cc0000';
         ctx.lineWidth = lineWidth || 22;
         ctx.setLineDash([]);
         ctx.stroke();
-        ctx.fillStyle = color || "#cc0000";
+        ctx.fillStyle = color || '#cc0000';
         ctx.fill();
     }
-    
-    exports.initService = initService;
 
-}(realityEditor.gui.ar.frameHistoryRenderer));
+    exports.initService = initService;
+})(realityEditor.gui.ar.frameHistoryRenderer);

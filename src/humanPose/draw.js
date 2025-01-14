@@ -3,11 +3,11 @@ import {
     JOINT_PUBLIC_DATA_KEYS,
     getJointNodeInfo,
     getGroundPlaneRelativeMatrix,
-    setMatrixFromArray
+    setMatrixFromArray,
 } from './utils.js';
-import {JOINTS,JOINT_CONNECTIONS, JOINT_TO_INDEX} from './constants.js';
-import {Pose} from "./Pose.js";
-import {HumanPoseRenderInstance} from './HumanPoseRenderInstance.js';
+import { JOINTS, JOINT_CONNECTIONS, JOINT_TO_INDEX } from './constants.js';
+import { Pose } from './Pose.js';
+import { HumanPoseRenderInstance } from './HumanPoseRenderInstance.js';
 
 /**
  * @typedef {string} AnimationMode
@@ -70,7 +70,11 @@ function updatePoseRenderer(poseObject, timestamp) {
 
     const identifier = poseObject.objectId;
     if (!poseRenderInstances[identifier]) {
-        poseRenderInstances[identifier] = new HumanPoseRenderInstance(renderer, identifier, activeHumanPoseAnalyzer.activeLens);
+        poseRenderInstances[identifier] = new HumanPoseRenderInstance(
+            renderer,
+            identifier,
+            activeHumanPoseAnalyzer.activeLens
+        );
     }
     const poseRenderInstance = poseRenderInstances[identifier];
     const hideId = activeMotionStudy.frame + '-' + poseRenderInstance.id;
@@ -106,7 +110,9 @@ function updateJointsAndBones(poseRenderInstance, poseObject, timestamp) {
 
     for (const jointId of Object.values(JOINTS)) {
         // assume that all sub-objects are of the form poseObject.id + joint name
-        let sceneNode = realityEditor.sceneGraph.getSceneNodeById(`${poseObject.objectId}${jointId}`);
+        let sceneNode = realityEditor.sceneGraph.getSceneNodeById(
+            `${poseObject.objectId}${jointId}`
+        );
 
         // poses are in world space, three.js meshes get added to groundPlane space, so convert from world->groundPlane
         let jointMatrixThree = new THREE.Matrix4();
@@ -130,8 +136,11 @@ function updateJointsAndBones(poseRenderInstance, poseObject, timestamp) {
         jointConfidences[jointId] = confidence;
     }
 
-    const poseHasParent = poseObject.parent && (poseObject.parent !== 'none');
-    const pose = new Pose(jointPositions, jointConfidences, timestamp, {poseObjectId: poseObject.objectId, poseHasParent: poseHasParent});
+    const poseHasParent = poseObject.parent && poseObject.parent !== 'none';
+    const pose = new Pose(jointPositions, jointConfidences, timestamp, {
+        poseObjectId: poseObject.objectId,
+        poseHasParent: poseHasParent,
+    });
     pose.metadata.previousPose = mostRecentPoseByObjectId[poseObject.objectId];
     mostRecentPoseByObjectId[poseObject.objectId] = pose;
     // setBodyPartValidity() needs to be called before applyLensToPose(pose) and setPose(pose)
@@ -330,7 +339,8 @@ function hideAnalyzerSettingsUI() {
  * Used by the remote operator menu bar
  */
 function toggleAnalyzerSettingsUI() {
-    let defaultHumanPoseAnalyzer = realityEditor.motionStudy.getDefaultMotionStudy().humanPoseAnalyzer;
+    let defaultHumanPoseAnalyzer =
+        realityEditor.motionStudy.getDefaultMotionStudy().humanPoseAnalyzer;
     if (!defaultHumanPoseAnalyzer) {
         console.warn('No default HPA');
         return;
@@ -367,12 +377,11 @@ function is2DPoseRendered() {
 
 /**
  * Renders original 2D skeleton from Swift side (for debug purposes).
- * @param {Array} poses 
- * @param {[number, number]} imageSize 
+ * @param {Array} poses
+ * @param {[number, number]} imageSize
  */
 function draw2DPoses(poses, imageSize) {
-
-    if (!is2DPoseRendered()) return; 
+    if (!is2DPoseRendered()) return;
 
     let canvas = document.getElementById('supercooldebugcanvas');
     let gfx;
@@ -412,28 +421,27 @@ function draw2DPoses(poses, imageSize) {
     // image resolution associated with 2D point positions (always defined in landscape - x: longer side, y: shorter side)
     const pointWidth = imageSize[0]; // 1920; // 960;
     const pointHeight = imageSize[1]; // 1080; // 540;
-    let outWidth = 0, outHeight = 0;
-    let halfCanvasWidth = 0, halfCanvasHeight = 0;
+    let outWidth = 0,
+        outHeight = 0;
+    let halfCanvasWidth = 0,
+        halfCanvasHeight = 0;
     const portrait = gfx.width < gfx.height;
 
     if (globalStates.device.startsWith('iPad')) {
-        // ipads crop camera image along longer side. Thus, shorter side is taken to calulate scaling factor from camera image to display canvas 
+        // ipads crop camera image along longer side. Thus, shorter side is taken to calulate scaling factor from camera image to display canvas
         if (!portrait) {
             outHeight = gfx.height;
             outWidth = (outHeight / pointHeight) * pointWidth;
-        }
-        else {
+        } else {
             outHeight = gfx.width;
             outWidth = (outHeight / pointHeight) * pointWidth;
         }
-    }
-    else {
-        // iphones crop camera image along shorter side. Thus, longer side is taken to calulate scaling factor from camera image to display canvas (gfx.width/height) 
+    } else {
+        // iphones crop camera image along shorter side. Thus, longer side is taken to calulate scaling factor from camera image to display canvas (gfx.width/height)
         if (!portrait) {
             outWidth = gfx.width;
             outHeight = (outWidth / pointWidth) * pointHeight;
-        }
-        else {
+        } else {
             outWidth = gfx.height;
             outHeight = (outWidth / pointWidth) * pointHeight;
         }
@@ -442,8 +450,7 @@ function draw2DPoses(poses, imageSize) {
     if (!portrait) {
         halfCanvasWidth = gfx.width / 2;
         halfCanvasHeight = gfx.height / 2;
-    }
-    else {
+    } else {
         halfCanvasWidth = gfx.height / 2;
         halfCanvasHeight = gfx.width / 2;
     }
@@ -456,15 +463,18 @@ function draw2DPoses(poses, imageSize) {
 
         let x = (point.imgX - pointWidth / 2) * (outWidth / pointWidth) + halfCanvasWidth;
         let y = 0;
-        if (portrait)   {
-            y = ((pointHeight - point.imgY) - pointHeight / 2) * (outHeight / pointHeight) + halfCanvasHeight;
-            let tmp = x; x = y; y = tmp;
-        }
-        else {
+        if (portrait) {
+            y =
+                (pointHeight - point.imgY - pointHeight / 2) * (outHeight / pointHeight) +
+                halfCanvasHeight;
+            let tmp = x;
+            x = y;
+            y = tmp;
+        } else {
             y = (point.imgY - pointHeight / 2) * (outHeight / pointHeight) + halfCanvasHeight;
         }
 
-        let valid = (Math.abs(point.imgX) > 1e-6 && Math.abs(point.imgY) > 1e-6);
+        let valid = Math.abs(point.imgX) > 1e-6 && Math.abs(point.imgY) > 1e-6;
         points2D.push([x, y, valid]);
 
         // point 2D position is not valid if it is [0,0]. Don't draw in this case.
@@ -473,7 +483,11 @@ function draw2DPoses(poses, imageSize) {
             gfx.arc(x, y, jointSize, 0, 2 * Math.PI);
             gfx.fill();
             if (debug) {
-                gfx.fillText(`${Math.round(point.imgX)} ${Math.round(point.imgY)}`, x + jointSize, y - jointSize);
+                gfx.fillText(
+                    `${Math.round(point.imgX)} ${Math.round(point.imgY)}`,
+                    x + jointSize,
+                    y - jointSize
+                );
                 debug = false;
             }
         }
@@ -485,13 +499,14 @@ function draw2DPoses(poses, imageSize) {
 
     gfx.beginPath();
     let conns = Object.values(JOINT_CONNECTIONS);
-    for (let i = 0; i < 58; i++) {   // skipping connections between synthetic joints which do not exist yet 
+    for (let i = 0; i < 58; i++) {
+        // skipping connections between synthetic joints which do not exist yet
 
         let a = points2D[JOINT_TO_INDEX[conns[i][0]]];
         let b = points2D[JOINT_TO_INDEX[conns[i][1]]];
 
         // skip draw lines between invalid points
-        if (a[2] && b[2]) { 
+        if (a[2] && b[2]) {
             gfx.moveTo(a[0], a[1]);
             gfx.lineTo(b[0], b[1]);
         }
@@ -519,5 +534,5 @@ export {
     toggleAnalyzerSettingsUI,
     setChildHumanPosesVisible,
     draw2DPoses,
-    is2DPoseRendered
+    is2DPoseRendered,
 };

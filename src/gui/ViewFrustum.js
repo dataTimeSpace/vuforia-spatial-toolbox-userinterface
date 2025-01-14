@@ -16,7 +16,7 @@ const PLANES = Object.freeze({
     LEFT: 2,
     RIGHT: 3,
     NEARP: 4,
-    FARP: 5
+    FARP: 5,
 });
 const ANG2RAD = Math.PI / 180.0;
 
@@ -46,14 +46,19 @@ class ViewFrustum {
         this.farD = farD;
 
         // compute width and height of the near and far plane sections
-        let tang = Math.tan(ANG2RAD * angle * 0.5) ;
+        let tang = Math.tan(ANG2RAD * angle * 0.5);
         this.nh = nearD * tang;
         this.nw = this.nh * ratio;
-        this.fh = farD  * tang;
+        this.fh = farD * tang;
         this.fw = this.fh * ratio;
 
         // Note: if you change this after setCameraDef, you need to call setCameraDef again to recompute the planes
-        if (!dontAutoRecompute && typeof this.p !== 'undefined' && typeof this.l !== 'undefined' && typeof this.u !== 'undefined') {
+        if (
+            !dontAutoRecompute &&
+            typeof this.p !== 'undefined' &&
+            typeof this.l !== 'undefined' &&
+            typeof this.u !== 'undefined'
+        ) {
             this.setCameraDef(this.p, this.l, this.u);
         }
     }
@@ -69,7 +74,7 @@ class ViewFrustum {
         this.p = p;
         this.l = l;
         this.u = u;
-        let nc,fc,X,Y,Z;
+        let nc, fc, X, Y, Z;
         let utils = realityEditor.gui.ar.utilities;
 
         // compute the Z-axis of camera
@@ -153,7 +158,7 @@ class PlaneGeo {
      * @returns {PlaneGeo}
      */
     setPoints(p1, p2, p3) {
-        let utils =  realityEditor.gui.ar.utilities;
+        let utils = realityEditor.gui.ar.utilities;
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
@@ -198,29 +203,36 @@ class PlaneGeo {
  * @param {{x: number, y: number, z: number}} center
  * @returns {string}
  */
-const frustumVertexShader = function({useLoadingAnimation, center}) {
+const frustumVertexShader = function ({ useLoadingAnimation, center }) {
     let loadingCalcString = '';
     let loadingUniformString = '';
     if (useLoadingAnimation) {
         if (!center) {
             console.warn('trying to create loading animation shader without specifying center');
-            center = {x: 0, y: 0, z: 0};
+            center = { x: 0, y: 0, z: 0 };
         }
         loadingCalcString = `len = length(position - vec3(${center.x}, ${center.y}, ${center.z}));`;
         loadingUniformString = `varying float len;`;
     }
     return ShaderChunk.meshphysical_vert
-        .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+        .replace(
+            '#include <worldpos_vertex>',
+            `#include <worldpos_vertex>
         ${loadingCalcString}
         vPosition = position.xyz; // makes position accessible in the fragment shader
         vBarycentric = a_barycentric; // Pass barycentric to fragment shader for wireframe effect
-    `).replace('#include <common>', `#include <common>
+    `
+        )
+        .replace(
+            '#include <common>',
+            `#include <common>
         ${loadingUniformString}
         attribute vec3 a_barycentric;
         varying vec3 vBarycentric;
         varying vec3 vPosition;
-    `);
-}
+    `
+        );
+};
 
 /**
  * Returns a GLSL fragment shader for culling the points that fall within view frustums.
@@ -232,14 +244,16 @@ const frustumVertexShader = function({useLoadingAnimation, center}) {
  * Note: you must first do geometry.toNonIndexed() and assigned barycentric coordinates to each vertex to do the wireframe effect
  * @returns {string}
  */
-const frustumFragmentShader = function({useLoadingAnimation, inverted}) {
+const frustumFragmentShader = function ({ useLoadingAnimation, inverted }) {
     let loadingUniformString = '';
     let loadingConditionString = '';
     if (useLoadingAnimation) {
         loadingUniformString = `
         varying float len;
-        uniform float maxHeight;`
-        loadingConditionString = inverted ? 'if (len < maxHeight) discard;' : 'if (len > maxHeight) discard;';
+        uniform float maxHeight;`;
+        loadingConditionString = inverted
+            ? 'if (len < maxHeight) discard;'
+            : 'if (len > maxHeight) discard;';
     }
     let condition = `
     ${loadingConditionString}
@@ -259,11 +273,16 @@ const frustumFragmentShader = function({useLoadingAnimation, inverted}) {
     }
     `;
     return ShaderChunk.meshphysical_frag
-        .replace('#include <clipping_planes_fragment>', `
+        .replace(
+            '#include <clipping_planes_fragment>',
+            `
                          ${condition}
 
-                         #include <clipping_planes_fragment>`)
-        .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+                         #include <clipping_planes_fragment>`
+        )
+        .replace(
+            '#include <dithering_fragment>',
+            `#include <dithering_fragment>
             // make the texture darker if a client connects
             if (numFrustums > 0 && !clipped) {
                 gl_FragColor.r *= 0.8;
@@ -289,8 +308,11 @@ const frustumFragmentShader = function({useLoadingAnimation, inverted}) {
                     gl_FragColor.a = textureOpacity;
                 }
             }
-            `)
-        .replace(`#include <common>`, `
+            `
+        )
+        .replace(
+            `#include <common>`,
+            `
                          #include <common>
     ${loadingUniformString}
     uniform int numFrustums; // current number of frustums to apply 
@@ -334,13 +356,8 @@ const frustumFragmentShader = function({useLoadingAnimation, inverted}) {
         
         return (inside1 && inside2 && inside3 && inside4 && inside5 && inside6);
     }
-    `);
-}
+    `
+        );
+};
 
-export {
-    MAX_VIEW_FRUSTUMS,
-    UNIFORMS,
-    ViewFrustum,
-    frustumFragmentShader,
-    frustumVertexShader
-}
+export { MAX_VIEW_FRUSTUMS, UNIFORMS, ViewFrustum, frustumFragmentShader, frustumVertexShader };

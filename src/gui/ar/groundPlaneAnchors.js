@@ -1,14 +1,14 @@
 /*
-* Created by Ben Reynolds on 10/08/20.
-*
-* Copyright (c) 2020 PTC Inc
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Created by Ben Reynolds on 10/08/20.
+ *
+ * Copyright (c) 2020 PTC Inc
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
+createNameSpace('realityEditor.gui.ar.groundPlaneAnchors');
 
 /**
  * @fileOverview realityEditor.gui.ar.groundPlaneAnchors
@@ -17,7 +17,7 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
  * ... based on this point's relative position to the surface anchor, the tool's localMatrix is updated, which in effect moves the anchor to that spot.
  */
 
-(function(exports) {
+(function (exports) {
     let knownAnchorNodes = {};
     let threejsGroups = {};
     let isPositioningMode = false;
@@ -30,11 +30,19 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
     let transformControls = {};
 
     function initService() {
-        realityEditor.gui.settings.addToggle('Reposition Ground Anchors', 'surface anchors can be dragged to move tools', 'repositionGroundAnchors',  '../../../svg/move.svg', false, function(newValue) {
-            togglePositioningMode(newValue);
-        }, { dontPersist: true });
+        realityEditor.gui.settings.addToggle(
+            'Reposition Ground Anchors',
+            'surface anchors can be dragged to move tools',
+            'repositionGroundAnchors',
+            '../../../svg/move.svg',
+            false,
+            function (newValue) {
+                togglePositioningMode(newValue);
+            },
+            { dontPersist: true }
+        );
 
-        realityEditor.gui.ar.draw.addUpdateListener(function(visibleObjects) {
+        realityEditor.gui.ar.draw.addUpdateListener(function (visibleObjects) {
             try {
                 update(visibleObjects);
             } catch (e) {
@@ -42,7 +50,7 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
             }
         });
 
-        realityEditor.gui.buttons.registerCallbackForButton('setting', function(_params) {
+        realityEditor.gui.buttons.registerCallbackForButton('setting', function (_params) {
             updatePositioningMode(); // check if positioning mode needs update due to settings menu state
         });
 
@@ -64,21 +72,31 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
     function update(visibleObjects) {
         for (let objectKey in visibleObjects) {
             let object = realityEditor.getObject(objectKey);
-            if (!object) { continue; }
+            if (!object) {
+                continue;
+            }
 
             for (let frameKey in object.frames) {
-                if (frameKey === selectedGroupKey) { continue; } // don't update tools currently being dragged
+                if (frameKey === selectedGroupKey) {
+                    continue;
+                } // don't update tools currently being dragged
 
                 let frame = realityEditor.getFrame(objectKey, frameKey);
-                if (!frame) { continue; }
+                if (!frame) {
+                    continue;
+                }
                 updateFrame(frameKey);
             }
         }
     }
 
     function updateFrame(frameKey) {
-        if (!knownAnchorNodes[frameKey]) { return; }
-        if (!threejsGroups[frameKey]) { return; }
+        if (!knownAnchorNodes[frameKey]) {
+            return;
+        }
+        if (!threejsGroups[frameKey]) {
+            return;
+        }
 
         // get world matrix of frame
         let frameNode = realityEditor.sceneGraph.getSceneNodeById(frameKey);
@@ -88,10 +106,22 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
         // calculate frame relative to ground plane
         let relativeMatrix = frameNode.getMatrixRelativeTo(groundPlaneNode);
         let anchoredMatrix = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            relativeMatrix[12], 0, relativeMatrix[14], 1
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            relativeMatrix[12],
+            0,
+            relativeMatrix[14],
+            1,
         ];
 
         // set the anchor matrix by taking the x, z position
@@ -102,7 +132,6 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
 
     // when we add a sceneNode for a tool, also add one to the groundplane that is associated with it
     function sceneNodeAdded(objectKey, frameKey, _thisFrame, _matrix) {
-
         // elementName, optionalParent, linkedDataObject, initialLocalMatrix
         let elementName = getElementName(frameKey);
         // let linkedDataObject = thisFrame;
@@ -122,7 +151,10 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
         if (!initialCalculationMesh) {
             const THREE = realityEditor.gui.threejsScene.THREE;
             let size = 100;
-            initialCalculationMesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size),new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.3, transparent: true}));
+            initialCalculationMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(size, size, size),
+                new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true })
+            );
             initialCalculationMesh.name = 'initialCalculationMesh';
             initialCalculationMesh.visible = isPositioningMode;
             realityEditor.gui.threejsScene.addToScene(initialCalculationMesh); // this adds it to the ground plane group by default
@@ -135,16 +167,24 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
         const THREE = realityEditor.gui.threejsScene.THREE;
 
         let originSize = 100;
-        const group = new THREE.Mesh(new THREE.BoxGeometry(originSize, originSize, originSize), new THREE.MeshBasicMaterial({color: originColor}));
+        const group = new THREE.Mesh(
+            new THREE.BoxGeometry(originSize, originSize, originSize),
+            new THREE.MeshBasicMaterial({ color: originColor })
+        );
         group.name = getElementName(frameKey) + '_group';
         group.visible = isPositioningMode;
 
         const options = {
             size: realityEditor.device.environment.variables.transformControlsSize || 1,
-            hideY: true
-        }
+            hideY: true,
+        };
 
-        let transformControl = realityEditor.gui.threejsScene.addTransformControlsTo(group, options, onChange, onDraggingChanged);
+        let transformControl = realityEditor.gui.threejsScene.addTransformControlsTo(
+            group,
+            options,
+            onChange,
+            onDraggingChanged
+        );
         transformControl.attachedGroupName = group.name;
         transformControl.attachedFrameKey = frameKey;
 
@@ -180,8 +220,12 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
         for (let key in threejsGroups) {
             updateGroupVisibility(threejsGroups[key], key);
         }
-        if (mouseCursorMesh) { mouseCursorMesh.visible = false; }
-        if (initialCalculationMesh) { initialCalculationMesh.visible = false; }
+        if (mouseCursorMesh) {
+            mouseCursorMesh.visible = false;
+        }
+        if (initialCalculationMesh) {
+            initialCalculationMesh.visible = false;
+        }
     }
 
     function updateGroupVisibility(group, key) {
@@ -190,8 +234,10 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
         // hide if it belongs to a closed envelope
         let hiddenInEnvelope = false;
         let knownEnvelopes = realityEditor.envelopeManager.getKnownEnvelopes();
-        Object.keys(knownEnvelopes).forEach(function(envelopeKey) {
-            if (hiddenInEnvelope) { return; }
+        Object.keys(knownEnvelopes).forEach(function (envelopeKey) {
+            if (hiddenInEnvelope) {
+                return;
+            }
             let envelopeInfo = knownEnvelopes[envelopeKey];
             let containsThisGroup = envelopeInfo.containedFrameIds.includes(key);
             if (containsThisGroup && !envelopeInfo.isOpen) {
@@ -209,25 +255,26 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
 
     // helper function to get the x,z coords of a threejs object based on its matrix
     function getPositionXZ(threeJsObject) {
-        if (!threeJsObject || typeof threeJsObject.matrix === 'undefined') { return null; }
+        if (!threeJsObject || typeof threeJsObject.matrix === 'undefined') {
+            return null;
+        }
         return {
             x: threeJsObject.matrix.elements[12],
-            z: threeJsObject.matrix.elements[14]
+            z: threeJsObject.matrix.elements[14],
         };
     }
 
     function onChange(e) {
         if (e.target.attachedFrameKey === selectedGroupKey) {
-
             // move tool to correct position
             let oldAnchorLocalPosition = getPositionXZ(getInitialCalculationMesh());
             let newAnchorLocalPosition = getPositionXZ(threejsGroups[selectedGroupKey]); //getAnchorMeshByFrameKey(selectedGroupKey));
-            
+
             console.log(newAnchorLocalPosition);
 
             let dx = newAnchorLocalPosition.x - oldAnchorLocalPosition.x;
             let dz = newAnchorLocalPosition.z - oldAnchorLocalPosition.z;
-            
+
             if (isFirstDragUpdate) {
                 dx = 0;
                 dz = 0;
@@ -248,7 +295,9 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
             selectedGroupKey = e.target.attachedFrameKey;
             let frameSceneNode = realityEditor.sceneGraph.getSceneNodeById(selectedGroupKey);
             if (frameSceneNode) {
-                initialLocalMatrix = realityEditor.gui.ar.utilities.copyMatrix(frameSceneNode.localMatrix)
+                initialLocalMatrix = realityEditor.gui.ar.utilities.copyMatrix(
+                    frameSceneNode.localMatrix
+                );
             }
             let initialMesh = getInitialCalculationMesh();
             initialMesh.visible = true;
@@ -278,4 +327,4 @@ createNameSpace("realityEditor.gui.ar.groundPlaneAnchors");
     exports.getMatrix = getMatrix;
     exports.sceneNodeAdded = sceneNodeAdded;
     exports.togglePositioningMode = togglePositioningMode;
-}(realityEditor.gui.ar.groundPlaneAnchors));
+})(realityEditor.gui.ar.groundPlaneAnchors);

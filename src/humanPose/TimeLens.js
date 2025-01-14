@@ -1,6 +1,6 @@
-import {MotionStudyLens} from "./MotionStudyLens.js";
-import {MotionStudyColors} from "./MotionStudyColors.js";
-import {JOINTS} from "./constants.js";
+import { MotionStudyLens } from './MotionStudyLens.js';
+import { MotionStudyColors } from './MotionStudyColors.js';
+import { JOINTS } from './constants.js';
 
 const TIME_INTERVAL_DURATION = 10000; // 10 seconds
 
@@ -12,7 +12,7 @@ class TimeLens extends MotionStudyLens {
      * Creates a new TimeLens object.
      */
     constructor() {
-        super("Time");
+        super('Time');
     }
 
     applyLensToPose(pose) {
@@ -21,10 +21,10 @@ class TimeLens extends MotionStudyLens {
         }
         const intervalProgress = pose.timestamp % TIME_INTERVAL_DURATION;
         const timeFrac = intervalProgress / TIME_INTERVAL_DURATION;
-        pose.forEachJoint(joint => {
+        pose.forEachJoint((joint) => {
             joint.timeFrac = timeFrac;
         });
-        pose.forEachBone(bone => {
+        pose.forEachBone((bone) => {
             bone.timeFrac = timeFrac;
         });
         return true;
@@ -38,11 +38,11 @@ class TimeLens extends MotionStudyLens {
     }
 
     applyLensToHistory(poseHistory) {
-        return poseHistory.map(pose => {
+        return poseHistory.map((pose) => {
             return this.applyLensToPose(pose);
         });
     }
-    
+
     getColorFromFrac(frac) {
         const startColor = MotionStudyColors.red;
         const endColor = MotionStudyColors.blue;
@@ -50,30 +50,28 @@ class TimeLens extends MotionStudyLens {
     }
 
     getColorForJoint(joint) {
-        if (typeof joint.timeFrac === "undefined") {
+        if (typeof joint.timeFrac === 'undefined') {
             return MotionStudyColors.undefined;
         }
         return this.getColorFromFrac(joint.timeFrac);
     }
 
     getColorForBone(bone) {
-        if (typeof bone.timeFrac === "undefined") {
+        if (typeof bone.timeFrac === 'undefined') {
             return MotionStudyColors.undefined;
         }
         return this.getColorFromFrac(bone.timeFrac);
     }
-    
+
     getColorForPose(pose) {
-        if (typeof pose.getJoint(JOINTS.HEAD).timeFrac === "undefined") {
+        if (typeof pose.getJoint(JOINTS.HEAD).timeFrac === 'undefined') {
             return MotionStudyColors.undefined;
         }
         return this.getColorForJoint(pose.getJoint(JOINTS.HEAD));
     }
 
     getTableViewJoints() {
-        return [
-            JOINTS.CHEST
-        ]
+        return [JOINTS.CHEST];
     }
 
     getTableViewValue(joint) {
@@ -85,4 +83,4 @@ class TimeLens extends MotionStudyLens {
     }
 }
 
-export {TimeLens};
+export { TimeLens };

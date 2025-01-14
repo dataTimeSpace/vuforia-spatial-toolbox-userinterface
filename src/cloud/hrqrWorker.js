@@ -1,26 +1,24 @@
 /* global importScripts, HRQR, cv */
 
-importScripts("../../thirdPartyCode/opencv.js");
-importScripts("../../thirdPartyCode/HRQRDecoder.js");
+importScripts('../../thirdPartyCode/opencv.js');
+importScripts('../../thirdPartyCode/HRQRDecoder.js');
 
 let hrqr = new HRQR();
 //let hrqr = new MEMORYTEST();
 
-cv["onRuntimeInitialized"] = () => {
+cv['onRuntimeInitialized'] = () => {
     hrqr.init();
-    postMessage({"mode":"ready"});
+    postMessage({ mode: 'ready' });
 };
 
-onmessage = function(msg) {
+onmessage = function (msg) {
+    //  console.log("worker",msg.data.image);
+    //  console.log(msg.data);
 
-  //  console.log("worker",msg.data.image);
-  //  console.log(msg.data);
+    let message = hrqr.render(msg.data.image);
 
- let message = hrqr.render(msg.data.image)
-    
-   // console.log(msg.data[0].data);
-    if(message) {
-        postMessage({"mode": "msg", msg: message});
+    // console.log(msg.data[0].data);
+    if (message) {
+        postMessage({ mode: 'msg', msg: message });
     }
 };
-

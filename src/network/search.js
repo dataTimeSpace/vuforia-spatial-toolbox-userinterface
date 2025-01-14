@@ -1,25 +1,24 @@
-createNameSpace("realityEditor.network.search");
+createNameSpace('realityEditor.network.search');
 
 /**
  * @fileOverview realityEditor.network.frameContentAPI.js
  * Provides accesss to REST APIs to search the network for objects and tools satisfying certain conditions
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * Public init method sets up module by registering callbacks when important events happen in other modules
      */
     function initService() {
         // console.log('network.search initService');
     }
-    
+
     // function searchFrames(ip, queryParams, callback) {
-    //    
+    //
     //     // download the object data from its server
     //     let port = 8080;
     //     let baseUrl = (realityEditor.network.useHTTPS ? 'https' : 'http') + '://' + ip + ':' + port + '/spatial/searchFrames' + stringifyQueryParams(queryParams);
-    //    
+    //
     //     realityEditor.network.getData(null,  null, null, baseUrl, function (objectKey, frameKey, nodeKey, msg) {
     //         if (msg && msg.validAddresses) {
     //             console.log(msg);
@@ -32,27 +31,27 @@ createNameSpace("realityEditor.network.search");
     //     if (!queryParams || Object.keys(queryParams).length === 0) {
     //         return '';
     //     }
-    //    
+    //
     //     let result = '';
     //     Object.keys(queryParams).forEach(function(key, index) {
     //         let value = queryParams[key];
     //         result += index > 0 ? '&' : '?';
     //         result += key + '=' + value;
     //     });
-    //    
+    //
     //     return result;
     // }
-    
+
     function searchFrames(ip, port, queryParams, callback) {
         let search = new Search();
         for (let key in queryParams) {
             search.addQueryParam(key, queryParams[key]);
         }
-        search.performAndForEachDownload(ip, port, function(results) {
+        search.performAndForEachDownload(ip, port, function (results) {
             callback(results);
         });
     }
-    
+
     class Search {
         constructor() {
             this.queryParams = {};
@@ -77,23 +76,43 @@ createNameSpace("realityEditor.network.search");
             this.addQueryParam(concatenated, specifiedValue);
         }
         perform(ip, port, callback) {
-            let baseUrl = realityEditor.network.getURL(ip, port, '/spatial/searchFrames' + this.stringifyQueryParams());
+            let baseUrl = realityEditor.network.getURL(
+                ip,
+                port,
+                '/spatial/searchFrames' + this.stringifyQueryParams()
+            );
 
-            realityEditor.network.getData(null,  null, null, baseUrl, function (_objectKey, _frameKey, _nodeKey, msg) {
-                if (msg && msg.validAddresses) {
-                    callback(msg.validAddresses);
+            realityEditor.network.getData(
+                null,
+                null,
+                null,
+                baseUrl,
+                function (_objectKey, _frameKey, _nodeKey, msg) {
+                    if (msg && msg.validAddresses) {
+                        callback(msg.validAddresses);
+                    }
                 }
-            });
+            );
         }
         performAndForEachDownload(ip, port, callback) {
-            this.perform(ip, port, function(validAddresses) {
-                validAddresses.forEach(function(address) {
-                    let downloadUrl = realityEditor.network.getURL(ip, port, '/object/' + address.objectId + '/frame/' + address.frameId);
-                    realityEditor.network.getData(null,  null, null, downloadUrl, function (_objectKey, _frameKey, _nodeKey, msg) {
-                        if (msg) {
-                            callback(msg);
+            this.perform(ip, port, function (validAddresses) {
+                validAddresses.forEach(function (address) {
+                    let downloadUrl = realityEditor.network.getURL(
+                        ip,
+                        port,
+                        '/object/' + address.objectId + '/frame/' + address.frameId
+                    );
+                    realityEditor.network.getData(
+                        null,
+                        null,
+                        null,
+                        downloadUrl,
+                        function (_objectKey, _frameKey, _nodeKey, msg) {
+                            if (msg) {
+                                callback(msg);
+                            }
                         }
-                    });
+                    );
                 });
             });
         }
@@ -103,11 +122,13 @@ createNameSpace("realityEditor.network.search");
             }
 
             let result = '';
-            Object.keys(this.queryParams).forEach(function(key, index) {
-                let value = this.queryParams[key];
-                result += index > 0 ? '&' : '?';
-                result += key + '=' + value;
-            }.bind(this));
+            Object.keys(this.queryParams).forEach(
+                function (key, index) {
+                    let value = this.queryParams[key];
+                    result += index > 0 ? '&' : '?';
+                    result += key + '=' + value;
+                }.bind(this)
+            );
 
             return result;
         }
@@ -115,5 +136,4 @@ createNameSpace("realityEditor.network.search");
 
     exports.initService = initService;
     exports.searchFrames = searchFrames;
-
 })(realityEditor.network.search);

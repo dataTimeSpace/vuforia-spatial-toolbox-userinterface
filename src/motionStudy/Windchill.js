@@ -1,5 +1,5 @@
-import {windchillBaseUrl, windchillUsername, windchillPassword} from './config.js';
-import {MPMAPI} from './MPMAPI.js';
+import { windchillBaseUrl, windchillUsername, windchillPassword } from './config.js';
+import { MPMAPI } from './MPMAPI.js';
 
 const WRITE_DELAY = 10000;
 
@@ -12,7 +12,11 @@ export class Windchill {
      * @param {string} username
      * @param {string} password
      */
-    constructor(baseUrl = windchillBaseUrl, username = windchillUsername, password = windchillPassword) {
+    constructor(
+        baseUrl = windchillBaseUrl,
+        username = windchillUsername,
+        password = windchillPassword
+    ) {
         this.api = new MPMAPI(baseUrl, username, password);
         this.writing = false;
         this.writeTimeout = null;
@@ -25,7 +29,7 @@ export class Windchill {
     async getProcessPlans(nameFilter) {
         const data = await this.api.getProcessPlans(`Name eq '${nameFilter}'`);
         const plans = data.value;
-        return plans.map(plan => {
+        return plans.map((plan) => {
             return {
                 id: plan.ID,
                 name: plan.Name,
@@ -87,8 +91,8 @@ export class Windchill {
                 let coPlan = await this.api.checkOutProcessPlan(plan.id);
                 let coPlanOps = await this.getOperations(coPlan.id);
                 for (let coPlanOp of coPlanOps) {
-                    const regionCard = regionCards.find(card => {
-                        return (card.step && (card.step.id === coPlanOp.id));
+                    const regionCard = regionCards.find((card) => {
+                        return card.step && card.step.id === coPlanOp.id;
                     });
                     if (!regionCard) {
                         continue;

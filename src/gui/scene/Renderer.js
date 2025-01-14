@@ -29,11 +29,11 @@ class GlobalScale {
 
     /** @type {GlobalScaleListener[]} */
     #listeners;
-    
+
     /**
-     * 
-     * @param {DeviceUnitsPerMeter} deviceScale 
-     * @param {MetersPerSceneUnit} sceneScale 
+     *
+     * @param {DeviceUnitsPerMeter} deviceScale
+     * @param {MetersPerSceneUnit} sceneScale
      */
     constructor(deviceScale, sceneScale) {
         this.#deviceScale = deviceScale;
@@ -41,7 +41,7 @@ class GlobalScale {
         this.#listeners = [];
 
         this.#node = new THREE.Group();
-        this.#node.name = "worldScaleNode";
+        this.#node.name = 'worldScaleNode';
         this.#node.scale.setScalar(this.getGlobalScale());
     }
 
@@ -50,8 +50,8 @@ class GlobalScale {
     }
 
     /**
-     * 
-     * @param {DeviceUnitsPerMeter} scale 
+     *
+     * @param {DeviceUnitsPerMeter} scale
      */
     setDeviceScale(scale) {
         this.#deviceScale = scale;
@@ -64,7 +64,7 @@ class GlobalScale {
     }
 
     /**
-     * 
+     *
      * @returns {DeviceUnitsPerSceneUnit}
      */
     getGlobalScale() {
@@ -72,7 +72,7 @@ class GlobalScale {
     }
 
     /**
-     * 
+     *
      * @returns {SceneUnitsPerDeviceUnit}
      */
     getInvGlobalScale() {
@@ -84,8 +84,8 @@ class GlobalScale {
     }
 
     /**
-     * 
-     * @param {GlobalScaleListener} func 
+     *
+     * @param {GlobalScaleListener} func
      */
     addListener(func) {
         this.#listeners.push(func);
@@ -103,26 +103,30 @@ class GlobalScale {
  */
 class Renderer {
     /** @type {THREE.WebGLRenderer} */
-    #renderer
+    #renderer;
 
     /** @type {Camera} */
-    #camera
+    #camera;
 
     /** @type {THREE.Scene} */
-    #scene
+    #scene;
 
     /** @type {THREE.Raycaster} */
-    #raycaster
+    #raycaster;
 
     /** @type {GlobalScale} */
-    #globalScale
+    #globalScale;
 
     /**
-     * 
-     * @param {HTMLCanvasElement} domElement 
+     *
+     * @param {HTMLCanvasElement} domElement
      */
     constructor(domElement) {
-        this.#renderer = new THREE.WebGLRenderer({canvas: domElement, alpha: true, antialias: true});
+        this.#renderer = new THREE.WebGLRenderer({
+            canvas: domElement,
+            alpha: true,
+            antialias: true,
+        });
         this.#renderer.setPixelRatio(window.devicePixelRatio);
         this.#renderer.setSize(window.innerWidth, window.innerHeight);
         this.#renderer.outputEncoding = THREE.sRGBEncoding;
@@ -130,7 +134,10 @@ class Renderer {
             this.#renderer.xr.enabled = true;
             if (realityEditor.gui.getMenuBar) {
                 const menuBar = realityEditor.gui.getMenuBar();
-                menuBar.addItemToMenu(realityEditor.gui.MENU.Develop, WebXRVRButton.createButton(this.#renderer));
+                menuBar.addItemToMenu(
+                    realityEditor.gui.MENU.Develop,
+                    WebXRVRButton.createButton(this.#renderer)
+                );
             }
         }
 
@@ -141,7 +148,7 @@ class Renderer {
         this.#globalScale = new GlobalScale(1000, 0.001);
         this.#scene.add(this.#globalScale.getNode());
 
-        realityEditor.device.layout.onWindowResized(({width, height}) => {
+        realityEditor.device.layout.onWindowResized(({ width, height }) => {
             this.#renderer.setSize(width, height);
         });
 
@@ -158,7 +165,7 @@ class Renderer {
         THREE.Mesh.prototype.raycast = acceleratedRaycast;
         this.#raycaster = new THREE.Raycaster();
     }
-    
+
     /**
      * use this helper function to update the camera matrix using the camera matrix from the sceneGraph
      */
@@ -175,8 +182,8 @@ class Renderer {
     }
 
     /**
-     * 
-     * @param {Camera|AnchoredGroup|THREE.Object3D} obj 
+     *
+     * @param {Camera|AnchoredGroup|THREE.Object3D} obj
      */
     add(obj) {
         if (obj instanceof Camera) {
@@ -187,12 +194,12 @@ class Renderer {
         } else if (obj instanceof AnchoredGroup) {
             this.#globalScale.getNode().add(obj.getInternalObject());
         } else if (obj instanceof THREE.Object3D) {
-            this.#globalScale.getNode().add(obj)
+            this.#globalScale.getNode().add(obj);
         }
     }
 
     /**
-     * 
+     *
      * @returns {boolean}
      */
     isInWebXRMode() {
@@ -204,8 +211,8 @@ class Renderer {
     }
 
     /**
-     * 
-     * @param {Camera} camera 
+     *
+     * @param {Camera} camera
      */
     setCamera(camera) {
         this.#camera = camera;
@@ -216,8 +223,8 @@ class Renderer {
     }
 
     /**
-     * 
-     * @param {THREE.WebGLRenderTarget} renderTexture 
+     *
+     * @param {THREE.WebGLRenderTarget} renderTexture
      * @param {THREE.Scene} customScene
      */
     renderToTexture(renderTexture) {
@@ -227,25 +234,25 @@ class Renderer {
     }
 
     /**
-     * 
-     * @param {() => void} func 
+     *
+     * @param {() => void} func
      */
     setAnimationLoop(func) {
         this.#renderer.setAnimationLoop(func);
     }
 
     /**
-     * 
-     * @param {string} name 
+     *
+     * @param {string} name
      * @returns {THREE.Object3D|undefined}
      */
     getObjectByName(name) {
         return this.#globalScale.getNode().getObjectByName(name);
     }
-    
+
     /**
      * return all objects with the name
-     * @param {string} name 
+     * @param {string} name
      * @returns {THREE.Object3D[]}
      */
     getObjectsByName(name) {
@@ -254,7 +261,7 @@ class Renderer {
         const objects = [];
         this.#globalScale.getNode().traverse((object) => {
             if (object.name === name) objects.push(object);
-        })
+        });
         return objects;
     }
 
@@ -266,9 +273,9 @@ class Renderer {
      */
     getScreenRay(clientX, clientY) {
         let mouse = new THREE.Vector2();
-        mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
-        this.#raycaster.setFromCamera( mouse, this.#camera.getInternalObject() );
+        mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+        this.#raycaster.setFromCamera(mouse, this.#camera.getInternalObject());
         return this.#raycaster.ray;
     }
 
@@ -284,21 +291,24 @@ class Renderer {
      */
     getRaycastIntersects(clientX, clientY, objectsToCheck) {
         let mouse = new THREE.Vector2();
-        mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
+        mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
         //2. set the picking ray from the camera position and mouse coordinates
-        this.#raycaster.setFromCamera( mouse, this.#camera.getInternalObject() );
+        this.#raycaster.setFromCamera(mouse, this.#camera.getInternalObject());
 
         this.#raycaster.firstHitOnly = true; // faster (using three-mesh-bvh)
 
         //3. compute intersections
         // add object layer to raycast layer mask
-        objectsToCheck.forEach(obj => {
+        objectsToCheck.forEach((obj) => {
             this.#raycaster.layers.mask = this.#raycaster.layers.mask | obj.layers.mask;
         });
-        let results = this.#raycaster.intersectObjects( objectsToCheck || this.#globalScale.getNode().children, true );
-        results.forEach(intersection => {
+        let results = this.#raycaster.intersectObjects(
+            objectsToCheck || this.#globalScale.getNode().children,
+            true
+        );
+        results.forEach((intersection) => {
             intersection.rayDirection = this.#raycaster.ray.direction;
             intersection.scenePoint = intersection.point.clone();
             intersection.scenePoint.multiplyScalar(this.#globalScale.getInvGlobalScale());
@@ -308,7 +318,7 @@ class Renderer {
     }
 
     /**
-     * 
+     *
      * @returns {THREE.Renderer}
      */
     getInternalRenderer() {
@@ -316,7 +326,7 @@ class Renderer {
     }
 
     /**
-     * 
+     *
      * @returns {Camera}
      */
     getCamera() {
@@ -331,7 +341,7 @@ class Renderer {
     }
 
     /**
-     * 
+     *
      * @returns {THREE.Scene}
      */
     getInternalScene() {
@@ -339,7 +349,7 @@ class Renderer {
     }
 
     /**
-     * 
+     *
      * @returns {HTMLCanvasElement}
      */
     getInternalCanvas() {

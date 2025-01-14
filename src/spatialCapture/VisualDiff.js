@@ -1,6 +1,6 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import {ShaderMode} from './Shaders.js';
-import { LayerConfig } from "../gui/scene/Camera.js";
+import { ShaderMode } from './Shaders.js';
+import { LayerConfig } from '../gui/scene/Camera.js';
 
 const DEBUG = false;
 
@@ -103,7 +103,10 @@ export class VisualDiff {
                 map: this.rtBase.texture,
                 transparent: false,
             });
-            let cubeBase = new THREE.Mesh(new THREE.PlaneGeometry(500, 500 * height / width), matBase);
+            let cubeBase = new THREE.Mesh(
+                new THREE.PlaneGeometry(500, (500 * height) / width),
+                matBase
+            );
             realityEditor.gui.threejsScene.addToScene(cubeBase);
             cubeBase.position.set(400, 250, -1000);
 
@@ -111,7 +114,10 @@ export class VisualDiff {
                 map: this.rtCamera.texture,
                 transparent: false,
             });
-            let cubeCamera = new THREE.Mesh(new THREE.PlaneGeometry(500, 500 * height / width), matCamera);
+            let cubeCamera = new THREE.Mesh(
+                new THREE.PlaneGeometry(500, (500 * height) / width),
+                matCamera
+            );
             realityEditor.gui.threejsScene.addToScene(cubeCamera);
             cubeCamera.position.set(-400, 250, -1000);
 
@@ -119,18 +125,21 @@ export class VisualDiff {
 
             let matDiff = new THREE.ShaderMaterial({
                 uniforms: {
-                    mapBase: {value: this.rtBase.texture},
-                    mapBaseDepth: {value: this.rtBase.depthTexture},
-                    mapCamera: {value: this.rtCamera.texture},
-                    mapCameraDepth: {value: this.rtCamera.depthTexture},
-                    cameraNear: {value: camera.getNear()},
-                    cameraFar: {value: camera.getFar()},
+                    mapBase: { value: this.rtBase.texture },
+                    mapBaseDepth: { value: this.rtBase.depthTexture },
+                    mapCamera: { value: this.rtCamera.texture },
+                    mapCameraDepth: { value: this.rtCamera.depthTexture },
+                    cameraNear: { value: camera.getNear() },
+                    cameraFar: { value: camera.getFar() },
                 },
                 vertexShader,
                 fragmentShader: fragmentShaderDepth,
                 transparent: false,
             });
-            let cubeDiff = new THREE.Mesh(new THREE.PlaneGeometry(500, 500 * height / width), matDiff);
+            let cubeDiff = new THREE.Mesh(
+                new THREE.PlaneGeometry(500, (500 * height) / width),
+                matDiff
+            );
             realityEditor.gui.threejsScene.addToScene(cubeDiff);
             cubeDiff.position.set(-900, 550, -1000);
         }
@@ -150,21 +159,23 @@ export class VisualDiff {
         const camera = realityEditor.gui.threejsScene.getInternals().getCamera();
 
         let matDiff = material.clone();
-        matDiff.fragmentShader = shaderMode === ShaderMode.DIFF ?
-            fragmentShader : fragmentShaderDepth;
+        matDiff.fragmentShader =
+            shaderMode === ShaderMode.DIFF ? fragmentShader : fragmentShaderDepth;
         matDiff.uniforms = material.uniforms;
-        matDiff.uniforms.mapBase = {value: this.rtBase.texture};
-        matDiff.uniforms.mapBaseDepth =  {value: this.rtBase.depthTexture};
-        matDiff.uniforms.mapCamera = {value: this.rtCamera.texture};
-        matDiff.uniforms.mapCameraDepth =  {value: this.rtCamera.depthTexture};
-        matDiff.uniforms.cameraNear = {value: camera.getNear()};
-        matDiff.uniforms.cameraFar = {value: camera.getFar()};
+        matDiff.uniforms.mapBase = { value: this.rtBase.texture };
+        matDiff.uniforms.mapBaseDepth = { value: this.rtBase.depthTexture };
+        matDiff.uniforms.mapCamera = { value: this.rtCamera.texture };
+        matDiff.uniforms.mapCameraDepth = { value: this.rtCamera.depthTexture };
+        matDiff.uniforms.cameraNear = { value: camera.getNear() };
+        matDiff.uniforms.cameraFar = { value: camera.getFar() };
         return matDiff;
     }
 
     showCameraVisDiff(cameraVis) {
-        if (cameraVis.shaderMode !== ShaderMode.DIFF &&
-            cameraVis.shaderMode !== ShaderMode.DIFF_DEPTH) {
+        if (
+            cameraVis.shaderMode !== ShaderMode.DIFF &&
+            cameraVis.shaderMode !== ShaderMode.DIFF_DEPTH
+        ) {
             console.error('VisualDiff called without shader mode being DIFF or DIFF_DEPTH');
             return;
         }

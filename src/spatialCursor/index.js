@@ -1,10 +1,9 @@
-createNameSpace("realityEditor.spatialCursor");
+createNameSpace('realityEditor.spatialCursor');
 
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
+import { fract, clamp, remap, mathUtilShader } from '../utilities/MathUtils.js';
 
-(function(exports) {
-
+(function (exports) {
     const SNAP_CURSOR_TO_TOOLS = false; // the snapping doesn't do anything yet, so turn off for now
     const DEFAULT_SPATIAL_CURSOR_ON = true; // applied after we localize within a target / download occlusion mesh
 
@@ -40,7 +39,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     let pointerSnapMode = false;
 
     let clock = new THREE.Clock();
-    
+
     // offset the spatial cursor with the worldIntersectPoint to avoid clipping plane issues
     const topCursorOffset = 15;
     const bottomCursorOffset = 1;
@@ -190,24 +189,27 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     }
     `;
 
-    let color = 'rgb(0, 255, 255)', colorLighter = 'rgb(255, 255, 255)';
-    let finalColor = [{
-        color: new THREE.Color(color),
-        colorLighter: new THREE.Color(colorLighter)
-    }];
-    
-    let uniforms = {
-        'EPSILON': {value: Number.EPSILON},
-        'time': {value: 0},
-        'opacityFactor': {value: opacityFactor},
-        'innerRadius': {value: innerRadius},
-        'isMeasureMode': {value: isMeasureMode},
-        't11': {value: t11},
-        't22': {value: t22},
-        't33': {value: t33},
+    let color = 'rgb(0, 255, 255)',
+        colorLighter = 'rgb(255, 255, 255)';
+    let finalColor = [
+        {
+            color: new THREE.Color(color),
+            colorLighter: new THREE.Color(colorLighter),
+        },
+    ];
 
-        'isColored': {value: false},
-        'avatarColor': {value: finalColor},
+    let uniforms = {
+        EPSILON: { value: Number.EPSILON },
+        time: { value: 0 },
+        opacityFactor: { value: opacityFactor },
+        innerRadius: { value: innerRadius },
+        isMeasureMode: { value: isMeasureMode },
+        t11: { value: t11 },
+        t22: { value: t22 },
+        t33: { value: t33 },
+
+        isColored: { value: false },
+        avatarColor: { value: finalColor },
     };
     // remember to set depthTest=false and depthWrite=false after creating the material, to prevent visual glitches
     const normalCursorMaterial = new THREE.ShaderMaterial({
@@ -224,11 +226,11 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         transparent: true,
         side: THREE.DoubleSide,
     });
-    
+
     let uniforms2 = {
-        'EPSILON': {value: Number.EPSILON},
-        'avatarColor': {value: finalColor},
-        'opacityFactor': {value: opacityFactor},
+        EPSILON: { value: Number.EPSILON },
+        avatarColor: { value: finalColor },
+        opacityFactor: { value: opacityFactor },
     };
     const testCursorFragmentShader = `
     ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
@@ -274,7 +276,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         colorLighter = `${myAvatarColor.colorLighter}`;
         finalColor[0] = {
             color: new THREE.Color(color),
-            colorLighter: new THREE.Color(colorLighter)
+            colorLighter: new THREE.Color(colorLighter),
         };
 
         // show the cursor if it was hidden while this function resolves
@@ -298,7 +300,9 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
                 cachedWorldObject = null; // don't accept the local world object
             }
             if (cachedWorldObject && !cachedOcclusionObject) {
-                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(cachedWorldObject.objectId);
+                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(
+                    cachedWorldObject.objectId
+                );
                 if (cachedOcclusionObject) {
                     // trigger the callback and clear the interval
                     callback(cachedWorldObject, cachedOcclusionObject);
@@ -319,7 +323,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             }
         });
 
-        realityEditor.worldObjects.onLocalizedWithinWorld(function(worldObjectKey) {
+        realityEditor.worldObjects.onLocalizedWithinWorld(function (worldObjectKey) {
             if (worldObjectKey === realityEditor.worldObjects.getLocalWorldId()) {
                 return;
             }
@@ -330,19 +334,19 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
                 toggleDisplaySpatialCursor(true);
             }
         });
-        
+
         addSpatialCursor();
         addTestSpatialCursor();
         toggleDisplaySpatialCursor(false);
         updateCursorDirectionArray();
 
         registerKeyboardFlyMode();
-        
+
         await getMyAvatarColor();
         uniforms2['avatarColor'].value = finalColor;
 
         const ADD_SEARCH_TOOL_WITH_CURSOR = false;
-        
+
         document.addEventListener('pointerdown', (e) => {
             if (!isFlying) {
                 screenX = e.pageX;
@@ -350,7 +354,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             }
             // make the spatial cursor inner white circle pulse
             innerRadiusSpeed += 0.15;
-        })
+        });
 
         addPostMessageHandlers();
 
@@ -361,39 +365,52 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
                 if (!realityEditor.device.utilities.isEventHittingBackground(e)) return; // if clicking on a button, etc, don't trigger this
 
                 // raycast against the spatial cursor
-                let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.clientX, e.clientY, [indicator2]);
+                let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                    e.clientX,
+                    e.clientY,
+                    [indicator2]
+                );
                 if (intersects.length > 0) {
                     addToolAtScreenCenter('searchDigitalThread', { moveToCursor: true });
                 }
             });
         }
 
-        realityEditor.network.addPostMessageHandler('getSpatialCursorEvent', async (_, fullMessageData) => {
-            let tmpRaycastResult = await getRaycastCoordinates(screenX, screenY, false);
-            let threejsIntersectPoint = tmpRaycastResult.point === undefined ? undefined : {
-                x: tmpRaycastResult.point.x,
-                y: tmpRaycastResult.point.y,
-                z: tmpRaycastResult.point.z,
+        realityEditor.network.addPostMessageHandler(
+            'getSpatialCursorEvent',
+            async (_, fullMessageData) => {
+                let tmpRaycastResult = await getRaycastCoordinates(screenX, screenY, false);
+                let threejsIntersectPoint =
+                    tmpRaycastResult.point === undefined
+                        ? undefined
+                        : {
+                              x: tmpRaycastResult.point.x,
+                              y: tmpRaycastResult.point.y,
+                              z: tmpRaycastResult.point.z,
+                          };
+                realityEditor.network.postMessageIntoFrame(fullMessageData.frame, {
+                    spatialCursorEvent: {
+                        clientX: screenX,
+                        clientY: screenY,
+                        x: screenX,
+                        y: screenY,
+                        projectedZ: projectedZ,
+                        threejsIntersectPoint: threejsIntersectPoint,
+                    },
+                });
             }
-            realityEditor.network.postMessageIntoFrame(fullMessageData.frame, {
-                spatialCursorEvent: {
-                    clientX: screenX,
-                    clientY: screenY,
-                    x: screenX,
-                    y: screenY,
-                    projectedZ: projectedZ,
-                    threejsIntersectPoint: threejsIntersectPoint
-                }
-            });
-        });
+        );
     }
 
     // publicly accessible function to add a tool at the spatial cursor position (or floating in front of you)
-    async function addToolAtScreenCenter(toolName, { moveToCursor = false, onToolUploadComplete = null} = {}) {
-        
+    async function addToolAtScreenCenter(
+        toolName,
+        { moveToCursor = false, onToolUploadComplete = null } = {}
+    ) {
         let spatialCursorMatrix = null;
         if (moveToCursor) {
-            spatialCursorMatrix = realityEditor.spatialCursor.getOrientedCursorRelativeToWorldObject();
+            spatialCursorMatrix =
+                realityEditor.spatialCursor.getOrientedCursorRelativeToWorldObject();
         } else {
             let info = await realityEditor.spatialCursor.getOrientedCursorIfItWereAtScreenCenter();
             if (info.didFindCenterPoint) {
@@ -410,33 +427,51 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             noUserInteraction: true,
             pageX: window.innerWidth / 2,
             pageY: window.innerHeight / 2,
-            initialMatrix: (spatialCursorMatrix) ? spatialCursorMatrix : undefined,
+            initialMatrix: spatialCursorMatrix ? spatialCursorMatrix : undefined,
             onUploadComplete: () => {
                 realityEditor.network.postVehiclePosition(addedElement);
                 if (typeof onToolUploadComplete === 'function') {
                     onToolUploadComplete(addedElement);
                 }
-            }
+            },
         });
 
         if (!moveToCursor && !spatialCursorMatrix) {
-            let worldCenterPoint = await getRaycastCoordinates(window.innerWidth/2, window.innerHeight/2);
+            let worldCenterPoint = await getRaycastCoordinates(
+                window.innerWidth / 2,
+                window.innerHeight / 2
+            );
             if (worldCenterPoint.point === undefined) {
-                let rotateCenterId = 'rotateCenter'+'_VISUAL_ELEMENT';
+                let rotateCenterId = 'rotateCenter' + '_VISUAL_ELEMENT';
                 if (realityEditor.sceneGraph.getSceneNodeById(rotateCenterId) !== undefined) {
                     // when on desktop, there is rotation center
                     let dist = realityEditor.sceneGraph.getDistanceToCamera(rotateCenterId);
                     console.log(dist);
-                    realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, dist);
+                    realityEditor.gui.ar.positioning.moveFrameToCamera(
+                        addedElement.objectId,
+                        addedElement.uuid,
+                        dist
+                    );
                 } else {
                     // when on phone, there's no rotation center
-                    realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, 1000);
+                    realityEditor.gui.ar.positioning.moveFrameToCamera(
+                        addedElement.objectId,
+                        addedElement.uuid,
+                        1000
+                    );
                 }
             } else {
                 // when there is area target mesh at screen center
                 let worldCamPoint = new THREE.Vector3();
-                realityEditor.gui.threejsScene.getInternals().getCamera().getWorldPosition(worldCamPoint);
-                realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, worldCenterPoint.point.distanceTo(worldCamPoint));
+                realityEditor.gui.threejsScene
+                    .getInternals()
+                    .getCamera()
+                    .getWorldPosition(worldCamPoint);
+                realityEditor.gui.ar.positioning.moveFrameToCamera(
+                    addedElement.objectId,
+                    addedElement.uuid,
+                    worldCenterPoint.point.distanceTo(worldCamPoint)
+                );
             }
         }
         return addedElement;
@@ -445,16 +480,19 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     // publicly accessible function to add a tool at the spatial cursor position (or floating in front of you)
     // tool added at screen coordinates
     async function addToolAtSpecifiedCoords(toolName, { moveToCursor = false, screenX, screenY }) {
-
         // TODO: what happens if you drop tool into the sky, looking up –> there's no cursor intersect point,
         //  -> so make it drop close in front of you instead of infinitely far away
 
         let spatialCursorMatrix = null;
         if (moveToCursor) {
-            spatialCursorMatrix = realityEditor.spatialCursor.getOrientedCursorRelativeToWorldObject();
-        } else if (screenX !== null && screenY !== null){
+            spatialCursorMatrix =
+                realityEditor.spatialCursor.getOrientedCursorRelativeToWorldObject();
+        } else if (screenX !== null && screenY !== null) {
             //set spatialCursorMatrix equal to screen coordinates
-            let info = await realityEditor.spatialCursor.getOrientedCursorAtSpecificCoords(screenX, screenY);
+            let info = await realityEditor.spatialCursor.getOrientedCursorAtSpecificCoords(
+                screenX,
+                screenY
+            );
             if (info.didFindMouseCoords) {
                 spatialCursorMatrix = info.matrix;
             }
@@ -474,30 +512,45 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             noUserInteraction: true,
             pageX: screenX,
             pageY: screenY,
-            initialMatrix: (spatialCursorMatrix) ? spatialCursorMatrix : undefined,
+            initialMatrix: spatialCursorMatrix ? spatialCursorMatrix : undefined,
             onUploadComplete: () => {
                 realityEditor.network.postVehiclePosition(addedElement);
-            }
+            },
         });
 
         if (!moveToCursor && !spatialCursorMatrix) {
             let worldCenterPoint = await getRaycastCoordinates(screenX, screenY);
             if (worldCenterPoint.point === undefined) {
-                let rotateCenterId = 'rotateCenter'+'_VISUAL_ELEMENT';
+                let rotateCenterId = 'rotateCenter' + '_VISUAL_ELEMENT';
                 if (realityEditor.sceneGraph.getSceneNodeById(rotateCenterId) !== undefined) {
                     // when on desktop, there is rotation center
                     let dist = realityEditor.sceneGraph.getDistanceToCamera(rotateCenterId);
                     console.log(dist);
-                    realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, dist);
+                    realityEditor.gui.ar.positioning.moveFrameToCamera(
+                        addedElement.objectId,
+                        addedElement.uuid,
+                        dist
+                    );
                 } else {
                     // when on phone, there's no rotation center
-                    realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, 1000);
+                    realityEditor.gui.ar.positioning.moveFrameToCamera(
+                        addedElement.objectId,
+                        addedElement.uuid,
+                        1000
+                    );
                 }
             } else {
                 // when there is area target mesh at screen center
                 let worldCamPoint = new THREE.Vector3();
-                realityEditor.gui.threejsScene.getInternals().getCamera().getWorldPosition(worldCamPoint);
-                realityEditor.gui.ar.positioning.moveFrameToCamera(addedElement.objectId, addedElement.uuid, worldCenterPoint.point.distanceTo(worldCamPoint));
+                realityEditor.gui.threejsScene
+                    .getInternals()
+                    .getCamera()
+                    .getWorldPosition(worldCamPoint);
+                realityEditor.gui.ar.positioning.moveFrameToCamera(
+                    addedElement.objectId,
+                    addedElement.uuid,
+                    worldCenterPoint.point.distanceTo(worldCamPoint)
+                );
             }
         }
         return addedElement;
@@ -545,7 +598,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     }
 
     // allow external module to update some visual properties of the cursor
-    function setCursorStyle({highlighted}) {
+    function setCursorStyle({ highlighted }) {
         isHighlighted = highlighted;
     }
 
@@ -553,15 +606,25 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     function isCursorOnValidPosition() {
         return Object.keys(worldIntersectPoint).length > 0;
     }
-    
+
     function addPostMessageHandlers() {
-        realityEditor.network.addPostMessageHandler('spatialCursorToggleMeasureMode', toggleMeasureMode);
-        realityEditor.network.addPostMessageHandler('spatialCursorToggleCrossRotation', toggleCrossRotation);
-        realityEditor.network.addPostMessageHandler('spatialCursorToggleCloseLoop', toggleCloseLoop);
+        realityEditor.network.addPostMessageHandler(
+            'spatialCursorToggleMeasureMode',
+            toggleMeasureMode
+        );
+        realityEditor.network.addPostMessageHandler(
+            'spatialCursorToggleCrossRotation',
+            toggleCrossRotation
+        );
+        realityEditor.network.addPostMessageHandler(
+            'spatialCursorToggleCloseLoop',
+            toggleCloseLoop
+        );
     }
-    
+
     let measureFalseId = null;
-    function toggleMeasureMode(boolean) { // bug: spam-toggling has visual mode bugs
+    function toggleMeasureMode(boolean) {
+        // bug: spam-toggling has visual mode bugs
         if (boolean) {
             isMeasureMode = true;
             innerRadius = 0.1;
@@ -570,7 +633,8 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         } else {
             isMeasureMode = false;
             innerRadius = 0.1;
-            measureFalseId = setTimeout(() => { // wait for the cross -> circle animation to finish before switching back to normal mode
+            measureFalseId = setTimeout(() => {
+                // wait for the cross -> circle animation to finish before switching back to normal mode
                 uniforms['isMeasureMode'].value = false;
             }, 3000);
         }
@@ -579,19 +643,20 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     function toggleCrossRotation(boolean) {
         shouldCrossRotate = boolean;
     }
-    
+
     function toggleCloseLoop(boolean) {
         isCloseLoop = boolean;
     }
-    
+
     function updateT11() {
         if ((isMeasureMode && t11 === 1) || (!isMeasureMode && t11 === 0)) return;
         t11 += (isMeasureMode ? 1 : -1) * 0.03;
         t11 = clamp(t11, 0, 1);
         uniforms['t11'].value = t11;
     }
-    
-    function updateT22() { // only allow cross to rotate twice
+
+    function updateT22() {
+        // only allow cross to rotate twice
         if (!shouldCrossRotate) {
             uniforms['t22'].value = 0;
             return;
@@ -612,7 +677,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         t33 = clamp(t33, 0, 1);
         uniforms['t33'].value = t33;
     }
-    
+
     function updateCursorMeasureStyle() {
         updateT11();
         updateT22();
@@ -657,19 +722,32 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         // todo Steve: the spatial cursor snaps doesn't change direction, should fix it, that would also affect the
         // todo Steve: getToolDirection() function inside spatial search in remote operator
         // constantly check if the screen center overlaps any iframes
-        let overlappingDivs = realityEditor.device.utilities.getAllDivsUnderCoordinate(screenX, screenY);
-        overlapped = overlappingDivs.some(element => {
+        let overlappingDivs = realityEditor.device.utilities.getAllDivsUnderCoordinate(
+            screenX,
+            screenY
+        );
+        overlapped = overlappingDivs.some((element) => {
             return element.tagName === 'IFRAME' && typeof element.dataset.objectKey !== 'undefined';
         });
         if (overlapped) {
-            let overlappingIframe = overlappingDivs.find(element => element.tagName === 'IFRAME');
-            let tool = realityEditor.getFrame(overlappingIframe.dataset.objectKey, overlappingIframe.dataset.frameKey);
+            let overlappingIframe = overlappingDivs.find((element) => element.tagName === 'IFRAME');
+            let tool = realityEditor.getFrame(
+                overlappingIframe.dataset.objectKey,
+                overlappingIframe.dataset.frameKey
+            );
             if (tool.fullScreen) {
                 overlapped = false;
             } else {
-                let position = realityEditor.gui.threejsScene.getToolPosition(overlappingIframe.dataset.frameKey);
+                let position = realityEditor.gui.threejsScene.getToolPosition(
+                    overlappingIframe.dataset.frameKey
+                );
                 indicator1.position.set(position.x, position.y, position.z);
-                indicator1.quaternion.setFromUnitVectors(indicatorAxis, realityEditor.gui.threejsScene.getToolDirection(overlappingIframe.dataset.frameKey));
+                indicator1.quaternion.setFromUnitVectors(
+                    indicatorAxis,
+                    realityEditor.gui.threejsScene.getToolDirection(
+                        overlappingIframe.dataset.frameKey
+                    )
+                );
             }
         }
     }
@@ -683,7 +761,13 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
      * @param {string} isColored - if cursor within area target mesh, isColored === true; otherwise false
      * @param {string} relativeToWorldId
      */
-    function renderOtherSpatialCursor(objectKey, cursorMatrix, cursorColorHSL, isColored, relativeToWorldId) {
+    function renderOtherSpatialCursor(
+        objectKey,
+        cursorMatrix,
+        cursorColorHSL,
+        isColored,
+        relativeToWorldId
+    ) {
         if (relativeToWorldId !== realityEditor.sceneGraph.getWorldId()) return; // ignore cursors in other worlds
         if (typeof cursorColorHSL !== 'string') return; // color is required to initialize the material
 
@@ -692,8 +776,8 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             otherSpatialCursors[objectKey] = {
                 group: cursorGroup,
                 worldId: relativeToWorldId,
-                matrix: cursorMatrix
-            }
+                matrix: cursorMatrix,
+            };
             realityEditor.gui.threejsScene.addToScene(cursorGroup);
         }
 
@@ -702,11 +786,20 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
 
         if (!worldSceneNode || !groundPlaneSceneNode) return;
 
-        otherSpatialCursors[objectKey].group.matrix = realityEditor.sceneGraph.convertToNewCoordSystem(
-            cursorMatrix, worldSceneNode, groundPlaneSceneNode);
+        otherSpatialCursors[objectKey].group.matrix =
+            realityEditor.sceneGraph.convertToNewCoordSystem(
+                cursorMatrix,
+                worldSceneNode,
+                groundPlaneSceneNode
+            );
         let scaleFactor = isColored ? 0 : 1;
-        otherSpatialCursors[objectKey].group.children[1].scale.set(scaleFactor, scaleFactor, scaleFactor);
-        otherSpatialCursors[objectKey].group.children[0].material.uniforms['isColored'].value = isColored;
+        otherSpatialCursors[objectKey].group.children[1].scale.set(
+            scaleFactor,
+            scaleFactor,
+            scaleFactor
+        );
+        otherSpatialCursors[objectKey].group.children[0].material.uniforms['isColored'].value =
+            isColored;
     }
 
     /**
@@ -719,10 +812,12 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         // todo Steve: use ShaderMaterial.clone() to prevent the other cursor inner circles from playing the same expanding animation
         // todo Steve: probably a better idea to separate the inner & outer circles of all indicator1's, and animate the scale property, b/c that way animation can reflect to other clients when I click
         const indicator1 = new THREE.Mesh(geometry1, normalCursorMaterial.clone());
-        indicator1.material.uniforms['avatarColor'].value = [{
-            color: new THREE.Color(cursorColorHSL),
-            colorLighter: new THREE.Color(cursorColorHSL)
-        }];
+        indicator1.material.uniforms['avatarColor'].value = [
+            {
+                color: new THREE.Color(cursorColorHSL),
+                colorLighter: new THREE.Color(cursorColorHSL),
+            },
+        ];
         indicator1.renderOrder = 5 + Object.keys(otherSpatialCursors).length * 2 + 1;
 
         const geometry2 = new THREE.CircleGeometry(geometryLength, 32);
@@ -730,14 +825,17 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             vertexShader: vertexShader,
             fragmentShader: testCursorFragmentShader,
             uniforms: {
-                'EPSILON': {value: Number.EPSILON},
-                'avatarColor': {value: [{
-                        color: new THREE.Color(cursorColorHSL),
-                        colorLighter: new THREE.Color(cursorColorHSL)
-                    }]
+                EPSILON: { value: Number.EPSILON },
+                avatarColor: {
+                    value: [
+                        {
+                            color: new THREE.Color(cursorColorHSL),
+                            colorLighter: new THREE.Color(cursorColorHSL),
+                        },
+                    ],
                 },
-                'opacityFactor': { value: 0.4 }, // alpha = 0.5 * opacityFactor
-                'isColored': {value: isColored},
+                opacityFactor: { value: 0.4 }, // alpha = 0.5 * opacityFactor
+                isColored: { value: isColored },
             },
             transparent: true,
             side: THREE.DoubleSide,
@@ -764,31 +862,33 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     }
 
     const geometryLength = 50;
-    
+
     function addSpatialCursor() {
         const geometry = new THREE.CircleGeometry(geometryLength, 32);
         indicator1 = new THREE.Mesh(geometry, normalCursorMaterial);
         indicator1.renderOrder = 4;
         indicator1.material.depthTest = false; // fixes visual glitch by preventing occlusion from area target
         indicator1.material.depthWrite = false;
-        indicator1.name = "spatialCursor indicator1";
+        indicator1.name = 'spatialCursor indicator1';
         realityEditor.gui.threejsScene.addToScene(indicator1);
     }
-    
+
     function addTestSpatialCursor() {
         const geometry = new THREE.CircleGeometry(geometryLength, 32);
         indicator2 = new THREE.Mesh(geometry, testCursorMaterial);
         indicator2.renderOrder = 3;
         indicator2.material.depthTest = false; // fixes visual glitch by preventing occlusion from area target
         indicator2.material.depthWrite = false;
-        indicator2.name = "spatialCursor indicator2";
+        indicator2.name = 'spatialCursor indicator2';
         realityEditor.gui.threejsScene.addToScene(indicator2);
     }
 
-    let scaleAccelerationFactor = 0.002, scaleAcceleration = scaleAccelerationFactor, scaleSpeed = 0;
+    let scaleAccelerationFactor = 0.002,
+        scaleAcceleration = scaleAccelerationFactor,
+        scaleSpeed = 0;
     function updateScaleFactor() {
         let MAX_SCALE_FACTOR = isHighlighted ? 3 : 1; // get larger when in "highlighted" state
-        
+
         if (Object.keys(worldIntersectPoint).length === 0 || worldIntersectPoint.isOnGroundPlane) {
             isOnGroundPlane = true;
             // if doesn't intersect any point in world || intersects with ground plane
@@ -819,15 +919,23 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             indicator1.material.uniforms['isColored'].value = false;
         }
     }
-    
-    let fadeOutDistance = 500, maxOpacityDistance = 1000;
-    let opacityLow = 0.1, opacityHigh = 1;
+
+    let fadeOutDistance = 500,
+        maxOpacityDistance = 1000;
+    let opacityLow = 0.1,
+        opacityHigh = 1;
     function updateOpacityFactor() {
         if (typeof worldIntersectPoint.distance !== 'undefined') {
-            opacityFactor = remap(worldIntersectPoint.distance, fadeOutDistance, maxOpacityDistance, opacityLow, opacityHigh);
+            opacityFactor = remap(
+                worldIntersectPoint.distance,
+                fadeOutDistance,
+                maxOpacityDistance,
+                opacityLow,
+                opacityHigh
+            );
         }
     }
-    
+
     function updateInnerRadius() {
         innerRadiusSpeed -= 0.003;
         innerRadiusSpeed = clamp(innerRadiusSpeed, -0.01, 0.3);
@@ -835,7 +943,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         innerRadius = clamp(innerRadius, 0.1, 0.3);
         indicator1.material.uniforms.innerRadius.value = innerRadius;
     }
-    
+
     let cursorDirections = [];
     let clockForCursorDirection = new THREE.Clock(false);
     let updateInterval = 200;
@@ -851,7 +959,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             clockForCursorDirection.start();
         }, updateInterval);
     }
-    
+
     function tweenCursorDirection() {
         if (typeof worldIntersectPoint.point === 'undefined') return;
         // if cursorDirections[] has 1 entry, set indicator quaternion to that direction
@@ -861,17 +969,27 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         }
         // if cursorDirections[] has 2 entries, interpolate between the two quaternions in the cursorDirections[] array every frame
         if (cursorDirections.length === 2) {
-            let oldQuaternion = new THREE.Quaternion().setFromUnitVectors(indicatorAxis, cursorDirections[0]);
-            let desQuaternion = new THREE.Quaternion().setFromUnitVectors(indicatorAxis, cursorDirections[1]);
-            let percentage = clockForCursorDirection.getElapsedTime() * 1000 / updateInterval;
+            let oldQuaternion = new THREE.Quaternion().setFromUnitVectors(
+                indicatorAxis,
+                cursorDirections[0]
+            );
+            let desQuaternion = new THREE.Quaternion().setFromUnitVectors(
+                indicatorAxis,
+                cursorDirections[1]
+            );
+            let percentage = (clockForCursorDirection.getElapsedTime() * 1000) / updateInterval;
             indicator1.quaternion.slerpQuaternions(oldQuaternion, desQuaternion, percentage);
             indicator2.quaternion.slerpQuaternions(oldQuaternion, desQuaternion, percentage);
         }
     }
-    
+
     function updateSpatialCursor() {
         if (typeof worldIntersectPoint.point !== 'undefined') {
-            indicator1.position.set(worldIntersectPoint.point.x, worldIntersectPoint.point.y, worldIntersectPoint.point.z);
+            indicator1.position.set(
+                worldIntersectPoint.point.x,
+                worldIntersectPoint.point.y,
+                worldIntersectPoint.point.z
+            );
             let offset = worldIntersectPoint.normalVector.clone().multiplyScalar(topCursorOffset);
             indicator1.position.add(offset);
         }
@@ -881,8 +999,14 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
 
     function updateTestSpatialCursor() {
         if (typeof worldIntersectPoint.point !== 'undefined') {
-            indicator2.position.set(worldIntersectPoint.point.x, worldIntersectPoint.point.y, worldIntersectPoint.point.z);
-            let offset = worldIntersectPoint.normalVector.clone().multiplyScalar(bottomCursorOffset);
+            indicator2.position.set(
+                worldIntersectPoint.point.x,
+                worldIntersectPoint.point.y,
+                worldIntersectPoint.point.z
+            );
+            let offset = worldIntersectPoint.normalVector
+                .clone()
+                .multiplyScalar(bottomCursorOffset);
             indicator2.position.add(offset);
         }
         indicator2.material.uniforms.opacityFactor.value = opacityFactor;
@@ -897,7 +1021,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             update(); // restart the update loop
         }
     }
-    
+
     let gsActive = false;
     function isGSActive() {
         return gsActive;
@@ -935,26 +1059,35 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     }
 
     let projectedZ = null;
-    async function getRaycastCoordinates(screenX, screenY, includeGroundPlane = true, ignoreFrames = false) {
+    async function getRaycastCoordinates(
+        screenX,
+        screenY,
+        includeGroundPlane = true,
+        ignoreFrames = false
+    ) {
         if (gsActive && gsRaycast) {
             if (gsPosition === null) {
                 return {};
             }
             let cameraNode = realityEditor.sceneGraph.getSceneNodeById('CAMERA');
-            let gpNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.GROUNDPLANE + realityEditor.sceneGraph.TAGS.ROTATE_X);
+            let gpNode = realityEditor.sceneGraph.getSceneNodeById(
+                realityEditor.sceneGraph.NAMES.GROUNDPLANE + realityEditor.sceneGraph.TAGS.ROTATE_X
+            );
             if (!gpNode) {
-                gpNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.GROUNDPLANE);
+                gpNode = realityEditor.sceneGraph.getSceneNodeById(
+                    realityEditor.sceneGraph.NAMES.GROUNDPLANE
+                );
             }
             let newCamMatrix = cameraNode.getMatrixRelativeTo(gpNode);
             let cInP = new THREE.Vector3(newCamMatrix[12], newCamMatrix[13], newCamMatrix[14]); // camera in ground plane coords
-            let offset = new THREE.Vector3().subVectors(cInP, gsPosition)
+            let offset = new THREE.Vector3().subVectors(cInP, gsPosition);
             let n = offset.clone().normalize();
             let d = offset.length();
             let rd = n.clone().negate();
-            
+
             // multiply/divide by global scale to make sure it's the same scale as the regular raycast results in Renderer.js getRaycastIntersects()
             let globalScale = realityEditor.gui.threejsScene.getInternals().getGlobalScale();
-            
+
             return {
                 point: gsPosition,
                 scenePoint: gsPosition.clone().multiplyScalar(globalScale.getInvGlobalScale()),
@@ -962,7 +1095,7 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
                 distance: d,
                 sceneDistance: d / globalScale.getGlobalScale(),
                 rayDirection: rd,
-            }
+            };
         }
         let worldIntersectPoint = null;
         let objectsToCheck = [];
@@ -972,8 +1105,11 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         }
         // raycast against the groundplane too, unless the world mesh exists but the groundplane position hasn't been
         // calculated from the navmesh yet (prevents an issue where for a few seconds the cursor floats in mid-air)
-        if (includeGroundPlane && (realityEditor.gui.threejsScene.isGroundPlanePositionSet() ||
-            !realityEditor.gui.threejsScene.isWorldMeshLoadedAndProcessed())) {
+        if (
+            includeGroundPlane &&
+            (realityEditor.gui.threejsScene.isGroundPlanePositionSet() ||
+                !realityEditor.gui.threejsScene.isWorldMeshLoadedAndProcessed())
+        ) {
             let groundPlane = realityEditor.gui.threejsScene.getGroundPlaneCollider();
             groundPlane.updateWorldMatrix(true, false);
             objectsToCheck.push(groundPlane.getInternalObject());
@@ -982,7 +1118,11 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             return {}; // no worldIntersectPoint
         }
         // by default, three.js raycast returns coordinates in the top-level scene coordinate system
-        let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(screenX, screenY, objectsToCheck);
+        let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+            screenX,
+            screenY,
+            objectsToCheck
+        );
         if (raycastIntersects.length === 0) {
             return {}; // no worldIntersectPoint
         }
@@ -991,14 +1131,23 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
         projectedZ = raycastIntersects[0].sceneDistance;
         let groundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
         let inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-        realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, groundPlaneMatrix);
+        realityEditor.gui.threejsScene.setMatrixFromArray(
+            inverseGroundPlaneMatrix,
+            groundPlaneMatrix
+        );
         inverseGroundPlaneMatrix.invert();
         raycastIntersects[0].scenePoint.applyMatrix4(inverseGroundPlaneMatrix);
         let trInvGroundPlaneMat = inverseGroundPlaneMatrix.clone().transpose();
         // check if the camera & normalVector face the same direction. If so, invert the normalVector to face towards the camera
-        let normalVector = raycastIntersects[0].face.normal.clone().applyMatrix4(trInvGroundPlaneMat).normalize();
+        let normalVector = raycastIntersects[0].face.normal
+            .clone()
+            .applyMatrix4(trInvGroundPlaneMat)
+            .normalize();
         let cameraDirection = new THREE.Vector3();
-        realityEditor.gui.threejsScene.getInternals().getCamera().getWorldDirection(cameraDirection);
+        realityEditor.gui.threejsScene
+            .getInternals()
+            .getCamera()
+            .getWorldDirection(cameraDirection);
         if (cameraDirection.dot(normalVector) > 0) {
             normalVector.negate();
         }
@@ -1007,23 +1156,31 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             normalVector: normalVector,
             distance: raycastIntersects[0].sceneDistance,
             isOnGroundPlane: raycastIntersects[0].object.name === 'groundPlaneCollider',
-        }
+        };
 
-        const frameRaycastResults = ignoreFrames ? {point: null} : await realityEditor.device.getFrameRaycast(screenX, screenY);
+        const frameRaycastResults = ignoreFrames
+            ? { point: null }
+            : await realityEditor.device.getFrameRaycast(screenX, screenY);
 
         if (frameRaycastResults.point) {
             const tempGroundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
             const tempInverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-            realityEditor.gui.threejsScene.setMatrixFromArray(tempInverseGroundPlaneMatrix, tempGroundPlaneMatrix);
+            realityEditor.gui.threejsScene.setMatrixFromArray(
+                tempInverseGroundPlaneMatrix,
+                tempGroundPlaneMatrix
+            );
             tempInverseGroundPlaneMatrix.invert();
-            const groundPlaneYOffset = new realityEditor.gui.threejsScene.THREE.Vector3().setFromMatrixPosition(tempInverseGroundPlaneMatrix).y;
+            const groundPlaneYOffset =
+                new realityEditor.gui.threejsScene.THREE.Vector3().setFromMatrixPosition(
+                    tempInverseGroundPlaneMatrix
+                ).y;
             frameRaycastResults.point.y += groundPlaneYOffset;
-            
+
             const frameIntersectPoint = {
                 point: frameRaycastResults.point,
                 distance: frameRaycastResults.z,
                 normalVector: frameRaycastResults.direction.clone().negate(),
-                isOnGroundPlane: false
+                isOnGroundPlane: false,
             };
 
             if (!worldIntersectPoint || frameRaycastResults.z < worldIntersectPoint.distance) {
@@ -1036,16 +1193,30 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     }
 
     function getCursorRelativeToWorldObject() {
-        if ((!cachedWorldObject || !cachedOcclusionObject) && !realityEditor.gui.threejsScene.isGroundPlanePositionSet()) { return null; }
+        if (
+            (!cachedWorldObject || !cachedOcclusionObject) &&
+            !realityEditor.gui.threejsScene.isGroundPlanePositionSet()
+        ) {
+            return null;
+        }
 
         let cursorMatrix = indicator1.matrixWorld.clone(); // in ROOT coordinates
-        let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
-        return realityEditor.sceneGraph.convertToNewCoordSystem(cursorMatrix, realityEditor.sceneGraph.getSceneNodeById('ROOT'), worldSceneNode);
+        let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.getWorldId()
+        );
+        return realityEditor.sceneGraph.convertToNewCoordSystem(
+            cursorMatrix,
+            realityEditor.sceneGraph.getSceneNodeById('ROOT'),
+            worldSceneNode
+        );
     }
 
     async function getOrientedCursorIfItWereAtScreenCenter() {
         // move cursor to center, then get the matrix, then move the cursor back to where it was
-        worldIntersectPoint = await getRaycastCoordinates(window.innerWidth / 2, window.innerHeight / 2);
+        worldIntersectPoint = await getRaycastCoordinates(
+            window.innerWidth / 2,
+            window.innerHeight / 2
+        );
         if (!realityEditor.device.environment.isDesktop() && worldIntersectPoint.distance > 10000) {
             worldIntersectPoint.distance = 1000;
 
@@ -1053,12 +1224,17 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             realityEditor.gui.threejsScene.getInternals().getCamera().getWorldPosition(camPos);
             let groundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
             let inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-            realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, groundPlaneMatrix);
+            realityEditor.gui.threejsScene.setMatrixFromArray(
+                inverseGroundPlaneMatrix,
+                groundPlaneMatrix
+            );
             inverseGroundPlaneMatrix.invert();
             camPos.applyMatrix4(inverseGroundPlaneMatrix);
 
             let originalPoint = worldIntersectPoint.point;
-            worldIntersectPoint.point = camPos.add(originalPoint.clone().sub(camPos).normalize().multiplyScalar(1000));
+            worldIntersectPoint.point = camPos.add(
+                originalPoint.clone().sub(camPos).normalize().multiplyScalar(1000)
+            );
         }
         updateSpatialCursor();
         updateTestSpatialCursor();
@@ -1088,12 +1264,17 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
             realityEditor.gui.threejsScene.getInternals().getCamera().getWorldPosition(camPos);
             let groundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
             let inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-            realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, groundPlaneMatrix);
+            realityEditor.gui.threejsScene.setMatrixFromArray(
+                inverseGroundPlaneMatrix,
+                groundPlaneMatrix
+            );
             inverseGroundPlaneMatrix.invert();
             camPos.applyMatrix4(inverseGroundPlaneMatrix);
 
             let originalPoint = worldIntersectPoint.point;
-            worldIntersectPoint.point = camPos.add(originalPoint.clone().sub(camPos).normalize().multiplyScalar(1000));
+            worldIntersectPoint.point = camPos.add(
+                originalPoint.clone().sub(camPos).normalize().multiplyScalar(1000)
+            );
         }
         updateSpatialCursor();
         updateTestSpatialCursor();
@@ -1116,7 +1297,9 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     // best aligned with the global up, it faces towards the camera rather than away, and if it's on a
     // horizontal surface, it rotates so that its local up vector is in line with the camera forward vector
     function getOrientedCursorRelativeToWorldObject() {
-        if (!indicator1.visible) { return null; }
+        if (!indicator1.visible) {
+            return null;
+        }
 
         let spatialCursorMatrix = getCursorRelativeToWorldObject();
         if (spatialCursorMatrix) {
@@ -1131,25 +1314,41 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
 
             let newRightVector = utils.normalize(utils.crossProduct(forwardVector, globalUpVector));
             // handle co-linear case by reverting to original axis
-            if (isNaN(newRightVector[0])) { newRightVector = utils.getRightVector(rotatedMatrix); }
+            if (isNaN(newRightVector[0])) {
+                newRightVector = utils.getRightVector(rotatedMatrix);
+            }
 
             let newUpVector = utils.normalize(utils.crossProduct(newRightVector, forwardVector));
-            if (isNaN(newUpVector[0])) { newUpVector = utils.getUpVector(rotatedMatrix); }
+            if (isNaN(newUpVector[0])) {
+                newUpVector = utils.getUpVector(rotatedMatrix);
+            }
 
-            let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
-            let cameraRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem(utils.newIdentityMatrix(), realityEditor.sceneGraph.getCameraNode(), worldSceneNode);
+            let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                realityEditor.sceneGraph.getWorldId()
+            );
+            let cameraRelativeToWorldObject = realityEditor.sceneGraph.convertToNewCoordSystem(
+                utils.newIdentityMatrix(),
+                realityEditor.sceneGraph.getCameraNode(),
+                worldSceneNode
+            );
 
             // compute dot product of camera forward and new tool forward to see whether it's facing towards or away from you
-            let cameraForward = utils.normalize(utils.getForwardVector(cameraRelativeToWorldObject));
+            let cameraForward = utils.normalize(
+                utils.getForwardVector(cameraRelativeToWorldObject)
+            );
 
             // check if it is upright enough to be considered on a horizontal surface – 0.9 seems to work well
             if (Math.abs(utils.dotProduct(forwardVector, globalUpVector)) > 0.9) {
                 // math works out same as above, except the camera forward is the desired "up vector" in this case
                 newRightVector = utils.normalize(utils.crossProduct(forwardVector, cameraForward));
-                if (isNaN(newRightVector[0])) { newRightVector = utils.getRightVector(rotatedMatrix); }
+                if (isNaN(newRightVector[0])) {
+                    newRightVector = utils.getRightVector(rotatedMatrix);
+                }
 
                 newUpVector = utils.normalize(utils.crossProduct(newRightVector, forwardVector));
-                if (isNaN(newUpVector[0])) { newUpVector = utils.getUpVector(rotatedMatrix); }
+                if (isNaN(newUpVector[0])) {
+                    newUpVector = utils.getUpVector(rotatedMatrix);
+                }
             }
 
             // if normals are inverted and tool ends up facing away from camera instead of towards it, flip it left-right again
@@ -1182,9 +1381,15 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     exports.getOrientedCursorIfItWereAtScreenCenter = getOrientedCursorIfItWereAtScreenCenter;
     exports.getOrientedCursorAtSpecificCoords = getOrientedCursorAtSpecificCoords;
     exports.toggleDisplaySpatialCursor = toggleDisplaySpatialCursor;
-    exports.isSpatialCursorEnabled = () => { return isCursorEnabled; }
-    exports.isSpatialCursorOnGroundPlane = () => { return isOnGroundPlane; }
-    exports.getWorldIntersectPoint = () => { return worldIntersectPoint; };
+    exports.isSpatialCursorEnabled = () => {
+        return isCursorEnabled;
+    };
+    exports.isSpatialCursorOnGroundPlane = () => {
+        return isOnGroundPlane;
+    };
+    exports.getWorldIntersectPoint = () => {
+        return worldIntersectPoint;
+    };
     exports.addToolAtScreenCenter = addToolAtScreenCenter;
     exports.addToolAtSpecifiedCoords = addToolAtSpecifiedCoords;
     exports.renderOtherSpatialCursor = renderOtherSpatialCursor;
@@ -1193,4 +1398,4 @@ import { fract, clamp, remap, mathUtilShader } from "../utilities/MathUtils.js";
     exports.setCursorStyle = setCursorStyle;
     exports.isCursorOnValidPosition = isCursorOnValidPosition;
     exports.updatePointerSnapMode = updatePointerSnapMode;
-}(realityEditor.spatialCursor));
+})(realityEditor.spatialCursor);

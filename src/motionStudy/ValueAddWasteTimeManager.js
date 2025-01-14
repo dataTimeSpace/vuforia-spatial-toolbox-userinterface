@@ -1,9 +1,9 @@
-import {Timeline} from '../utilities/Timeline.js';
+import { Timeline } from '../utilities/Timeline.js';
 
 export const ValueAddWasteTimeTypes = {
-    VALUE_ADD: "VALUE",
-    WASTE_TIME: "WASTE"
-}
+    VALUE_ADD: 'VALUE',
+    WASTE_TIME: 'WASTE',
+};
 
 export class ValueAddWasteTimeManager extends Timeline {
     constructor() {

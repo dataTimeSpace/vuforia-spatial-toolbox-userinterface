@@ -47,53 +47,55 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.cloud");
+createNameSpace('realityEditor.cloud');
 realityEditor.cloud = {};
 
 realityEditor.cloud.state = {};
 realityEditor.cloud.socket = null;
 
-realityEditor.cloud.updateEdgeConnections = function(connections) {
+realityEditor.cloud.updateEdgeConnections = function (connections) {
     globalStates.network.edgeServer = connections;
 };
 
-realityEditor.cloud.connectToCloud = function (){
+realityEditor.cloud.connectToCloud = function () {
     const isSecure = realityEditor.network.state.proxyProtocol.includes('https');
     const wsProtocol = isSecure ? 'wss://' : 'ws://';
     const wsURL = wsProtocol + realityEditor.network.state.proxyHost;
 
-    if(realityEditor.cloud.socket) realityEditor.cloud.socket.close();
+    if (realityEditor.cloud.socket) realityEditor.cloud.socket.close();
 
-    this.socket = new ToolSocket(wsURL, realityEditor.network.state.proxyNetwork , "web");
+    this.socket = new ToolSocket(wsURL, realityEditor.network.state.proxyNetwork, 'web');
 
     this.socket.on('beat', function (route, body) {
         // todo validate for heartbeat
         //  realityEditor.network.addHeartbeatObject(body);
         body.network = realityEditor.network.state.proxyNetwork;
-        realityEditor.app.callbacks.receivedUDPMessage(body)
+        realityEditor.app.callbacks.receivedUDPMessage(body);
         // console.log(route, body);
     });
 
     this.socket.on('action', function (route, body) {
         // todo validate for heartbeat
         body.network = realityEditor.network.state.proxyNetwork;
-        realityEditor.app.callbacks.receivedUDPMessage(body)
+        realityEditor.app.callbacks.receivedUDPMessage(body);
         // realityEditor.network.addHeartbeatObject(body);
     });
     //  globalStates.network.edgeServer = connections;
 }.bind(realityEditor.cloud);
 
 // load remote interface via dekstop interface
-let getDesktopLinkData = realityEditor.network.desktopURLSchema.parseRoute(window.location.pathname);
-if(getDesktopLinkData) {
-    if(getDesktopLinkData.n) {
+let getDesktopLinkData = realityEditor.network.desktopURLSchema.parseRoute(
+    window.location.pathname
+);
+if (getDesktopLinkData) {
+    if (getDesktopLinkData.n) {
         realityEditor.network.state.proxyProtocol = window.location.protocol.slice(0, -1); // Need to remove the colon
         realityEditor.network.state.proxyPort = window.location.port;
         realityEditor.network.state.proxyUrl = window.location.host;
         realityEditor.network.state.proxyHost = window.location.host;
         realityEditor.network.state.proxyHostname = window.location.hostname;
-        if(getDesktopLinkData.n) realityEditor.network.state.proxyNetwork = getDesktopLinkData.n;
-        if(getDesktopLinkData.s) realityEditor.network.state.proxySecret = getDesktopLinkData.s;
+        if (getDesktopLinkData.n) realityEditor.network.state.proxyNetwork = getDesktopLinkData.n;
+        if (getDesktopLinkData.s) realityEditor.network.state.proxySecret = getDesktopLinkData.s;
         realityEditor.cloud.connectToCloud();
     } else {
         /*

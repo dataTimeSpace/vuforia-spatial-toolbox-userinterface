@@ -1,9 +1,9 @@
-import {RebaLens} from "./RebaLens.js";
-import {OverallRebaLens} from "./OverallRebaLens.js";
-import {MuriLens} from "./MuriLens.js";
-import {ValueAddWasteTimeLens} from "./ValueAddWasteTimeLens.js";
-import {AccelerationLens} from "./AccelerationLens.js";
-import {PoseObjectIdLens} from "./PoseObjectIdLens.js";
+import { RebaLens } from './RebaLens.js';
+import { OverallRebaLens } from './OverallRebaLens.js';
+import { MuriLens } from './MuriLens.js';
+import { ValueAddWasteTimeLens } from './ValueAddWasteTimeLens.js';
+import { AccelerationLens } from './AccelerationLens.js';
+import { PoseObjectIdLens } from './PoseObjectIdLens.js';
 
 export class LensProvider {
     constructor() {
@@ -23,19 +23,21 @@ export class LensProvider {
     }
 
     removeHumanPoseAnalyzer(analyzerToRemove) {
-        this.analyzers = this.analyzers.filter(analyzer => analyzer !== analyzerToRemove);
+        this.analyzers = this.analyzers.filter((analyzer) => analyzer !== analyzerToRemove);
     }
 
     addLensCreateFunction(lensCreateFunction) {
         this.lensCreateFunctions.push(lensCreateFunction);
-        this.analyzers.forEach(analyzer => {
+        this.analyzers.forEach((analyzer) => {
             let lens = lensCreateFunction(analyzer);
             analyzer.addLens(lens);
         });
     }
 
     removeLensCreateFunction(lensCreateFunctionToRemove) {
-        this.lensCreateFunction = this.lensCreateFunctions.filter(fn => fn !== lensCreateFunctionToRemove);
+        this.lensCreateFunction = this.lensCreateFunctions.filter(
+            (fn) => fn !== lensCreateFunctionToRemove
+        );
         // this.analyzers.forEach(analyzer => {
         //     analyzer.removeLens(hmm);
         // });
@@ -62,4 +64,4 @@ defaultLensProvider.addLensCreateFunction(() => {
     return new PoseObjectIdLens();
 });
 
-export {defaultLensProvider};
+export { defaultLensProvider };

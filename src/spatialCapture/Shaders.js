@@ -41,9 +41,12 @@ void main() {
 vUv = vec2(position.x / width, position.y / height);
 
 vec4 color = texture2D(mapDepth, vUv);
-${(!ZDEPTH) ? `
+${
+    !ZDEPTH
+        ? `
 float depth = 5000.0 * (color.r + color.g / 255.0 + color.b / (255.0 * 255.0));
-` : `
+`
+        : `
 // color.rgb are all 0-1 when we want them to be 0-255 so we can shift out across depth (mm?)
 int r = int(color.r * 255.0);
 int g = int(color.g * 255.0);
@@ -74,7 +77,8 @@ float depth = float((r & 1) |
   ((g & (1 << 7)) << (22 - 7)) |
   ((b & (1 << 7)) << (23 - 7))) *
   (5000.0 / float(1 << 24));
-`}
+`
+}
 float z = (depth - 1.0) * patchLoading;
 
 // Projection code by @kcmic
@@ -247,7 +251,7 @@ export function createPointCloud(texture, textureDepth, shaderMode, borderColor)
         geometry = new THREE.BufferGeometry();
         const vertices = new Float32Array(width * height * 3);
 
-        for (let i = 0, j = 0, l = vertices.length; i < l; i += 3, j ++) {
+        for (let i = 0, j = 0, l = vertices.length; i < l; i += 3, j++) {
             vertices[i] = j % width;
             vertices[i + 1] = Math.floor(j / width);
         }
@@ -279,33 +283,33 @@ export function createPointCloudMaterial(texture, textureDepth, shaderMode, bord
 
     let fragmentShader;
     switch (shaderMode) {
-    case ShaderMode.POINT:
-        fragmentShader = pointFragmentShader;
-        break;
-    case ShaderMode.HOLO:
-        fragmentShader = holoFragmentShader;
-        break;
-    case ShaderMode.FIRST_PERSON:
-        fragmentShader = firstPersonFragmentShader;
-        break;
-    case ShaderMode.SOLID:
-    case ShaderMode.DIFF:
-    default:
-        fragmentShader = solidFragmentShader;
-        break;
+        case ShaderMode.POINT:
+            fragmentShader = pointFragmentShader;
+            break;
+        case ShaderMode.HOLO:
+            fragmentShader = holoFragmentShader;
+            break;
+        case ShaderMode.FIRST_PERSON:
+            fragmentShader = firstPersonFragmentShader;
+            break;
+        case ShaderMode.SOLID:
+        case ShaderMode.DIFF:
+        default:
+            fragmentShader = solidFragmentShader;
+            break;
     }
 
     let material = new THREE.ShaderMaterial({
         uniforms: {
-            depthMin: {value: 100},
-            depthMax: {value: 5000},
-            time: {value: window.performance.now()},
-            map: {value: texture},
-            mapDepth: {value: textureDepth},
-            width: {value: width},
-            height: {value: height},
-            depthScale: {value: 0.15 / 256}, // roughly 1 / 1920
-            glPosScale: {value: 20000}, // 0.15 / 256}, // roughly 1 / 1920
+            depthMin: { value: 100 },
+            depthMax: { value: 5000 },
+            time: { value: window.performance.now() },
+            map: { value: texture },
+            mapDepth: { value: textureDepth },
+            width: { value: width },
+            height: { value: height },
+            depthScale: { value: 0.15 / 256 }, // roughly 1 / 1920
+            glPosScale: { value: 20000 }, // 0.15 / 256}, // roughly 1 / 1920
             // pointSize: { value: 8 * 0.666 * 0.15 / 256 },
             pointSize: { value: 2 * 0.666 },
             borderColor: { value: borderColor },
@@ -313,22 +317,29 @@ export function createPointCloudMaterial(texture, textureDepth, shaderMode, bord
             // Fraction that this is done loading (1.0 for completed or not-patch)
             patchLoading: { value: 1.0 },
             // Defaults taken from iPhone 13 Pro Max
-            focalLength: { value: new THREE.Vector2(1393.48523 / 1920 * width, 1393.48523 / 1080 * height) },
+            focalLength: {
+                value: new THREE.Vector2((1393.48523 / 1920) * width, (1393.48523 / 1080) * height),
+            },
             // convert principal point from image Y-axis bottom-to-top in Vuforia to top-to-bottom in OpenGL
-            principalPoint: { value: new THREE.Vector2(959.169433 / 1920 * width, (1080 - 539.411926) / 1080 * height) },
+            principalPoint: {
+                value: new THREE.Vector2(
+                    (959.169433 / 1920) * width,
+                    ((1080 - 539.411926) / 1080) * height
+                ),
+            },
             // can be used to lerp between shader properties based on if you're observing from same angle as recorded
             viewAngleSimilarity: { value: 0.0 },
             viewPositionSimilarity: { value: 0.0 },
-			// used to erase depth in the pre render
-            useFarDepth: {value: false},
-            inverted: {value: false}
+            // used to erase depth in the pre render
+            useFarDepth: { value: false },
+            inverted: { value: false },
         },
         vertexShader,
         fragmentShader,
         // blending: THREE.AdditiveBlending,
         depthTest: true,
         // depthWrite: false,
-        transparent: true
+        transparent: true,
     });
 
     return material;

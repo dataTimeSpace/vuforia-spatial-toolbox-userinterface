@@ -8,7 +8,7 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 import GUI from '../../thirdPartyCode/lil-gui.esm.js';
 import { getPendingCapture } from '../gui/sceneCapture.js';
-import { remap } from "../utilities/MathUtils.js";
+import { remap } from '../utilities/MathUtils.js';
 
 let gsInitialized = false;
 let gsActive = false;
@@ -31,11 +31,11 @@ let HARDCODED_SPLAT_COUNTS_ALIGNMENTS = {};
 // 3. turn on USE_MANUAL_ALIGNMENT_FOR_ALL to apply manualAlignmentMatrix to everything, or
 //    USE_MANUAL_ALIGNMENT_FOR_SPECIFIED to pick the matrix from the SPLAT_COUNT_ALIGNMENTS
 // This assumes/hopes that multiple splat files don't by coincidence have the same number of splats
-const manualAlignmentMatrix =
-    [   -0.061740851923088896,  -1.605035129459561,     0.11744258386357077,    0,
-        -1.3163664239481947,    -0.01724431166120183,   -0.9276985133744583,    0,
-        0.9258023359257972,     -0.13155731456696773,   -1.3112304022856882,    0,
-        0.7588661310195932,     -0.3383481348010016,    0.697548483268128,      1];
+const manualAlignmentMatrix = [
+    -0.061740851923088896, -1.605035129459561, 0.11744258386357077, 0, -1.3163664239481947,
+    -0.01724431166120183, -0.9276985133744583, 0, 0.9258023359257972, -0.13155731456696773,
+    -1.3112304022856882, 0, 0.7588661310195932, -0.3383481348010016, 0.697548483268128, 1,
+];
 
 const manualAlignmentMatrix_ptcFurniture1 = manualAlignmentMatrix;
 HARDCODED_SPLAT_COUNTS_ALIGNMENTS[1682141] = manualAlignmentMatrix_ptcFurniture1;
@@ -44,18 +44,24 @@ HARDCODED_SPLAT_COUNTS_ALIGNMENTS[1682141] = manualAlignmentMatrix_ptcFurniture1
  * Builds a projection matrix from field of view, aspect ratio, and near and far planes
  */
 function projectionMatrixFrom(vFOV, aspect, near, far) {
-    var top = near * Math.tan((Math.PI / 180) * 0.5 * vFOV );
+    var top = near * Math.tan((Math.PI / 180) * 0.5 * vFOV);
     var height = 2 * top;
     var width = aspect * height;
     var left = -0.5 * width;
     // return makePerspective( left, left + width, top, top - height, near, far );
 
     // conversion to the convention used in GS rendering here
-    let mat = makePerspective( left, left + width, top, top - height, near, far );
+    let mat = makePerspective(left, left + width, top, top - height, near, far);
 
     // flip y and z axes
-    mat[4] *= -1; mat[5] *= -1; mat[6] *= -1; mat[7] *= -1;
-    mat[8] *= -1; mat[9] *= -1; mat[10] *= -1; mat[11] *= -1;
+    mat[4] *= -1;
+    mat[5] *= -1;
+    mat[6] *= -1;
+    mat[7] *= -1;
+    mat[8] *= -1;
+    mat[9] *= -1;
+    mat[10] *= -1;
+    mat[11] *= -1;
     // mm to meter units
     mat[14] *= 0.001;
 
@@ -65,24 +71,34 @@ function projectionMatrixFrom(vFOV, aspect, near, far) {
 /**
  * Helper function for creating a projection matrix
  */
-function makePerspective ( left, right, top, bottom, near, far ) {
-
+function makePerspective(left, right, top, bottom, near, far) {
     var te = [];
-    var x = 2 * near / ( right - left );
-    var y = 2 * near / ( top - bottom );
+    var x = (2 * near) / (right - left);
+    var y = (2 * near) / (top - bottom);
 
-    var a = ( right + left ) / ( right - left );
-    var b = ( top + bottom ) / ( top - bottom );
-    var c = - ( far + near ) / ( far - near );
-    var d = - 2 * far * near / ( far - near );
+    var a = (right + left) / (right - left);
+    var b = (top + bottom) / (top - bottom);
+    var c = -(far + near) / (far - near);
+    var d = (-2 * far * near) / (far - near);
 
-    te[ 0 ] = x;    te[ 4 ] = 0;    te[ 8 ] = a;    te[ 12 ] = 0;
-    te[ 1 ] = 0;    te[ 5 ] = y;    te[ 9 ] = b;    te[ 13] = 0;
-    te[ 2 ] = 0;    te[ 6 ] = 0;    te[ 10 ] = c;   te[ 14 ] = d;
-    te[ 3 ] = 0;    te[ 7 ] = 0;    te[ 11 ] = - 1; te[ 15 ] = 0;
+    te[0] = x;
+    te[4] = 0;
+    te[8] = a;
+    te[12] = 0;
+    te[1] = 0;
+    te[5] = y;
+    te[9] = b;
+    te[13] = 0;
+    te[2] = 0;
+    te[6] = 0;
+    te[10] = c;
+    te[14] = d;
+    te[3] = 0;
+    te[7] = 0;
+    te[11] = -1;
+    te[15] = 0;
 
     return te;
-
 }
 
 /** Original calculation of projection and view matrices (left for reference) */
@@ -116,7 +132,6 @@ function getViewMatrix(camera) {
 }
 */
 
-
 /** Multiplication (a * b) of matrices stored column-by-column */
 function multiply4(a, b) {
     return [
@@ -144,8 +159,8 @@ function multiply4v(m, v) {
         v[0] * m[0] + v[1] * m[4] + v[2] * m[8] + v[3] * m[12],
         v[0] * m[1] + v[1] * m[5] + v[2] * m[9] + v[3] * m[13],
         v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + v[3] * m[14],
-        v[0] * m[3] + v[1] * m[7] + v[2] * m[11] + v[3] * m[15]
-    ]
+        v[0] * m[3] + v[1] * m[7] + v[2] * m[11] + v[3] * m[15],
+    ];
 }
 
 function invert4(a) {
@@ -161,8 +176,7 @@ function invert4(a) {
     let b09 = a[9] * a[14] - a[10] * a[13];
     let b10 = a[9] * a[15] - a[11] * a[13];
     let b11 = a[10] * a[15] - a[11] * a[14];
-    let det =
-        b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+    let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
     if (!det) return null;
     return [
         (a[5] * b11 - a[6] * b10 + a[7] * b09) / det,
@@ -184,14 +198,13 @@ function invert4(a) {
     ];
 }
 
-function ApplyTransMatrix(sourceMatrix, transMatrix, scaleF)
-{
+function ApplyTransMatrix(sourceMatrix, transMatrix, scaleF) {
     let resultMatrix = new Array(16).fill(0);
 
-    for(let row = 0; row < 4; row++) {
-        for(let col = 0; col < 4; col++) {
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
             let sum = 0; // Initialize sum for each element
-            for(let k = 0; k < 4; k++) {
+            for (let k = 0; k < 4; k++) {
                 sum += sourceMatrix[row * 4 + k] * transMatrix[k * 4 + col];
             }
             resultMatrix[row * 4 + col] = sum; // Assign the calculated value
@@ -201,7 +214,7 @@ function ApplyTransMatrix(sourceMatrix, transMatrix, scaleF)
     resultMatrix[13] = resultMatrix[13] * scaleF;
     resultMatrix[14] = resultMatrix[14] * scaleF;
 
-    return resultMatrix
+    return resultMatrix;
 }
 
 function createWorker(self) {
@@ -282,11 +295,7 @@ function createWorker(self) {
             texdata_c[4 * (8 * i + 7) + 3] = u_buffer[32 * i + 24 + 3];
 
             // quaternions
-            let scale = [
-                f_buffer[8 * i + 3 + 0],
-                f_buffer[8 * i + 3 + 1],
-                f_buffer[8 * i + 3 + 2],
-            ];
+            let scale = [f_buffer[8 * i + 3 + 0], f_buffer[8 * i + 3 + 1], f_buffer[8 * i + 3 + 2]];
             let rot = [
                 (u_buffer[32 * i + 28 + 0] - 128) / 128,
                 (u_buffer[32 * i + 28 + 1] - 128) / 128,
@@ -331,9 +340,7 @@ function createWorker(self) {
         const f_buffer = new Float32Array(buffer);
         if (lastVertexCount === vertexCount) {
             let dot =
-                lastProj[2] * viewProj[2] +
-                lastProj[6] * viewProj[6] +
-                lastProj[10] * viewProj[10];
+                lastProj[2] * viewProj[2] + lastProj[6] * viewProj[6] + lastProj[10] * viewProj[10];
             if (Math.abs(dot - 1) < 0.01) {
                 return;
             }
@@ -349,8 +356,8 @@ function createWorker(self) {
         for (let i = 0; i < vertexCount; i++) {
             let depth =
                 ((viewProj[2] * f_buffer[8 * i + 0] +
-                        viewProj[6] * f_buffer[8 * i + 1] +
-                        viewProj[10] * f_buffer[8 * i + 2]) *
+                    viewProj[6] * f_buffer[8 * i + 1] +
+                    viewProj[10] * f_buffer[8 * i + 2]) *
                     4096) |
                 0;
             sizeList[i] = depth;
@@ -366,86 +373,73 @@ function createWorker(self) {
             counts0[sizeList[i]]++;
         }
         let starts0 = new Uint32Array(256 * 256);
-        for (let i = 1; i < 256 * 256; i++)
-            starts0[i] = starts0[i - 1] + counts0[i - 1];
+        for (let i = 1; i < 256 * 256; i++) starts0[i] = starts0[i - 1] + counts0[i - 1];
         depthIndex = new Uint32Array(vertexCount);
-        for (let i = 0; i < vertexCount; i++)
-            depthIndex[starts0[sizeList[i]]++] = i;
+        for (let i = 0; i < vertexCount; i++) depthIndex[starts0[sizeList[i]]++] = i;
 
         // console.timeEnd("sort");
 
         lastProj = viewProj;
-        self.postMessage({ depthIndex, viewProj, vertexCount }, [
-            depthIndex.buffer,
-        ]);
+        self.postMessage({ depthIndex, viewProj, vertexCount }, [depthIndex.buffer]);
     }
 
     function processPlyBuffer(inputBuffer) {
         const ubuf = new Uint8Array(inputBuffer);
         // 10KB ought to be enough for a header...
         const header = new TextDecoder().decode(ubuf.slice(0, 1024 * 10));
-        const header_end = "end_header\n";
+        const header_end = 'end_header\n';
         const header_end_index = header.indexOf(header_end);
-        if (header_end_index < 0)
-            throw new Error("Unable to read .ply file header");
+        if (header_end_index < 0) throw new Error('Unable to read .ply file header');
         const vertexCount = parseInt(/element vertex (\d+)\n/.exec(header)[1]);
-        console.log("Vertex Count", vertexCount);
+        console.log('Vertex Count', vertexCount);
         let row_offset = 0,
             offsets = {},
             types = {};
         const TYPE_MAP = {
-            double: "getFloat64",
-            int: "getInt32",
-            uint: "getUint32",
-            float: "getFloat32",
-            short: "getInt16",
-            ushort: "getUint16",
-            uchar: "getUint8",
+            double: 'getFloat64',
+            int: 'getInt32',
+            uint: 'getUint32',
+            float: 'getFloat32',
+            short: 'getInt16',
+            ushort: 'getUint16',
+            uchar: 'getUint8',
         };
         for (let prop of header
             .slice(0, header_end_index)
-            .split("\n")
-            .filter((k) => k.startsWith("property "))) {
-            const [_p, type, name] = prop.split(" ");
-            const arrayType = TYPE_MAP[type] || "getInt8";
+            .split('\n')
+            .filter((k) => k.startsWith('property '))) {
+            const [_p, type, name] = prop.split(' ');
+            const arrayType = TYPE_MAP[type] || 'getInt8';
             types[name] = arrayType;
             offsets[name] = row_offset;
-            row_offset += parseInt(arrayType.replace(/[^\d]/g, "")) / 8;
+            row_offset += parseInt(arrayType.replace(/[^\d]/g, '')) / 8;
         }
-        console.log("Bytes per row", row_offset, types, offsets);
+        console.log('Bytes per row', row_offset, types, offsets);
 
-        let dataView = new DataView(
-            inputBuffer,
-            header_end_index + header_end.length,
-        );
+        let dataView = new DataView(inputBuffer, header_end_index + header_end.length);
         let row = 0;
         const attrs = new Proxy(
             {},
             {
                 get(target, prop) {
-                    if (!types[prop]) throw new Error(prop + " not found");
-                    return dataView[types[prop]](
-                        row * row_offset + offsets[prop],
-                        true,
-                    );
+                    if (!types[prop]) throw new Error(prop + ' not found');
+                    return dataView[types[prop]](row * row_offset + offsets[prop], true);
                 },
-            },
+            }
         );
 
-        console.time("calculate importance");
+        console.time('calculate importance');
         let sizeList = new Float32Array(vertexCount);
         let sizeIndex = new Uint32Array(vertexCount);
         for (row = 0; row < vertexCount; row++) {
             sizeIndex[row] = row;
-            if (!types["scale_0"]) continue;
+            if (!types['scale_0']) continue;
             const size =
-                Math.exp(attrs.scale_0) *
-                Math.exp(attrs.scale_1) *
-                Math.exp(attrs.scale_2);
+                Math.exp(attrs.scale_0) * Math.exp(attrs.scale_1) * Math.exp(attrs.scale_2);
             const opacity = 1 / (1 + Math.exp(-attrs.opacity));
             sizeList[row] = size * opacity;
         }
-        console.timeEnd("calculate importance");
+        console.timeEnd('calculate importance');
 
         // console.time("sort");
         sizeIndex.sort((b, a) => sizeList[a] - sizeList[b]);
@@ -459,29 +453,18 @@ function createWorker(self) {
         const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
         const buffer = new ArrayBuffer(rowLength * vertexCount);
 
-        console.time("build buffer");
+        console.time('build buffer');
         for (let j = 0; j < vertexCount; j++) {
             row = sizeIndex[j];
 
             const position = new Float32Array(buffer, j * rowLength, 3);
             const scales = new Float32Array(buffer, j * rowLength + 4 * 3, 3);
-            const rgba = new Uint8ClampedArray(
-                buffer,
-                j * rowLength + 4 * 3 + 4 * 3,
-                4,
-            );
-            const rot = new Uint8ClampedArray(
-                buffer,
-                j * rowLength + 4 * 3 + 4 * 3 + 4,
-                4,
-            );
+            const rgba = new Uint8ClampedArray(buffer, j * rowLength + 4 * 3 + 4 * 3, 4);
+            const rot = new Uint8ClampedArray(buffer, j * rowLength + 4 * 3 + 4 * 3 + 4, 4);
 
-            if (types["scale_0"]) {
+            if (types['scale_0']) {
                 const qlen = Math.sqrt(
-                    attrs.rot_0 ** 2 +
-                    attrs.rot_1 ** 2 +
-                    attrs.rot_2 ** 2 +
-                    attrs.rot_3 ** 2,
+                    attrs.rot_0 ** 2 + attrs.rot_1 ** 2 + attrs.rot_2 ** 2 + attrs.rot_3 ** 2
                 );
 
                 rot[0] = (attrs.rot_0 / qlen) * 128 + 128;
@@ -507,7 +490,7 @@ function createWorker(self) {
             position[1] = attrs.y;
             position[2] = attrs.z;
 
-            if (types["f_dc_0"]) {
+            if (types['f_dc_0']) {
                 const SH_C0 = 0.28209479177387814;
                 rgba[0] = (0.5 + SH_C0 * attrs.f_dc_0) * 255;
                 rgba[1] = (0.5 + SH_C0 * attrs.f_dc_1) * 255;
@@ -517,13 +500,13 @@ function createWorker(self) {
                 rgba[1] = attrs.green;
                 rgba[2] = attrs.blue;
             }
-            if (types["opacity"]) {
+            if (types['opacity']) {
                 rgba[3] = (1 / (1 + Math.exp(-attrs.opacity))) * 255;
             } else {
                 rgba[3] = 255;
             }
         }
-        console.timeEnd("build buffer");
+        console.timeEnd('build buffer');
         return buffer;
     }
 
@@ -702,37 +685,36 @@ void main () {
 `.trim();
 
 async function main(initialFilePath) {
-
     // const url = new URL('http://192.168.0.12:8080/obj/_WORLD_test/target/target.splat');
     const url = new URL(initialFilePath);
     const req = await fetch(url, {
-        mode: "cors", // no-cors, *cors, same-origin
-        credentials: "omit", // include, *same-origin, omit
+        mode: 'cors', // no-cors, *cors, same-origin
+        credentials: 'omit', // include, *same-origin, omit
     });
     if (req.status != 200) {
-        throw new Error(req.status + " Unable to load " + req.url);
+        throw new Error(req.status + ' Unable to load ' + req.url);
     }
 
     const reader = req.body.getReader();
-    // calculate number of splats in the scene 
+    // calculate number of splats in the scene
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
-    let splatData = new Uint8Array(req.headers.get("content-length"));
-    let splatCount = splatData.length / rowLength
+    let splatData = new Uint8Array(req.headers.get('content-length'));
+    let splatCount = splatData.length / rowLength;
 
     let downsample = splatCount > 500000 ? 1 : 1 / window.devicePixelRatio;
 
     const worker = new Worker(
         URL.createObjectURL(
-            new Blob(["(", createWorker.toString(), ")(self)"], {
-                type: "application/javascript",
-            }),
-        ),
+            new Blob(['(', createWorker.toString(), ')(self)'], {
+                type: 'application/javascript',
+            })
+        )
     );
 
-    const fps = document.getElementById("gsFps");
-    const canvas = document.getElementById("gsCanvas");
+    const fps = document.getElementById('gsFps');
+    const canvas = document.getElementById('gsCanvas');
 
-    const gl = canvas.getContext("webgl2", {
+    const gl = canvas.getContext('webgl2', {
         antialias: false,
     });
 
@@ -761,32 +743,27 @@ async function main(initialFilePath) {
 
     // Enable blending
     gl.enable(gl.BLEND);
-    gl.blendFuncSeparate(
-        gl.ONE_MINUS_DST_ALPHA,
-        gl.ONE,
-        gl.ONE_MINUS_DST_ALPHA,
-        gl.ONE,
-    );
+    gl.blendFuncSeparate(gl.ONE_MINUS_DST_ALPHA, gl.ONE, gl.ONE_MINUS_DST_ALPHA, gl.ONE);
 
     gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
 
-    const u_projection = gl.getUniformLocation(program, "projection");
-    const u_viewport = gl.getUniformLocation(program, "viewport");
-    const u_focal = gl.getUniformLocation(program, "focal");
-    const u_view = gl.getUniformLocation(program, "view");
-    const u_mouse = gl.getUniformLocation(program, "uMouse");
-    const u_collideIndex = gl.getUniformLocation(program, "uCollideIndex");
-    const u_shouldDraw = gl.getUniformLocation(program, "uShouldDraw");
-    const u_uIsGSRaycasting = gl.getUniformLocation(program, "uIsGSRaycasting");
-    const u_toggleBoundary = gl.getUniformLocation(program, "uToggleBoundary");
-    const u_worldLowAlpha = gl.getUniformLocation(program, "uWorldLowAlpha");
+    const u_projection = gl.getUniformLocation(program, 'projection');
+    const u_viewport = gl.getUniformLocation(program, 'viewport');
+    const u_focal = gl.getUniformLocation(program, 'focal');
+    const u_view = gl.getUniformLocation(program, 'view');
+    const u_mouse = gl.getUniformLocation(program, 'uMouse');
+    const u_collideIndex = gl.getUniformLocation(program, 'uCollideIndex');
+    const u_shouldDraw = gl.getUniformLocation(program, 'uShouldDraw');
+    const u_uIsGSRaycasting = gl.getUniformLocation(program, 'uIsGSRaycasting');
+    const u_toggleBoundary = gl.getUniformLocation(program, 'uToggleBoundary');
+    const u_worldLowAlpha = gl.getUniformLocation(program, 'uWorldLowAlpha');
 
     // positions
     const triangleVertices = new Float32Array([-2, -2, 2, -2, 2, 2, -2, 2]);
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, triangleVertices, gl.STATIC_DRAW);
-    const a_position = gl.getAttribLocation(program, "position");
+    const a_position = gl.getAttribLocation(program, 'position');
     gl.enableVertexAttribArray(a_position);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
@@ -795,11 +772,11 @@ async function main(initialFilePath) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    var u_textureLocation = gl.getUniformLocation(program, "u_texture");
+    var u_textureLocation = gl.getUniformLocation(program, 'u_texture');
     gl.uniform1i(u_textureLocation, 0);
 
     const indexBuffer = gl.createBuffer();
-    const a_index = gl.getAttribLocation(program, "index");
+    const a_index = gl.getAttribLocation(program, 'index');
     gl.enableVertexAttribArray(a_index);
     gl.bindBuffer(gl.ARRAY_BUFFER, indexBuffer);
     gl.vertexAttribIPointer(a_index, 1, gl.INT, false, 0, 0);
@@ -811,7 +788,17 @@ async function main(initialFilePath) {
     // set up an off-screen frame buffer object texture
     let offscreenTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, offscreenTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, innerWidth, innerHeight, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA32F,
+        innerWidth,
+        innerHeight,
+        0,
+        gl.RGBA,
+        gl.FLOAT,
+        null
+    );
     // Set texture parameters as needed
     // Check and enable the EXT_color_buffer_float extension in WebGL2
     const extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
@@ -825,7 +812,13 @@ async function main(initialFilePath) {
     // create frame buffer object
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscreenTexture, 0);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        offscreenTexture,
+        0
+    );
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
         console.error('Framebuffer is incomplete');
         console.log(gl.checkFramebufferStatus(gl.FRAMEBUFFER));
@@ -839,35 +832,55 @@ async function main(initialFilePath) {
         offscreenTexture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + 1);
         gl.bindTexture(gl.TEXTURE_2D, offscreenTexture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, innerWidth, innerHeight, 0, gl.RGBA, gl.FLOAT, null);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA32F,
+            innerWidth,
+            innerHeight,
+            0,
+            gl.RGBA,
+            gl.FLOAT,
+            null
+        );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscreenTexture, 0);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            offscreenTexture,
+            0
+        );
         if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
             console.error('Framebuffer is incomplete');
             console.log(gl.checkFramebufferStatus(gl.FRAMEBUFFER));
         }
-    }
+    };
 
     const resize = () => {
-
-        const canvas = document.getElementById("gsCanvas");
+        const canvas = document.getElementById('gsCanvas');
         canvas.width = window.innerWidth / downsample;
         canvas.height = window.innerHeight / downsample;
 
         // near and far plane defined in mm as in the rest of Toolbox
-        projectionMatrix = projectionMatrixFrom(iPhoneVerticalFOV, window.innerWidth / window.innerHeight, 10, 300000);
+        projectionMatrix = projectionMatrixFrom(
+            iPhoneVerticalFOV,
+            window.innerWidth / window.innerHeight,
+            10,
+            300000
+        );
 
         camNear = 10 / 1000;
-        camNearHeight = camNear * Math.tan(iPhoneVerticalFOV * (Math.PI / 180) / 2) * 2;
-        camNearWidth = camNearHeight / window.innerHeight * window.innerWidth;
+        camNearHeight = camNear * Math.tan((iPhoneVerticalFOV * (Math.PI / 180)) / 2) * 2;
+        camNearWidth = (camNearHeight / window.innerHeight) * window.innerWidth;
 
         // compute horizontal and vertical focal length in pixels from projection matrix. This is needed in shaders.
-        const fx = projectionMatrix[0] * window.innerWidth / 2.0;
-        const fy = projectionMatrix[5] * -window.innerHeight / 2.0;
+        const fx = (projectionMatrix[0] * window.innerWidth) / 2.0;
+        const fy = (projectionMatrix[5] * -window.innerHeight) / 2.0;
 
         gl.uniform2fv(u_focal, new Float32Array([fx, fy]));
 
@@ -887,18 +900,18 @@ async function main(initialFilePath) {
         }, 150);
     };
 
-    window.addEventListener("resize", resize);
+    window.addEventListener('resize', resize);
     resize();
 
     worker.onmessage = (e) => {
         if (e.data.buffer) {
             splatData = new Uint8Array(e.data.buffer);
             const blob = new Blob([splatData.buffer], {
-                type: "application/octet-stream",
+                type: 'application/octet-stream',
             });
             // TODO (Dan): don't download, send to server
-            const link = document.createElement("a");
-            link.download = "model.splat";
+            const link = document.createElement('a');
+            link.download = 'model.splat';
             link.href = URL.createObjectURL(blob);
             document.body.appendChild(link);
             link.click();
@@ -908,16 +921,8 @@ async function main(initialFilePath) {
             // console.log(texdata)
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_S,
-                gl.CLAMP_TO_EDGE,
-            );
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_T,
-                gl.CLAMP_TO_EDGE,
-            );
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
@@ -930,7 +935,7 @@ async function main(initialFilePath) {
                 0,
                 gl.RGBA_INTEGER,
                 gl.UNSIGNED_INT,
-                texdata,
+                texdata
             );
             gl.bindTexture(gl.TEXTURE_2D, texture);
         } else if (e.data.depthIndex) {
@@ -959,46 +964,52 @@ async function main(initialFilePath) {
     }
 
     const frame = (now) => {
-
-        // obtain camera pose from Toolbox scene graph 
+        // obtain camera pose from Toolbox scene graph
         let cameraNode = realityEditor.sceneGraph.getSceneNodeById('CAMERA');
-        let gpNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.GROUNDPLANE + realityEditor.sceneGraph.TAGS.ROTATE_X);
+        let gpNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.NAMES.GROUNDPLANE + realityEditor.sceneGraph.TAGS.ROTATE_X
+        );
         if (!gpNode) {
-            gpNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.NAMES.GROUNDPLANE);
+            gpNode = realityEditor.sceneGraph.getSceneNodeById(
+                realityEditor.sceneGraph.NAMES.GROUNDPLANE
+            );
         }
         // transformation from camera CS to ground plane CS
         let newCamMatrix = cameraNode.getMatrixRelativeTo(gpNode);
 
-        const scaleF = 1.0;  // extra scaling factor in target CS
-        const offset_x = 0;  // extra offset in target CS (in meter units)
+        const scaleF = 1.0; // extra scaling factor in target CS
+        const offset_x = 0; // extra offset in target CS (in meter units)
         const offset_y = 0;
         const offset_z = 0;
 
-        const SCALE = 1 / 1000; // conversion from mm (Toolbox) to meters (GS renderer) 
-        const floorOffset = realityEditor.gui.ar.areaCreator.calculateFloorOffset() // in mm units
+        const SCALE = 1 / 1000; // conversion from mm (Toolbox) to meters (GS renderer)
+        const floorOffset = realityEditor.gui.ar.areaCreator.calculateFloorOffset(); // in mm units
         // update translation vector (camera wrt. world CS)
-        newCamMatrix[12] = (newCamMatrix[12]*SCALE + offset_x) * scaleF;
-        newCamMatrix[13] = ((newCamMatrix[13] + floorOffset)*SCALE + offset_y)*scaleF;
-        newCamMatrix[14] = (newCamMatrix[14]*SCALE + offset_z)*scaleF;
+        newCamMatrix[12] = (newCamMatrix[12] * SCALE + offset_x) * scaleF;
+        newCamMatrix[13] = ((newCamMatrix[13] + floorOffset) * SCALE + offset_y) * scaleF;
+        newCamMatrix[14] = (newCamMatrix[14] * SCALE + offset_z) * scaleF;
 
         // flip the y, z axes (OpenGL to Colmap camera CS)
-        const flipMatrix =   
-            [1, 0, 0, 0,
-             0,-1, 0, 0,
-             0, 0,-1, 0,
-             0, 0, 0, 1];
+        const flipMatrix = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1];
 
         let resultMatrix_1 = multiply4(newCamMatrix, flipMatrix);
         // inversion is needed
         let actualViewMatrix = invert4(resultMatrix_1);
 
-        let useManualAlignment = USE_MANUAL_ALIGNMENT_FOR_ALL ||
-            (USE_MANUAL_ALIGNMENT_FOR_SPECIFIED && typeof HARDCODED_SPLAT_COUNTS_ALIGNMENTS[splatCount] !== 'undefined');
+        let useManualAlignment =
+            USE_MANUAL_ALIGNMENT_FOR_ALL ||
+            (USE_MANUAL_ALIGNMENT_FOR_SPECIFIED &&
+                typeof HARDCODED_SPLAT_COUNTS_ALIGNMENTS[splatCount] !== 'undefined');
         if (useManualAlignment) {
             // let resultMatrix_manualAlign = multiply4(resultMatrix_1, manualAlignmentMatrix);
             // actualViewMatrix = invert4(resultMatrix_manualAlign);
-            let alignmentMatrix = HARDCODED_SPLAT_COUNTS_ALIGNMENTS[splatCount] || manualAlignmentMatrix;
-            let resultMatrix_manualAlign = ApplyTransMatrix(resultMatrix_1, alignmentMatrix, scaleF);
+            let alignmentMatrix =
+                HARDCODED_SPLAT_COUNTS_ALIGNMENTS[splatCount] || manualAlignmentMatrix;
+            let resultMatrix_manualAlign = ApplyTransMatrix(
+                resultMatrix_1,
+                alignmentMatrix,
+                scaleF
+            );
             actualViewMatrix = invert4(resultMatrix_manualAlign);
         }
 
@@ -1009,7 +1020,7 @@ async function main(initialFilePath) {
         avgFps = avgFps * 0.9 + currentFps * 0.1;
 
         if (vertexCount > 0 && realityEditor.spatialCursor.isGSActive()) {
-            document.getElementById("gsSpinner").style.display = "none";
+            document.getElementById('gsSpinner').style.display = 'none';
             gl.uniformMatrix4fv(u_view, false, actualViewMatrix);
             gl.uniform2fv(u_mouse, new Float32Array(uMouse));
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1031,10 +1042,22 @@ async function main(initialFilePath) {
                 gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
                 // read the texture
                 const pixelBuffer = new Float32Array(4); // 4 components for RGBA
-                gl.readPixels(Math.floor(uMouseScreen[0]), Math.floor(innerHeight - uMouseScreen[1]), 1, 1, gl.RGBA, gl.FLOAT, pixelBuffer);
+                gl.readPixels(
+                    Math.floor(uMouseScreen[0]),
+                    Math.floor(innerHeight - uMouseScreen[1]),
+                    1,
+                    1,
+                    gl.RGBA,
+                    gl.FLOAT,
+                    pixelBuffer
+                );
                 let camDepth = pixelBuffer[0];
-                let xOffset = remap(uMouse[0], -1, 1, -camNearWidth / 2, camNearWidth / 2) / camNear * camDepth;
-                let yOffset = remap(uMouse[1], -1, 1, camNearHeight / 2, -camNearHeight / 2) / camNear * camDepth;
+                let xOffset =
+                    (remap(uMouse[0], -1, 1, -camNearWidth / 2, camNearWidth / 2) / camNear) *
+                    camDepth;
+                let yOffset =
+                    (remap(uMouse[1], -1, 1, camNearHeight / 2, -camNearHeight / 2) / camNear) *
+                    camDepth;
                 let camSpacePosition = [xOffset, yOffset, camDepth, 1];
                 let worldSpacePosition = multiply4v(resultMatrix_1, camSpacePosition);
                 vWorld.set(worldSpacePosition[0], worldSpacePosition[1], worldSpacePosition[2]);
@@ -1058,19 +1081,18 @@ async function main(initialFilePath) {
             if (pendingCapture) {
                 pendingCapture.performCapture();
             }
-
         } else {
             gl.clear(gl.COLOR_BUFFER_BIT);
-            document.getElementById("gsSpinner").style.display = "";
+            document.getElementById('gsSpinner').style.display = '';
             // start = Date.now() + 2000;
         }
         const progress = (100 * vertexCount) / splatCount;
         if (progress < 100) {
-            document.getElementById("gsProgress").style.width = progress + "%";
+            document.getElementById('gsProgress').style.width = progress + '%';
         } else {
-            document.getElementById("gsProgress").style.display = "none";
+            document.getElementById('gsProgress').style.display = 'none';
         }
-        fps.innerText = Math.round(avgFps) + " fps";
+        fps.innerText = Math.round(avgFps) + ' fps';
         lastFrame = now;
         window.requestAnimationFrame(frame);
     };
@@ -1105,18 +1127,21 @@ async function main(initialFilePath) {
     let uLastMouse = [0, 0];
     let uLastMouseScreen = [0, 0];
     let vWorld = new THREE.Vector3();
-    window.addEventListener("pointermove", (e) => {
+    window.addEventListener('pointermove', (e) => {
         if (isFlying) return;
         uMouseScreen = [e.clientX, e.clientY];
         uMouse = [(e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1];
-    })
+    });
     // add fly mode support
     let isFlying = false;
     realityEditor.device.keyboardEvents.registerCallback('enterFlyMode', function (params) {
         isFlying = params.isFlying;
         let mousePosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
         uLastMouseScreen = [mousePosition.x, mousePosition.y];
-        uLastMouse = [(mousePosition.x / innerWidth) * 2 - 1, -(mousePosition.y / innerHeight) * 2 + 1]
+        uLastMouse = [
+            (mousePosition.x / innerWidth) * 2 - 1,
+            -(mousePosition.y / innerHeight) * 2 + 1,
+        ];
         uMouseScreen = [innerWidth / 2, innerHeight / 2];
         uMouse = [0, 0];
     });
@@ -1129,16 +1154,16 @@ async function main(initialFilePath) {
     });
 
     // lil GUI settings
-    gsSettingsPanel = new GUI({width: 300});
+    gsSettingsPanel = new GUI({ width: 300 });
     gsSettingsPanel.domElement.style.zIndex = '10001';
     gsSettingsPanel.domElement.style.display = 'none';
     let uToggleBoundary = true;
     let uWorldLowAlpha = 0.3;
     const folder = gsSettingsPanel.addFolder('Visibility');
     let settings = {
-        "toggle boundary": uToggleBoundary,
-        "world low alpha": uWorldLowAlpha,
-    }
+        'toggle boundary': uToggleBoundary,
+        'world low alpha': uWorldLowAlpha,
+    };
     folder.add(settings, 'toggle boundary').onChange((value) => {
         uToggleBoundary = value;
         gl.uniform1f(u_toggleBoundary, uToggleBoundary ? 1 : 0);
@@ -1156,9 +1181,9 @@ async function main(initialFilePath) {
         e.preventDefault();
         e.stopPropagation();
     };
-    gsContainer.addEventListener("dragenter", preventDefault);
-    gsContainer.addEventListener("dragover", preventDefault);
-    gsContainer.addEventListener("dragleave", preventDefault);
+    gsContainer.addEventListener('dragenter', preventDefault);
+    gsContainer.addEventListener('dragover', preventDefault);
+    gsContainer.addEventListener('dragleave', preventDefault);
     /*
     gsContainer.addEventListener("drop", (e) => {
         preventDefault(e);
@@ -1194,26 +1219,23 @@ async function main(initialFilePath) {
 }
 
 // The comma key can be used to toggle the splat rendering visibility after it's been loaded at least once
-window.addEventListener("keydown", e => {
+window.addEventListener('keydown', (e) => {
     if (e.key === ',') {
         if (!gsInitialized) {
             return; // must be initialized using UI button before comma key can be used
         }
         gsContainer.classList.toggle('hidden');
         gsActive = !gsContainer.classList.contains('hidden');
-        if(gsActive)
-        {
+        if (gsActive) {
             realityEditor.gui.threejsScene.enableExternalSceneRendering(true);
             realityEditor.spatialCursor.gsToggleActive(true);
-            callbacks.onSplatShown.forEach(cb => {
+            callbacks.onSplatShown.forEach((cb) => {
                 cb();
             });
-        }
-        else
-        {
+        } else {
             realityEditor.gui.threejsScene.disableExternalSceneRendering(true);
             realityEditor.spatialCursor.gsToggleActive(false);
-            callbacks.onSplatHidden.forEach(cb => {
+            callbacks.onSplatHidden.forEach((cb) => {
                 cb();
             });
         }
@@ -1228,8 +1250,8 @@ function showSplatRenderer(filePath, options = { broadcastToOthers: false }) {
         gsInitialized = true;
         gsContainer = document.querySelector('#gsContainer');
         main(filePath).catch((err) => {
-            document.getElementById("gsSpinner").style.display = "none";
-            document.getElementById("gsMessage").innerText = err.toString();
+            document.getElementById('gsSpinner').style.display = 'none';
+            document.getElementById('gsMessage').innerText = err.toString();
         });
     }
     gsContainer.classList.remove('hidden');
@@ -1251,8 +1273,8 @@ function hideSplatRenderer(options = { broadcastToOthers: false }) {
 
 let callbacks = {
     onSplatShown: [],
-    onSplatHidden: []
-}
+    onSplatHidden: [],
+};
 
 export default {
     hideSplatRenderer,
@@ -1272,4 +1294,4 @@ export default {
     hideGSSettingsPanel() {
         gsSettingsPanel.domElement.style.display = 'none';
     },
-}
+};

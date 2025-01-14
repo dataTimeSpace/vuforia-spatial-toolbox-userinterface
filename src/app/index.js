@@ -36,7 +36,7 @@
  * Created by Valentin on 10/25/17.
  */
 
-createNameSpace("realityEditor.app");
+createNameSpace('realityEditor.app');
 
 /**
  * @fileOverview realityEditor.app.index.js
@@ -57,24 +57,36 @@ createNameSpace("realityEditor.app");
  * Response with a callback that indicates the device name.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getDeviceReady = function(callBack) {
-    this.appFunctionCall('getDeviceReady', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getDeviceReady = function (callBack) {
+    this.appFunctionCall(
+        'getDeviceReady',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Response with a callback that indicates the base URL for the manager and cloud services.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getManagerBaseURL = function(callBack) {
-    this.appFunctionCall('getManagerBaseURL', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getManagerBaseURL = function (callBack) {
+    this.appFunctionCall(
+        'getManagerBaseURL',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Response with true/false depending on whether app has "Local Network" permissions (required to discover edge servers)
  * @param {FunctionName} callBack
  */
-realityEditor.app.didGrantNetworkPermissions = function(callBack) {
-    this.appFunctionCall('didGrantNetworkPermissions', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.didGrantNetworkPermissions = function (callBack) {
+    this.appFunctionCall(
+        'didGrantNetworkPermissions',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -85,16 +97,24 @@ realityEditor.app.didGrantNetworkPermissions = function(callBack) {
  * Starts the AR engine. Fires a callback once it is ready.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getVuforiaReady = function(callBack){
-    this.appFunctionCall('getVuforiaReady', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getVuforiaReady = function (callBack) {
+    this.appFunctionCall(
+        'getVuforiaReady',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Checks if the device has a depth sensor, e.g. LiDAR, and thus supports Area Target Scanning
  * @param {FunctionName} callBack
  */
-realityEditor.app.doesDeviceHaveDepthSensor = function(callBack) {
-    this.appFunctionCall('doesDeviceHaveDepthSensor', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.doesDeviceHaveDepthSensor = function (callBack) {
+    this.appFunctionCall(
+        'doesDeviceHaveDepthSensor',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -103,8 +123,12 @@ realityEditor.app.doesDeviceHaveDepthSensor = function(callBack) {
  * @param {string} targetName
  * @param {FunctionName} callBack
  */
-realityEditor.app.addNewTarget = function(targetName, callBack) {
-    this.appFunctionCall('addNewTarget', {targetName: targetName}, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
+realityEditor.app.addNewTarget = function (targetName, callBack) {
+    this.appFunctionCall(
+        'addNewTarget',
+        { targetName: targetName },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
 };
 
 /**
@@ -115,8 +139,12 @@ realityEditor.app.addNewTarget = function(targetName, callBack) {
  * @param {number} targetWidthMeters
  * @param {FunctionName} callBack
  */
-realityEditor.app.addNewTargetJPG = function(targetName, objectID, targetWidthMeters, callBack) {
-    this.appFunctionCall('addNewTargetJPG', {targetName: targetName, objectID: objectID, targetWidthMeters: targetWidthMeters}, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
+realityEditor.app.addNewTargetJPG = function (targetName, objectID, targetWidthMeters, callBack) {
+    this.appFunctionCall(
+        'addNewTargetJPG',
+        { targetName: targetName, objectID: objectID, targetWidthMeters: targetWidthMeters },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
 };
 
 /**
@@ -124,8 +152,12 @@ realityEditor.app.addNewTargetJPG = function(targetName, objectID, targetWidthMe
  * Callback will have the matrix as a length-16 array as a parameter.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getProjectionMatrix = function(callBack) {
-    this.appFunctionCall('getProjectionMatrix', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getProjectionMatrix = function (callBack) {
+    this.appFunctionCall(
+        'getProjectionMatrix',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -133,16 +165,24 @@ realityEditor.app.getProjectionMatrix = function(callBack) {
  * Callback will have a set of objectId mapped to matrix for each visibleObjects.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getMatrixStream = function(callBack) {
-    this.appFunctionCall('getMatrixStream', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getMatrixStream = function (callBack) {
+    this.appFunctionCall(
+        'getMatrixStream',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Sets up a callback for the coordinates of any poses the phone finds
  * @param {FunctionName} callBack
  */
-realityEditor.app.getPosesStream = function(callBack) {
-    this.appFunctionCall('getPosesStream', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
+realityEditor.app.getPosesStream = function (callBack) {
+    this.appFunctionCall(
+        'getPosesStream',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
 };
 
 /**
@@ -150,16 +190,24 @@ realityEditor.app.getPosesStream = function(callBack) {
  * Callback will have the cameraMatrix (which is the inverse of the view matrix) as a parameter.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getCameraMatrixStream = function(callBack) {
-    this.appFunctionCall('getCameraMatrixStream', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getCameraMatrixStream = function (callBack) {
+    this.appFunctionCall(
+        'getCameraMatrixStream',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Sets up a callback for the ground plane matrix, which will start reporting a matrix each frame after one is detected.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getGroundPlaneMatrixStream = function(callBack) {
-    this.appFunctionCall('getGroundPlaneMatrixStream', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getGroundPlaneMatrixStream = function (callBack) {
+    this.appFunctionCall(
+        'getGroundPlaneMatrixStream',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -167,7 +215,7 @@ realityEditor.app.getGroundPlaneMatrixStream = function(callBack) {
  * the most recently detected ground plane location as a static anchor that will represent ground plane (until
  * getGroundPlaneMatrixStream is called again)
  */
-realityEditor.app.acceptGroundPlaneAndStop = function() {
+realityEditor.app.acceptGroundPlaneAndStop = function () {
     this.appFunctionCall('acceptGroundPlaneAndStop', null, null);
 };
 
@@ -177,8 +225,12 @@ realityEditor.app.acceptGroundPlaneAndStop = function() {
  * @param {string} size - 'S' (25%), 'M' (50%), or 'L' (full size)
  * @param {FunctionName} callBack
  */
-realityEditor.app.getSnapshot = function(size, callBack) {
-    this.appFunctionCall('getSnapshot', {size: size}, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getSnapshot = function (size, callBack) {
+    this.appFunctionCall(
+        'getSnapshot',
+        { size: size },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 /**
  * @deprecated alias for getSnapshot
@@ -190,11 +242,12 @@ realityEditor.app.getScreenshot = realityEditor.app.getSnapshot;
  * note - not used anywhere right now
  * @return {string} screenshotBlobUrl
  */
-realityEditor.app.getScreenshotAsJpg = function(callback) {
-    this.getSnapshot("L", function(base64String) {
-        var screenshotBlobUrl = realityEditor.device.utilities.decodeBase64JpgToBlobUrl(base64String);
+realityEditor.app.getScreenshotAsJpg = function (callback) {
+    this.getSnapshot('L', function (base64String) {
+        var screenshotBlobUrl =
+            realityEditor.device.utilities.decodeBase64JpgToBlobUrl(base64String);
         callback(screenshotBlobUrl);
-        // to show the screenshot, you would: 
+        // to show the screenshot, you would:
         // document.querySelector('#screenshotHolder').src = blobUrl;
         // document.querySelector('#screenshotHolder').style.display ='inline';
     });
@@ -204,17 +257,25 @@ realityEditor.app.getScreenshotAsJpg = function(callback) {
  * Gets the background RGB texture as a base64 encoded string, and the depth texture if available as an RVL encoded byte array
  * @param {FunctionName} callBack
  */
-realityEditor.app.get3dSnapshot = function(callBack) {
-    this.appFunctionCall('get3dSnapshot', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
-}
+realityEditor.app.get3dSnapshot = function (callBack) {
+    this.appFunctionCall(
+        'get3dSnapshot',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
+};
 
 /**
  * Pauses the tracker (freezes the background)
  * @param {FunctionName|null} callBack - optional, returns success when done pausing
  */
-realityEditor.app.setPause = function(callBack = null) {
+realityEditor.app.setPause = function (callBack = null) {
     if (callBack) {
-        this.appFunctionCall('setPause', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+        this.appFunctionCall(
+            'setPause',
+            null,
+            'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+        );
     } else {
         this.appFunctionCall('setPause', null, null);
     }
@@ -224,9 +285,13 @@ realityEditor.app.setPause = function(callBack = null) {
  * Resumes the tracker (unfreezes the background)
  * @param {FunctionName|null} callBack - optional, returns success when done resuming
  */
-realityEditor.app.setResume = function(callBack = null) {
+realityEditor.app.setResume = function (callBack = null) {
     if (callBack) {
-        this.appFunctionCall('setResume', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+        this.appFunctionCall(
+            'setResume',
+            null,
+            'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+        );
     } else {
         this.appFunctionCall('setResume', null, null);
     }
@@ -235,19 +300,19 @@ realityEditor.app.setResume = function(callBack = null) {
 /**
  * Triggers a haptic feedback vibration.
  */
-realityEditor.app.tap = function() {
+realityEditor.app.tap = function () {
     this.appFunctionCall('tap', null, null);
 };
 
 /**
- * Enable mode for stationary device. At the time of this call, a pose of device in the world is frozen. 
+ * Enable mode for stationary device. At the time of this call, a pose of device in the world is frozen.
  */
 realityEditor.app.enableStationaryDevice = function () {
     this.appFunctionCall('enableStationaryDevice', null, null);
 };
 
 /**
- * Disable mode for stationary device. A pose of device in the world updates continuously as usual. 
+ * Disable mode for stationary device. A pose of device in the world updates continuously as usual.
  */
 realityEditor.app.disableStationaryDevice = function () {
     this.appFunctionCall('disableStationaryDevice', null, null);
@@ -255,21 +320,25 @@ realityEditor.app.disableStationaryDevice = function () {
 
 /**
  **************UDP****************
-  **/
- 
+ **/
+
 /**
- * Every time there is a new UDP message the callback is called. The Reality Editor listens to UDP messages on port 52316 
+ * Every time there is a new UDP message the callback is called. The Reality Editor listens to UDP messages on port 52316
  * @param {FunctionName} callBack
  */
-realityEditor.app.getUDPMessages = function(callBack) {
-    this.appFunctionCall('getUDPMessages', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getUDPMessages = function (callBack) {
+    this.appFunctionCall(
+        'getUDPMessages',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
  * Sends out a message over UDP broadcast (255.255.255.255 on port 52316)
  * @param {Object} message - must be a JSON object
  */
-realityEditor.app.sendUDPMessage = function(message) {
+realityEditor.app.sendUDPMessage = function (message) {
     if (realityEditor.network.state.proxyNetwork) {
         if (realityEditor.cloud.socket && message.action) {
             realityEditor.cloud.socket.action('udp/action', message);
@@ -281,13 +350,13 @@ realityEditor.app.sendUDPMessage = function(message) {
             message
         );
     } else {
-        this.appFunctionCall('sendUDPMessage', {message: JSON.stringify(message)}, null);
+        this.appFunctionCall('sendUDPMessage', { message: JSON.stringify(message) }, null);
     }
 };
 
 /**
  **************File****************
-  **/
+ **/
 
 /**
  * Boolean response if a file exists in the local filesystem.
@@ -297,8 +366,12 @@ realityEditor.app.sendUDPMessage = function(message) {
  * @param {string} fileName
  * @param {FunctionName} callBack
  */
-realityEditor.app.getFileExists = function(fileName, callBack) {
-    this.appFunctionCall('getFileExists', {fileName: fileName}, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getFileExists = function (fileName, callBack) {
+    this.appFunctionCall(
+        'getFileExists',
+        { fileName: fileName },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -307,8 +380,12 @@ realityEditor.app.getFileExists = function(fileName, callBack) {
  * @param {string} fileName - the url that you are downloading, e.g. "http(s)://10.0.0.225:8080/obj/stonesScreen/target/target.xml"
  * @param {FunctionName} callBack
  */
-realityEditor.app.downloadFile = function(fileName, callBack) {
-    this.appFunctionCall('downloadFile', {fileName: fileName}, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
+realityEditor.app.downloadFile = function (fileName, callBack) {
+    this.appFunctionCall(
+        'downloadFile',
+        { fileName: fileName },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
 };
 
 /**
@@ -317,7 +394,11 @@ realityEditor.app.downloadFile = function(fileName, callBack) {
  * @param {FunctionName} callBack
  */
 realityEditor.app.getFilesExist = function (fileNameArray, callBack) {
-    this.appFunctionCall('getFilesExist', {fileNameArray: fileNameArray}, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
+    this.appFunctionCall(
+        'getFilesExist',
+        { fileNameArray: fileNameArray },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
 };
 
 /**
@@ -327,7 +408,11 @@ realityEditor.app.getFilesExist = function (fileNameArray, callBack) {
  * @todo implement within XCode - currently does nothing (returns fileNameArray.count as a placeholder)
  */
 realityEditor.app.getChecksum = function (fileNameArray, callBack) {
-    this.appFunctionCall('getChecksum', {fileNameArray: fileNameArray}, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+    this.appFunctionCall(
+        'getChecksum',
+        { fileNameArray: fileNameArray },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -340,7 +425,11 @@ realityEditor.app.getChecksum = function (fileNameArray, callBack) {
  * @param {string} message
  */
 realityEditor.app.setStorage = function (storageID, message) {
-    this.appFunctionCall('setStorage', {storageID: storageID, message: JSON.stringify(message)}, null);
+    this.appFunctionCall(
+        'setStorage',
+        { storageID: storageID, message: JSON.stringify(message) },
+        null
+    );
 };
 
 /**
@@ -353,19 +442,23 @@ realityEditor.app.setStorage = function (storageID, message) {
  * @param {FunctionName} callBack
  */
 realityEditor.app.getStorage = function (storageID, callBack) {
-    this.appFunctionCall('getStorage', {storageID: storageID}, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+    this.appFunctionCall(
+        'getStorage',
+        { storageID: storageID },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
- /**
+/**
  **************Speech****************
-  **/
+ **/
 
 /**
  * Starts the native speech recognition engine.
  * While active, this engine will send received words to any callbacks registered by realityEditor.app.addSpeechListener
  */
 realityEditor.app.startSpeechRecording = function () {
-    console.log("startSpeechRecording");
+    console.log('startSpeechRecording');
     this.appFunctionCall('startSpeechRecording', null, null);
 };
 
@@ -373,7 +466,7 @@ realityEditor.app.startSpeechRecording = function () {
  * Stops the speech engine.
  */
 realityEditor.app.stopSpeechRecording = function () {
-    console.log("stopSpeechRecording");
+    console.log('stopSpeechRecording');
     this.appFunctionCall('stopSpeechRecording', null, null);
 };
 
@@ -382,10 +475,13 @@ realityEditor.app.stopSpeechRecording = function () {
  * @param {FunctionName} callBack
  */
 realityEditor.app.addSpeechListener = function (callBack) {
-    console.log("addSpeechListener");
-    this.appFunctionCall('addSpeechListener', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+    console.log('addSpeechListener');
+    this.appFunctionCall(
+        'addSpeechListener',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
-
 
 /**
  **************Video****************
@@ -399,8 +495,12 @@ realityEditor.app.addSpeechListener = function (callBack) {
  * @param {number} objectPort
  */
 realityEditor.app.startVideoRecording = function (objectKey, objectIP, objectPort) {
-    console.log("startVideoRecording");
-    this.appFunctionCall('startVideoRecording', {objectKey: objectKey, objectIP: objectIP, objectPort: objectPort}, null);
+    console.log('startVideoRecording');
+    this.appFunctionCall(
+        'startVideoRecording',
+        { objectKey: objectKey, objectIP: objectIP, objectPort: objectPort },
+        null
+    );
 };
 
 /**
@@ -408,8 +508,8 @@ realityEditor.app.startVideoRecording = function (objectKey, objectIP, objectPor
  * @param {string} videoId - the name to save it as (without .mp4), e.g. a random string uuid
  */
 realityEditor.app.stopVideoRecording = function (videoId) {
-    console.log("stopVideoRecording");
-    this.appFunctionCall('stopVideoRecording', {videoId: videoId}, null);
+    console.log('stopVideoRecording');
+    this.appFunctionCall('stopVideoRecording', { videoId: videoId }, null);
 };
 
 /**
@@ -449,7 +549,7 @@ realityEditor.app.disablePersonAnonymization = function () {
  * @param {boolean} _newState
  */
 realityEditor.app.enableExtendedTracking = function (_newState) {
-    console.warn("TODO: implement enableExtendedTracking. currently has no effect.");
+    console.warn('TODO: implement enableExtendedTracking. currently has no effect.');
     // this.appFunctionCall('enableExtendedTracking', {state: newState}, null);
 };
 
@@ -460,7 +560,11 @@ realityEditor.app.enableExtendedTracking = function (_newState) {
  * @param {FunctionName} callBack
  */
 realityEditor.app.enableOrientationChanges = function (callBack) {
-    this.appFunctionCall('enableOrientationChanges', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+    this.appFunctionCall(
+        'enableOrientationChanges',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -470,7 +574,11 @@ realityEditor.app.enableOrientationChanges = function (callBack) {
  * @param {FunctionName} callBack
  */
 realityEditor.app.subscribeToAppLifeCycleEvents = function (callBack) {
-    this.appFunctionCall('subscribeToAppLifeCycleEvents', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+    this.appFunctionCall(
+        'subscribeToAppLifeCycleEvents',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
 
 /**
@@ -478,7 +586,7 @@ realityEditor.app.subscribeToAppLifeCycleEvents = function (callBack) {
  * This will cause the coordinate system origin to reset to the phone's current position, but will
  * fix the AR tracking if the device is stuck in a re-localizing limited tracking mode
  */
-realityEditor.app.restartDeviceTracker = function() {
+realityEditor.app.restartDeviceTracker = function () {
     console.log('restartDeviceTracker');
     this.appFunctionCall('restartDeviceTracker', null, null);
 };
@@ -487,8 +595,12 @@ realityEditor.app.restartDeviceTracker = function() {
  * Param should be "landscapeLeft", "landscapeRight", "portrait", or "portraitUpsideDown"
  * @param orientationString
  */
-realityEditor.app.setOrientation = function(orientationString, callBack) {
-    this.appFunctionCall('setOrientation', {orientationString: orientationString}, 'realityEditor.app.callBack('+callBack+')');
+realityEditor.app.setOrientation = function (orientationString, callBack) {
+    this.appFunctionCall(
+        'setOrientation',
+        { orientationString: orientationString },
+        'realityEditor.app.callBack(' + callBack + ')'
+    );
 };
 
 /**
@@ -496,9 +608,13 @@ realityEditor.app.setOrientation = function(orientationString, callBack) {
  // * The callback has a single string argument of: "report_memory" or a warning, and an integer argument of bytesUsed
  * @param {FunctionName} callBack
  */
-realityEditor.app.subscribeToAppMemoryEvents = function(callBack) {
-    this.appFunctionCall('subscribeToAppMemoryEvents', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__, __ARG3__])');
-}
+realityEditor.app.subscribeToAppMemoryEvents = function (callBack) {
+    this.appFunctionCall(
+        'subscribeToAppMemoryEvents',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__, __ARG3__])'
+    );
+};
 
 /**
  **************Debugging****************
@@ -510,7 +626,7 @@ realityEditor.app.subscribeToAppMemoryEvents = function(callBack) {
 realityEditor.app.clearCache = function () {
     this.appFunctionCall('clearCache', null, null);
     console.log('clearing cache and force reloading...');
-    setTimeout(function() {
+    setTimeout(function () {
         location.reload(true);
         console.log('NOW');
     }, 1000);
@@ -521,7 +637,7 @@ realityEditor.app.clearCache = function () {
  * note - not currently used
  * @todo: the native implementation should revert back to auto mode after a certain amount of time
  */
-realityEditor.app.focusCamera = function() {
+realityEditor.app.focusCamera = function () {
     this.appFunctionCall('focusCamera', null, null);
 };
 
@@ -533,7 +649,7 @@ realityEditor.app.focusCamera = function() {
  * Save the persistent setting to disk for the IP address to load the external userinterface from.
  * @param {string} newExternalText
  */
-realityEditor.app.saveExternalText = function(newExternalText) {
+realityEditor.app.saveExternalText = function (newExternalText) {
     this.setStorage('SETUP:EXTERNAL', newExternalText);
 };
 
@@ -545,42 +661,61 @@ realityEditor.app.saveExternalText = function(newExternalText) {
  * Trigger the fingerprint authentication prompt to appear
  * @todo: not working anymore, not even set up in the iOS app
  */
-realityEditor.app.authenticateTouch = function() {
-    realityEditor.app.appFunctionCall("authenticateTouch", null, null);
+realityEditor.app.authenticateTouch = function () {
+    realityEditor.app.appFunctionCall('authenticateTouch', null, null);
 };
 
-realityEditor.app.setAspectRatio = function(ratio) {
-    realityEditor.app.appFunctionCall("setAspectRatio", {ratio});
-}
+realityEditor.app.setAspectRatio = function (ratio) {
+    realityEditor.app.appFunctionCall('setAspectRatio', { ratio });
+};
 
 /**
  ************** AREA TARGET CAPTURE API ****************
  */
 
 realityEditor.app.areaTargetCaptureStart = function (objectId, callBack) {
-    realityEditor.app.appFunctionCall("areaTargetCaptureStart", {objectId: objectId}, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
-}
+    realityEditor.app.appFunctionCall(
+        'areaTargetCaptureStart',
+        { objectId: objectId },
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
+};
 
 realityEditor.app.areaTargetCaptureStop = function (callBack) {
-    realityEditor.app.appFunctionCall("areaTargetCaptureStop", null, 'realityEditor.app.callBack('+callBack+', [__ARG1__, __ARG2__])');
-}
+    realityEditor.app.appFunctionCall(
+        'areaTargetCaptureStop',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__, __ARG2__])'
+    );
+};
 
 realityEditor.app.areaTargetCaptureGenerate = function (targetUploadURL) {
-    realityEditor.app.appFunctionCall("areaTargetCaptureGenerate", {targetUploadURL: targetUploadURL}, null);
-}
+    realityEditor.app.appFunctionCall(
+        'areaTargetCaptureGenerate',
+        { targetUploadURL: targetUploadURL },
+        null
+    );
+};
 
 realityEditor.app.onAreaTargetGenerateProgress = function (callBack) {
-    realityEditor.app.appFunctionCall("onAreaTargetGenerateProgress", null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
-}
+    realityEditor.app.appFunctionCall(
+        'onAreaTargetGenerateProgress',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
+};
 
 /**
  * Response with a callback that indicates the device provider id.
  * @param {FunctionName} callBack
  */
-realityEditor.app.getProviderId = function(callBack) {
-    this.appFunctionCall('getProviderId', null, 'realityEditor.app.callBack('+callBack+', [__ARG1__])');
+realityEditor.app.getProviderId = function (callBack) {
+    this.appFunctionCall(
+        'getProviderId',
+        null,
+        'realityEditor.app.callBack(' + callBack + ', [__ARG1__])'
+    );
 };
-
 
 /**
  **************UTILITIES****************
@@ -593,19 +728,19 @@ realityEditor.app.getProviderId = function(callBack) {
  *                                          and the value of each key is the value to pass into that parameter
  * @param {FunctionName} callbackString - 'realityEditor.app.callBack('+callBack+')'
  */
-realityEditor.app.appFunctionCall = function(functionName, functionArguments, callbackString) {
+realityEditor.app.appFunctionCall = function (functionName, functionArguments, callbackString) {
     var messageBody = {
-        functionName: functionName
+        functionName: functionName,
     };
-    
+
     if (functionArguments) {
         messageBody.arguments = functionArguments;
     }
-    
+
     if (callbackString) {
         messageBody.callback = callbackString;
     }
-    
+
     try {
         window.webkit.messageHandlers.realityEditor.postMessage(messageBody);
     } catch (e) {
@@ -618,8 +753,7 @@ realityEditor.app.appFunctionCall = function(functionName, functionArguments, ca
  * @param {FunctionName} callBack
  * @param {Array.<*>} callbackArguments
  */
-realityEditor.app.callBack = function(callBack, callbackArguments){
-    
+realityEditor.app.callBack = function (callBack, callbackArguments) {
     if (callbackArguments) {
         callBack.apply(null, callbackArguments);
     } else {

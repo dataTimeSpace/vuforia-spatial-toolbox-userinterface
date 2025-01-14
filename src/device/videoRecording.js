@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.device.videoRecording");
+createNameSpace('realityEditor.device.videoRecording');
 
 /**
  * @fileOverview realityEditor.device.videoRecording.js
@@ -7,39 +7,35 @@ createNameSpace("realityEditor.device.videoRecording");
  * Shows visual feedback while recording.
  */
 
-(function(exports) {
-
+(function (exports) {
     //TODO: no need to keep in privateState object - can be independent local variables
     var privateState = {
         isRecording: false,
         visibleObjects: {},
         recordingObjectKey: null,
         startMatrix: null,
-        virtualizerCallback: null
+        virtualizerCallback: null,
     };
 
     /**
      * Public init method sets up module and registers callbacks in other modules
      */
     function initService() {
-        
-        realityEditor.gui.ar.draw.addUpdateListener(function(visibleObjects) {
-
+        realityEditor.gui.ar.draw.addUpdateListener(function (visibleObjects) {
             // highlight or dim the video record button if there are visible objects, to show that it is able to be used
             var noVisibleObjects = Object.keys(visibleObjects).length === 0;
             if (realityEditor.gui.settings.toggleStates.videoRecordingEnabled) {
-                var buttonOpacity = (noVisibleObjects && !privateState.isRecording) ? 0.2 : 1.0;
+                var buttonOpacity = noVisibleObjects && !privateState.isRecording ? 0.2 : 1.0;
                 var recordButton = document.querySelector('#recordButton');
                 if (recordButton) {
                     recordButton.style.opacity = buttonOpacity;
                 }
             }
-            
+
             privateState.visibleObjects = visibleObjects;
-            
         });
     }
-    
+
     /**
      * Starts or stops recording, and returns whether the recording is newly turned on (true) or off (false)
      * @return {boolean}
@@ -53,7 +49,7 @@ createNameSpace("realityEditor.device.videoRecording");
             return true;
         }
     }
-    
+
     /**
      * Starts a camera recording that will attach itself as a frame to the closest object when finished
      */
@@ -67,14 +63,19 @@ createNameSpace("realityEditor.device.videoRecording");
             // var startingMatrix = realityEditor.getObject(closestObjectKey)
             // var startingMatrix = privateState.visibleObjects[closestObjectKey] || realityEditor.gui.ar.utilities.newIdentityMatrix();
             // realityEditor.app.startVideoRecording(closestObjectKey, startingMatrix); // TODO: don't need to send in starting matrix anymore
-            realityEditor.app.startVideoRecording(closestObjectKey, realityEditor.getObject(closestObjectKey).ip);
+            realityEditor.app.startVideoRecording(
+                closestObjectKey,
+                realityEditor.getObject(closestObjectKey).ip
+            );
             privateState.isRecording = true;
             privateState.recordingObjectKey = closestObjectKey;
-            privateState.startMatrix = realityEditor.gui.ar.utilities.copyMatrix(privateState.visibleObjects[closestObjectKey]);
+            privateState.startMatrix = realityEditor.gui.ar.utilities.copyMatrix(
+                privateState.visibleObjects[closestObjectKey]
+            );
             getRecordingIndicator().style.display = 'inline';
         }
     }
-    
+
     /**
      * Stops recording a current video and sends it to server to add as a frame
      */
@@ -83,11 +84,15 @@ createNameSpace("realityEditor.device.videoRecording");
             console.log('cannot stop a recording because a recording was not started');
             return;
         }
-        
+
         var videoId = realityEditor.device.utilities.uuidTime();
-        
-        createVideoFrame(privateState.recordingObjectKey, videoId, privateState.visibleObjects[privateState.recordingObjectKey]);
-        
+
+        createVideoFrame(
+            privateState.recordingObjectKey,
+            videoId,
+            privateState.visibleObjects[privateState.recordingObjectKey]
+        );
+
         realityEditor.app.stopVideoRecording(videoId);
         privateState.isRecording = false;
         privateState.recordingObjectKey = null;
@@ -105,8 +110,8 @@ createNameSpace("realityEditor.device.videoRecording");
     function createVideoFrame(objectKey, videoId, objectMatrix) {
         if (typeof objectMatrix === 'undefined') {
             objectMatrix = privateState.startMatrix;
-        } 
-        
+        }
+
         var object = realityEditor.getObject(objectKey);
 
         var frameType = 'videoRecording';
@@ -141,7 +146,7 @@ createNameSpace("realityEditor.device.videoRecording");
         frame.screen = {
             x: frame.ar.x,
             y: frame.ar.y,
-            scale: frame.ar.scale
+            scale: frame.ar.scale,
         };
         frame.screenZ = 1000;
         frame.temp = realityEditor.gui.ar.utilities.newIdentityMatrix();
@@ -152,23 +157,26 @@ createNameSpace("realityEditor.device.videoRecording");
         frame.integerVersion = 300;
 
         // add each node with a non-empty name
-        var videoPath = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/videos/' + videoId + '.mp4');
+        var videoPath = realityEditor.network.getURL(
+            object.ip,
+            realityEditor.network.getPort(object),
+            '/obj/' + object.name + '/videos/' + videoId + '.mp4'
+        );
 
         var nodes = [
-            {name: 'play', type: 'node', x: 40, y: 0},
-            {name: 'progress', type: 'node', x: -40, y: 0},
-            {name: 'storage', type: 'storeData', publicData: {data: videoPath}}
+            { name: 'play', type: 'node', x: 40, y: 0 },
+            { name: 'progress', type: 'node', x: -40, y: 0 },
+            { name: 'storage', type: 'storeData', publicData: { data: videoPath } },
         ];
-        
-        nodes.forEach( function (nodeData) {
 
+        nodes.forEach(function (nodeData) {
             var nodeName = nodeData.name;
             var nodeType = nodeData.type;
             var nodeUuid = frameKey + nodeName;
-            
+
             frame.nodes[nodeUuid] = new Node();
             var addedNode = frame.nodes[nodeUuid];
-            
+
             addedNode.objectId = objectKey;
             addedNode.frameId = frameKey;
             addedNode.name = nodeName;
@@ -178,11 +186,10 @@ createNameSpace("realityEditor.device.videoRecording");
             addedNode.x = nodeData.x || 0; //realityEditor.device.utilities.randomIntInc(0, 200) - 100;
             addedNode.y = nodeData.y || 0; //realityEditor.device.utilities.randomIntInc(0, 200) - 100;
             addedNode.scale = globalStates.defaultScale;
-            
+
             if (typeof nodeData.publicData !== 'undefined') {
                 addedNode.publicData = nodeData.publicData;
             }
-            
         });
 
         object.frames[frameKey] = frame;
@@ -190,7 +197,7 @@ createNameSpace("realityEditor.device.videoRecording");
 
         // position it in front of the camera
         moveFrameToCameraForObjectMatrix(objectKey, frameKey, objectMatrix);
-        
+
         // send it to the server
         realityEditor.network.postNewFrame(object.ip, objectKey, frame);
     }
@@ -206,20 +213,28 @@ createNameSpace("realityEditor.device.videoRecording");
      */
     function moveFrameToCameraForObjectMatrix(objectKey, frameKey, objectMatrix) {
         var frame = realityEditor.getFrame(objectKey, frameKey);
-        
+
         // recompute frame.temp for the new object
-        realityEditor.gui.ar.utilities.multiplyMatrix(objectMatrix, globalStates.projectionMatrix, frame.temp);
+        realityEditor.gui.ar.utilities.multiplyMatrix(
+            objectMatrix,
+            globalStates.projectionMatrix,
+            frame.temp
+        );
         frame.begin = realityEditor.gui.ar.utilities.copyMatrix(pocketBegin);
-        
+
         // compute frame.matrix based on new object
         var resultMatrix = [];
-        realityEditor.gui.ar.utilities.multiplyMatrix(frame.begin, realityEditor.gui.ar.utilities.invertMatrix(frame.temp), resultMatrix);
+        realityEditor.gui.ar.utilities.multiplyMatrix(
+            frame.begin,
+            realityEditor.gui.ar.utilities.invertMatrix(frame.temp),
+            resultMatrix
+        );
         realityEditor.gui.ar.positioning.setPositionDataMatrix(frame, resultMatrix); // TODO: fix this somehow, make it more understandable
 
         // reset frame.begin
         frame.begin = realityEditor.gui.ar.utilities.newIdentityMatrix();
     }
-    
+
     /**
      * Lazy instantiation and getter of a red dot element to indicate that a recording is in process
      * @return {Element}
@@ -240,7 +255,7 @@ createNameSpace("realityEditor.device.videoRecording");
         }
         return recordingIndicator;
     }
-    
+
     //////////////////////////////////////////
     //     Video Recording Within Frame     //
     //////////////////////////////////////////
@@ -256,11 +271,15 @@ createNameSpace("realityEditor.device.videoRecording");
 
         // realityEditor.app.startVideoRecording(objectKey, startingMatrix); // TODO: don't need to send in starting matrix anymore
         let object = realityEditor.getObject(objectKey);
-        realityEditor.app.startVideoRecording(objectKey, object.ip, realityEditor.network.getPort(object));
+        realityEditor.app.startVideoRecording(
+            objectKey,
+            object.ip,
+            realityEditor.network.getPort(object)
+        );
     }
 
     /**
-     * Stop the video recording, and send a message with its videoFilePath into the frame that triggered the action 
+     * Stop the video recording, and send a message with its videoFilePath into the frame that triggered the action
      * @param {string} objectKey
      * @param {string} frameKey
      */
@@ -269,9 +288,13 @@ createNameSpace("realityEditor.device.videoRecording");
         realityEditor.app.stopVideoRecording(videoId);
         var object = realityEditor.getObject(objectKey);
         var thisMsg = {
-            videoFilePath: realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/videos/' + videoId + '.mp4')
+            videoFilePath: realityEditor.network.getURL(
+                object.ip,
+                realityEditor.network.getPort(object),
+                '/obj/' + object.name + '/videos/' + videoId + '.mp4'
+            ),
         };
-        globalDOMCache["iframe" + frameKey].contentWindow.postMessage(JSON.stringify(thisMsg), '*');
+        globalDOMCache['iframe' + frameKey].contentWindow.postMessage(JSON.stringify(thisMsg), '*');
     }
 
     //////////////////////////////////////////
@@ -280,11 +303,18 @@ createNameSpace("realityEditor.device.videoRecording");
 
     const sendRzvIoMessage = (command, msg) => {
         if (window.rzvIo && window.rzvIo.readyState === WebSocket.OPEN) {
-            window.rzvIo.send(JSON.stringify(Object.assign({
-                command: command
-            }, msg)));
+            window.rzvIo.send(
+                JSON.stringify(
+                    Object.assign(
+                        {
+                            command: command,
+                        },
+                        msg
+                    )
+                )
+            );
         }
-    }
+    };
 
     function start3DVideoRecording() {
         sendRzvIoMessage('/videoRecording/start');
@@ -305,10 +335,12 @@ createNameSpace("realityEditor.device.videoRecording");
             privateState.virtualizerData = {
                 serverUrl,
                 networkId,
-                networkSecret
-            }
-            console.log(`Starting virtualizer recording on ${bestWorldObject.ip} with ${networkId} and ${networkSecret}`);
-            realityEditor.app.appFunctionCall("enablePoseTracking", {
+                networkSecret,
+            };
+            console.log(
+                `Starting virtualizer recording on ${bestWorldObject.ip} with ${networkId} and ${networkSecret}`
+            );
+            realityEditor.app.appFunctionCall('enablePoseTracking', {
                 ip: bestWorldObject.ip,
                 port: bestWorldObject.port.toString(),
                 serverUrl,
@@ -316,10 +348,14 @@ createNameSpace("realityEditor.device.videoRecording");
                 networkSecret,
             });
             setTimeout(() => {
-                realityEditor.app.appFunctionCall('startVirtualizerRecording', {}, 'realityEditor.device.videoRecording.onVirtualizerRecordingError("__ARG1__", "__ARG2__");');
+                realityEditor.app.appFunctionCall(
+                    'startVirtualizerRecording',
+                    {},
+                    'realityEditor.device.videoRecording.onVirtualizerRecordingError("__ARG1__", "__ARG2__");'
+                );
                 privateState.virtualizerErrorCallback = callback;
             }, 1000);
-        }
+        };
 
         const localSettingsHost = `localhost:${realityEditor.device.environment.getLocalServerPort()}`;
         if (window.location.host.split(':')[0] !== localSettingsHost.split(':')[0]) {
@@ -327,9 +363,14 @@ createNameSpace("realityEditor.device.videoRecording");
             const networkSecret = /\/s\/([^/]+)/.exec(window.location.pathname)[1];
             onSettings(window.location.host, networkId, networkSecret);
         } else {
-            fetch((realityEditor.network.useHTTPS ? 'https' : 'http') + `://${localSettingsHost}/hardwareInterface/edgeAgent/settings`).then(res => res.json()).then(settings => {
-                onSettings(settings.serverUrl, settings.networkUUID, settings.networkSecret);
-            });
+            fetch(
+                (realityEditor.network.useHTTPS ? 'https' : 'http') +
+                    `://${localSettingsHost}/hardwareInterface/edgeAgent/settings`
+            )
+                .then((res) => res.json())
+                .then((settings) => {
+                    onSettings(settings.serverUrl, settings.networkUUID, settings.networkSecret);
+                });
         }
     }
 
@@ -337,7 +378,11 @@ createNameSpace("realityEditor.device.videoRecording");
         if (realityEditor.device.environment.isDesktop()) {
             privateState.virtualizerCallback('Unable to record on desktop');
         } else {
-            realityEditor.app.appFunctionCall('stopVirtualizerRecording', {}, 'realityEditor.device.videoRecording.onStopVirtualizerRecording("__ARG1__", "__ARG2__", "__ARG3__", "__ARG4__");');
+            realityEditor.app.appFunctionCall(
+                'stopVirtualizerRecording',
+                {},
+                'realityEditor.device.videoRecording.onStopVirtualizerRecording("__ARG1__", "__ARG2__", "__ARG3__", "__ARG4__");'
+            );
             privateState.virtualizerCallback = callback;
         }
     }
@@ -370,5 +415,4 @@ createNameSpace("realityEditor.device.videoRecording");
     exports.stopVirtualizerRecording = stopVirtualizerRecording;
     exports.onStopVirtualizerRecording = onStopVirtualizerRecording;
     exports.onVirtualizerRecordingError = onVirtualizerRecordingError;
-
-}(realityEditor.device.videoRecording));
+})(realityEditor.device.videoRecording);

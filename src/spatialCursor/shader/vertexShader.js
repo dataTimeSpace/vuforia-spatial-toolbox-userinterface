@@ -1,6 +1,6 @@
-createNameSpace("realityEditor.spatialCursor.shader.vertexShader");
+createNameSpace('realityEditor.spatialCursor.shader.vertexShader');
 
-(function(exports) {
+(function (exports) {
     const vertexShaderCode = `
         varying vec2 vUv;
         

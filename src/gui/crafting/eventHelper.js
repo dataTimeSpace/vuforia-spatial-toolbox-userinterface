@@ -47,34 +47,34 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.crafting.eventHelper");
+createNameSpace('realityEditor.gui.crafting.eventHelper');
 
 realityEditor.gui.crafting.eventHelper.highlightedPlaceholders = {};
 
 // done
-realityEditor.gui.crafting.eventHelper.getCellOverPointer = function(pointerX, pointerY) {
-    if(globalStates.currentLogic) {
+realityEditor.gui.crafting.eventHelper.getCellOverPointer = function (pointerX, pointerY) {
+    if (globalStates.currentLogic) {
         var grid = globalStates.currentLogic.grid;
         // returns cell if position is within grid bounds, null otherwise
         return grid.getCellFromPointerPosition(pointerX, pointerY);
     }
 };
 
-realityEditor.gui.crafting.eventHelper.getCellPlaceholderDiv = function(cell) {
+realityEditor.gui.crafting.eventHelper.getCellPlaceholderDiv = function (cell) {
     var col = cell.location.col;
     var row = cell.location.row;
     if (col % 2 === 0 && row % 2 === 0) {
         var rowContainer = document.querySelectorAll('.blockPlaceholderRow')[row];
         // console.log(rowContainer);
-        return rowContainer.childNodes[col/2];
+        return rowContainer.childNodes[col / 2];
     } else {
-        console.warn('trying to get a placeholder div that isn\'t a valid cell location');
+        console.warn("trying to get a placeholder div that isn't a valid cell location");
         return null;
     }
 };
 
 // done
-realityEditor.gui.crafting.eventHelper.getCellContents = function(cell) {
+realityEditor.gui.crafting.eventHelper.getCellContents = function (cell) {
     // use grid methods to get block/item overlapping this cell
     if (cell) {
         var block = cell.blockAtThisLocation();
@@ -83,98 +83,127 @@ realityEditor.gui.crafting.eventHelper.getCellContents = function(cell) {
             return {
                 block: block,
                 item: item,
-                cell: cell
+                cell: cell,
             };
         }
     }
     return null;
 };
 
-realityEditor.gui.crafting.eventHelper.areCellsEqual = function(cell1, cell2) {
+realityEditor.gui.crafting.eventHelper.areCellsEqual = function (cell1, cell2) {
     if (!cell1 || !cell2) return false;
-    return (cell1.location.col === cell2.location.col)
-        && (cell1.location.row === cell2.location.row);
+    return cell1.location.col === cell2.location.col && cell1.location.row === cell2.location.row;
 };
 
-realityEditor.gui.crafting.eventHelper.areBlocksEqual = function(block1, block2) {
-    return (block1.globalId === block2.globalId);
+realityEditor.gui.crafting.eventHelper.areBlocksEqual = function (block1, block2) {
+    return block1.globalId === block2.globalId;
 };
 
-realityEditor.gui.crafting.eventHelper.convertToTempBlock = function(contents) {
+realityEditor.gui.crafting.eventHelper.convertToTempBlock = function (contents) {
     contents.block.isTempBlock = true;
     this.updateTempLinkOutlinesForBlock(contents);
 };
 
-realityEditor.gui.crafting.eventHelper.moveBlockDomToPosition = function(contents, pointerX, pointerY) {
+realityEditor.gui.crafting.eventHelper.moveBlockDomToPosition = function (
+    contents,
+    pointerX,
+    pointerY
+) {
     var grid = globalStates.currentLogic.grid;
     var domElement = this.getDomElementForBlock(contents.block);
 
     if (!domElement) return;
 
     var blockOutlinePadding = 10; // wrapping the div with corners/outline adds the remaining width to match the cell size
-    
-    domElement.style.left = pointerX - this.offsetForItem(contents.item) + blockOutlinePadding/2 + 'px';
-    domElement.style.top = pointerY - grid.blockRowHeight/2 + blockOutlinePadding/2 + 'px';
+
+    domElement.style.left =
+        pointerX - this.offsetForItem(contents.item) + blockOutlinePadding / 2 + 'px';
+    domElement.style.top = pointerY - grid.blockRowHeight / 2 + blockOutlinePadding / 2 + 'px';
 };
 
-realityEditor.gui.crafting.eventHelper.snapBlockToCellIfPossible = function(contents, cell, pointerX, pointerY) {
+realityEditor.gui.crafting.eventHelper.snapBlockToCellIfPossible = function (
+    contents,
+    cell,
+    pointerX,
+    pointerY
+) {
     var grid = globalStates.currentLogic.grid;
     if (this.canPlaceBlockInCell(contents, cell)) {
-        var dX = Math.abs(pointerX - grid.getCellCenterX(cell)) / (grid.blockColWidth/2);
-        var dY = Math.abs(pointerY - grid.getCellCenterY(cell)) / (grid.blockRowHeight/2);
-        var shouldSnap = ((dX * dX + dY * dY) < 0.5) && (!this.areCellsEqual(contents.cell, cell)); // only snaps to grid if tighter bound is overlapped
+        var dX = Math.abs(pointerX - grid.getCellCenterX(cell)) / (grid.blockColWidth / 2);
+        var dY = Math.abs(pointerY - grid.getCellCenterY(cell)) / (grid.blockRowHeight / 2);
+        var shouldSnap = dX * dX + dY * dY < 0.5 && !this.areCellsEqual(contents.cell, cell); // only snaps to grid if tighter bound is overlapped
         if (shouldSnap) {
-            this.moveBlockDomToPosition(contents, grid.getCellCenterX(cell), grid.getCellCenterY(cell));
+            this.moveBlockDomToPosition(
+                contents,
+                grid.getCellCenterX(cell),
+                grid.getCellCenterY(cell)
+            );
             return true;
         }
     }
     return false;
 };
 
-realityEditor.gui.crafting.eventHelper.offsetForItem = function(item) {
+realityEditor.gui.crafting.eventHelper.offsetForItem = function (item) {
     var grid = globalStates.currentLogic.grid;
-    return grid.blockColWidth/2 + item * (grid.blockColWidth + grid.marginColWidth);
+    return grid.blockColWidth / 2 + item * (grid.blockColWidth + grid.marginColWidth);
 };
 
-realityEditor.gui.crafting.eventHelper.canConnectBlocks = function(contents1, contents2) {
-    return !this.areBlocksEqual(contents1.block, contents2.block)
-        && (contents2.block.activeInputs[contents2.item] === true);
+realityEditor.gui.crafting.eventHelper.canConnectBlocks = function (contents1, contents2) {
+    return (
+        !this.areBlocksEqual(contents1.block, contents2.block) &&
+        contents2.block.activeInputs[contents2.item] === true
+    );
 };
 
-realityEditor.gui.crafting.eventHelper.canDrawLineFrom = function(contents) {
-    return (contents.block.activeOutputs[contents.item] === true);
+realityEditor.gui.crafting.eventHelper.canDrawLineFrom = function (contents) {
+    return contents.block.activeOutputs[contents.item] === true;
 };
 
-realityEditor.gui.crafting.eventHelper.areBlocksTempConnected = function(contents1, contents2) {
+realityEditor.gui.crafting.eventHelper.areBlocksTempConnected = function (contents1, contents2) {
     var tempLink = globalStates.currentLogic.tempLink;
     if (!tempLink) return false;
 
-    return this.areBlocksEqual(this.crafting.grid.blockWithID(tempLink.nodeA, globalStates.currentLogic), contents1.block) &&
-        this.areBlocksEqual(this.crafting.grid.blockWithID(tempLink.nodeB, globalStates.currentLogic), contents2.block) &&
+    return (
+        this.areBlocksEqual(
+            this.crafting.grid.blockWithID(tempLink.nodeA, globalStates.currentLogic),
+            contents1.block
+        ) &&
+        this.areBlocksEqual(
+            this.crafting.grid.blockWithID(tempLink.nodeB, globalStates.currentLogic),
+            contents2.block
+        ) &&
         tempLink.logicA === contents1.item &&
-        tempLink.logicB === contents2.item;
+        tempLink.logicB === contents2.item
+    );
 };
 
-realityEditor.gui.crafting.eventHelper.canPlaceBlockInCell = function(tappedContents, cell) {
+realityEditor.gui.crafting.eventHelper.canPlaceBlockInCell = function (tappedContents, cell) {
     var grid = globalStates.currentLogic.grid;
     if (!cell || !tappedContents) return false;
     var cellsOver = grid.getCellsOver(cell, tappedContents.block.blockSize, tappedContents.item);
     var canPlaceBlock = true;
-    cellsOver.forEach( function(cell) {
-        if (!cell || !cell.canHaveBlock() || (cell.blockAtThisLocation() && !cell.blockAtThisLocation().isTempBlock && !cell.blockAtThisLocation().isPortBlock)) {
+    cellsOver.forEach(function (cell) {
+        if (
+            !cell ||
+            !cell.canHaveBlock() ||
+            (cell.blockAtThisLocation() &&
+                !cell.blockAtThisLocation().isTempBlock &&
+                !cell.blockAtThisLocation().isPortBlock)
+        ) {
             canPlaceBlock = false;
         }
     });
     return canPlaceBlock;
 };
 
-realityEditor.gui.crafting.eventHelper.stylePlaceholder = function(contents, isAble) {
+realityEditor.gui.crafting.eventHelper.stylePlaceholder = function (contents, isAble) {
     var placeholderDiv = this.getCellPlaceholderDiv(contents.cell);
     if (placeholderDiv && isAble) {
         placeholderDiv.classList.add('blockDivMovingAbleBorder');
-        
+
         this.highlightedPlaceholders[JSON.stringify(contents.cell.location)] = placeholderDiv;
-        
+
         if (contents.cell.location.row !== 0 && contents.cell.location.row !== 6) {
             realityEditor.gui.moveabilityCorners.removeCornersFromDiv(placeholderDiv);
         }
@@ -183,8 +212,12 @@ realityEditor.gui.crafting.eventHelper.stylePlaceholder = function(contents, isA
     }
 };
 
-realityEditor.gui.crafting.eventHelper.removeStyleFromPlaceholderDivs = function(highlightedPlaceholders) {
-    if (!highlightedPlaceholders || Object.keys(highlightedPlaceholders).length === 0) { return; }
+realityEditor.gui.crafting.eventHelper.removeStyleFromPlaceholderDivs = function (
+    highlightedPlaceholders
+) {
+    if (!highlightedPlaceholders || Object.keys(highlightedPlaceholders).length === 0) {
+        return;
+    }
     console.log('remove style from placeholder divs', highlightedPlaceholders);
 
     for (var locationString in highlightedPlaceholders) {
@@ -197,28 +230,32 @@ realityEditor.gui.crafting.eventHelper.removeStyleFromPlaceholderDivs = function
 
         realityEditor.gui.moveabilityCorners.removeOutlineFromDiv(div);
         realityEditor.gui.moveabilityCorners.removeCornersFromDiv(div);
-        
+
         // delete highlightedPlaceholders[locationString];
     }
 };
 
-realityEditor.gui.crafting.eventHelper.unhighlightPlaceholderDivs = function(highlightedPlaceholders) {
-    if (!highlightedPlaceholders || Object.keys(highlightedPlaceholders).length === 0) { return; }
-    
+realityEditor.gui.crafting.eventHelper.unhighlightPlaceholderDivs = function (
+    highlightedPlaceholders
+) {
+    if (!highlightedPlaceholders || Object.keys(highlightedPlaceholders).length === 0) {
+        return;
+    }
+
     for (var locationString in highlightedPlaceholders) {
         var div = highlightedPlaceholders[locationString];
         div.classList.remove('blockDivMovingAbleBorder');
         var location = JSON.parse(locationString);
         if (location.row !== 0 && location.row !== 6) {
             // realityEditor.gui.moveabilityCorners.wrapDivWithCorners(div, 0, true);
-            realityEditor.gui.moveabilityCorners.wrapDivWithCorners(div, 0, true, {opacity: 0.5});
+            realityEditor.gui.moveabilityCorners.wrapDivWithCorners(div, 0, true, { opacity: 0.5 });
         }
 
         delete highlightedPlaceholders[locationString];
     }
 };
 
-realityEditor.gui.crafting.eventHelper.styleBlockAsPlaced = function(contents, isPlaced) {
+realityEditor.gui.crafting.eventHelper.styleBlockAsPlaced = function (contents, isPlaced) {
     var domElement = this.getDomElementForBlock(contents.block);
     if (isPlaced) {
         // realityEditor.gui.moveabilityCorners.wrapDivInOutline(domElement, 5, true);
@@ -226,121 +263,127 @@ realityEditor.gui.crafting.eventHelper.styleBlockAsPlaced = function(contents, i
         realityEditor.gui.moveabilityCorners.wrapDivInOutline(domElement, 8, true, null, -4, 3);
 
         this.removeStyleFromPlaceholderDivs(this.highlightedPlaceholders);
-
     } else {
         realityEditor.gui.moveabilityCorners.removeOutlineFromDiv(domElement);
         console.log('also remove outline here.');
     }
 };
 
-realityEditor.gui.crafting.eventHelper.styleBlockForHolding = function(contents, startHold) {
+realityEditor.gui.crafting.eventHelper.styleBlockForHolding = function (contents, startHold) {
     var domElement = this.getDomElementForBlock(contents.block);
     if (!domElement) return;
     if (startHold) {
-        domElement.setAttribute('class','blockDivHighlighted');
-        domElement.firstChild.lastChild.setAttribute('class','blockMoveDiv blockDivMovingAble');
+        domElement.setAttribute('class', 'blockDivHighlighted');
+        domElement.firstChild.lastChild.setAttribute('class', 'blockMoveDiv blockDivMovingAble');
         console.log('remove outline (if there is one)');
         realityEditor.gui.moveabilityCorners.removeOutlineFromDiv(domElement);
         realityEditor.gui.moveabilityCorners.wrapDivWithCorners(domElement, 8, true, null, -4);
         this.styleBlockAsPlaced(contents, false);
     } else {
-        domElement.setAttribute('class','blockDivPlaced');
-        domElement.firstChild.lastChild.setAttribute('class','blockMoveDiv');
+        domElement.setAttribute('class', 'blockDivPlaced');
+        domElement.firstChild.lastChild.setAttribute('class', 'blockMoveDiv');
         realityEditor.gui.moveabilityCorners.removeCornersFromDiv(domElement);
         realityEditor.gui.moveabilityCorners.wrapDivInOutline(domElement, 8, true, null, -4, 3);
-        // TODO: add outline here? 
+        // TODO: add outline here?
         console.log('add outline for placement');
     }
     this.stylePlaceholder(contents, startHold); // placeholder behind this cell lights up when you pick it up to show you can place it back
 };
 
-realityEditor.gui.crafting.eventHelper.styleBlockForPlacement = function(contents, shouldHighlight) {
+realityEditor.gui.crafting.eventHelper.styleBlockForPlacement = function (
+    contents,
+    shouldHighlight
+) {
     var domElement = this.getDomElementForBlock(contents.block);
     if (!domElement) return;
     if (shouldHighlight) {
-        domElement.setAttribute('class','blockDivHighlighted');
-        domElement.firstChild.lastChild.setAttribute('class','blockMoveDiv blockDivMovingAble');
+        domElement.setAttribute('class', 'blockDivHighlighted');
+        domElement.firstChild.lastChild.setAttribute('class', 'blockMoveDiv blockDivMovingAble');
         // realityEditor.gui.moveabilityCorners.wrapDivWithCorners(domElement, 5, true);
     } else {
-        domElement.setAttribute('class','blockDivHighlighted');
-        domElement.firstChild.lastChild.setAttribute('class','blockMoveDiv blockDivMovingUnable');
+        domElement.setAttribute('class', 'blockDivHighlighted');
+        domElement.firstChild.lastChild.setAttribute('class', 'blockMoveDiv blockDivMovingUnable');
         // realityEditor.gui.moveabilityCorners.wrapDivWithCorners(domElement, 5, true);
     }
 };
 
-realityEditor.gui.crafting.eventHelper.updateCraftingBackgroundVisibility = function(event, cell, contents) {
-    
-    if (event === "down" || event === "move") {
-
+realityEditor.gui.crafting.eventHelper.updateCraftingBackgroundVisibility = function (
+    event,
+    cell,
+    contents
+) {
+    if (event === 'down' || event === 'move') {
         var currentBlock = cell.blockAtThisLocation();
         if (currentBlock && currentBlock.isPortBlock) {
             this.toggleDatacraftingExceptPort(contents, false);
         } else {
             this.toggleDatacraftingExceptPort(contents, true);
         }
-        
-    } else if (event === "up") {
-
+    } else if (event === 'up') {
         this.toggleDatacraftingExceptPort(contents, true);
-        
     }
-    
 };
 
 realityEditor.gui.crafting.eventHelper.visibilityCounter = null;
-realityEditor.gui.crafting.eventHelper.toggleDatacraftingExceptPort = function(tappedContents, shouldShow) {
+realityEditor.gui.crafting.eventHelper.toggleDatacraftingExceptPort = function (
+    tappedContents,
+    shouldShow
+) {
     var _this = this;
     if (shouldShow !== globalStates.currentLogic.guiState.isCraftingBackgroundShown) {
-        console.log("show datacrafting background? " + shouldShow);
-        
-        var craftingBoard = document.getElementById("craftingBoard");
-        var datacraftingCanvas = document.getElementById("datacraftingCanvas");
-        var blockPlaceholders = document.getElementById("blockPlaceholders");
-        var blocks = document.getElementById("blocks");
+        console.log('show datacrafting background? ' + shouldShow);
+
+        var craftingBoard = document.getElementById('craftingBoard');
+        var datacraftingCanvas = document.getElementById('datacraftingCanvas');
+        var blockPlaceholders = document.getElementById('blockPlaceholders');
+        var blocks = document.getElementById('blocks');
 
         if (shouldShow) {
-            
-            if(this.visibilityCounter){
-                clearTimeout( this.visibilityCounter);
-                craftingBoard.className = "craftingBoardBlur";
+            if (this.visibilityCounter) {
+                clearTimeout(this.visibilityCounter);
+                craftingBoard.className = 'craftingBoardBlur';
                 this.visibilityCounter = null;
                 // force the dom to re-render
-                datacraftingCanvas.style.display = "inline";
+                datacraftingCanvas.style.display = 'inline';
 
                 // animate opacity from 0 -> 1
-                blockPlaceholders.childNodes.forEach( function(blockPlaceholderRow, rowIndex) {
+                blockPlaceholders.childNodes.forEach(function (blockPlaceholderRow, rowIndex) {
                     if (!(rowIndex === 0 || rowIndex === 6)) {
-                        blockPlaceholderRow.setAttribute("class", "blockPlaceholderRow visibleFadeIn");
+                        blockPlaceholderRow.setAttribute(
+                            'class',
+                            'blockPlaceholderRow visibleFadeIn'
+                        );
                     }
                 });
-                blocks.childNodes.forEach( function(blockDom) {
-                    blockDom.setAttribute("class", "blockDivPlaced visibleFadeIn");
+                blocks.childNodes.forEach(function (blockDom) {
+                    blockDom.setAttribute('class', 'blockDivPlaced visibleFadeIn');
                 });
             }
-            
         } else {
-            
             var tappedBlock;
             if (tappedContents) {
                 tappedBlock = tappedContents.block;
             }
-            
-            this.visibilityCounter = setTimeout( function(){
-                craftingBoard.className = "craftingBoardClear";
-                datacraftingCanvas.style.display = "none";
-                
+
+            this.visibilityCounter = setTimeout(function () {
+                craftingBoard.className = 'craftingBoardClear';
+                datacraftingCanvas.style.display = 'none';
+
                 // animate opacity from 1 -> 0
-                blockPlaceholders.childNodes.forEach( function(blockPlaceholderRow, rowIndex) {
-                   if (!(rowIndex === 0 || rowIndex === 6)) {
-                       blockPlaceholderRow.setAttribute("class", "blockPlaceholderRow invisibleFadeOut");
-                   }
+                blockPlaceholders.childNodes.forEach(function (blockPlaceholderRow, rowIndex) {
+                    if (!(rowIndex === 0 || rowIndex === 6)) {
+                        blockPlaceholderRow.setAttribute(
+                            'class',
+                            'blockPlaceholderRow invisibleFadeOut'
+                        );
+                    }
                 });
-                
-                blocks.childNodes.forEach( function(blockDom) {
+
+                blocks.childNodes.forEach(function (blockDom) {
                     var block = realityEditor.gui.crafting.getBlockForDom(blockDom);
                     var isTappedBlock = tappedBlock && _this.areBlocksEqual(tappedBlock, block);
                     if (!(block.y === 0 || block.y === 3 || isTappedBlock)) {
-                        blockDom.setAttribute("class", "blockDivPlaced invisibleFadeOut");
+                        blockDom.setAttribute('class', 'blockDivPlaced invisibleFadeOut');
                     }
                 });
             }, globalStates.craftingMoveDelay * 2); // takes twice as long to unblur background as it does to pick up a block
@@ -356,8 +399,8 @@ realityEditor.gui.crafting.eventHelper.toggleDatacraftingExceptPort = function(t
  * @param {Block} block
  * @return {boolean}
  */
-realityEditor.gui.crafting.eventHelper.shouldUploadBlock = function(block) {
-    return !this.crafting.grid.isInOutBlock(block.globalId);// && !block.isPortBlock; //&& !(block.x === -1 || block.y === -1)
+realityEditor.gui.crafting.eventHelper.shouldUploadBlock = function (block) {
+    return !this.crafting.grid.isInOutBlock(block.globalId); // && !block.isPortBlock; //&& !(block.x === -1 || block.y === -1)
 };
 
 //realityEditor.gui.crafting.eventHelper.shouldUploadBlockLink = function(blockLink) {
@@ -371,8 +414,7 @@ realityEditor.gui.crafting.eventHelper.shouldUploadBlock = function(block) {
  * @param block - optional param, if included it includes the block key in the return value
  * @returns {ip, objectKey, frameKey, logicKey, (optional) blockKey}
  */
-realityEditor.gui.crafting.eventHelper.getServerObjectLogicKeys = function(logic, block) {
-
+realityEditor.gui.crafting.eventHelper.getServerObjectLogicKeys = function (logic, block) {
     for (var objectKey in objects) {
         if (!objects.hasOwnProperty(objectKey)) continue;
         for (var frameKey in objects[objectKey].frames) {
@@ -383,11 +425,12 @@ realityEditor.gui.crafting.eventHelper.getServerObjectLogicKeys = function(logic
                     port: realityEditor.network.getPort(objects[objectKey]),
                     objectKey: objectKey,
                     frameKey: frameKey,
-                    logicKey: logic.uuid
+                    logicKey: logic.uuid,
                 };
                 if (block) {
-                    for (var blockKey in logic.blocks){
-                        if(logic.blocks[blockKey] === block) { // TODO: give each block an id property to avoid search
+                    for (var blockKey in logic.blocks) {
+                        if (logic.blocks[blockKey] === block) {
+                            // TODO: give each block an id property to avoid search
                             keys.blockKey = blockKey;
                         }
                     }
@@ -399,16 +442,16 @@ realityEditor.gui.crafting.eventHelper.getServerObjectLogicKeys = function(logic
     return null;
 };
 
-realityEditor.gui.crafting.eventHelper.placeBlockInCell = function(contents, cell) {
+realityEditor.gui.crafting.eventHelper.placeBlockInCell = function (contents, cell) {
     var grid = globalStates.currentLogic.grid;
     if (cell) {
         var prevCell = this.crafting.grid.getCellForBlock(grid, contents.block, contents.item);
         var newCellsOver = grid.getCellsOver(cell, contents.block.blockSize, contents.item);
-        
+
         this.styleBlockAsPlaced(contents, true);
-        
+
         // remove corners/outlines from placeholders underneath newCellsOver, if needed
-        newCellsOver.forEach(function(cell) {
+        newCellsOver.forEach(function (cell) {
             var placeholderDiv = realityEditor.gui.crafting.eventHelper.getCellPlaceholderDiv(cell);
             realityEditor.gui.moveabilityCorners.removeOutlineFromDiv(placeholderDiv);
             realityEditor.gui.moveabilityCorners.removeCornersFromDiv(placeholderDiv);
@@ -418,34 +461,52 @@ realityEditor.gui.crafting.eventHelper.placeBlockInCell = function(contents, cel
         // this also saves the links connected to those port blocks so we can add them to the new block
         var portLinkData = this.removePortBlocksIfNecessary(newCellsOver);
 
-        contents.block.x = Math.floor((cell.location.col / 2) - (contents.item));
-        contents.block.y = (cell.location.row / 2);
+        contents.block.x = Math.floor(cell.location.col / 2 - contents.item);
+        contents.block.y = cell.location.row / 2;
         contents.block.isTempBlock = false;
 
         if (this.shouldUploadBlock(contents.block)) {
             var keys = this.getServerObjectLogicKeys(globalStates.currentLogic);
-            this.realityEditor.network.postNewBlockPosition(keys.ip, keys.objectKey, keys.frameKey, keys.logicKey, contents.block.globalId, {x: contents.block.x, y: contents.block.y});
+            this.realityEditor.network.postNewBlockPosition(
+                keys.ip,
+                keys.objectKey,
+                keys.frameKey,
+                keys.logicKey,
+                contents.block.globalId,
+                { x: contents.block.x, y: contents.block.y }
+            );
         }
 
         // if (realityEditor.gui.crafting.eventHelper.areCellsEqual(cell, prevCell)) {
-            this.crafting.removeBlockDom(contents.block); // remove do so it can be re-rendered in the correct place
+        this.crafting.removeBlockDom(contents.block); // remove do so it can be re-rendered in the correct place
         // }
-        
-        var _this = this;
-        portLinkData.forEach( function(linkData) {
 
+        var _this = this;
+        portLinkData.forEach(function (linkData) {
             var nodeA = _this.crafting.grid.blockWithID(linkData.nodeA, globalStates.currentLogic);
             var nodeB = _this.crafting.grid.blockWithID(linkData.nodeB, globalStates.currentLogic);
 
             // if we deleted a link from the top row, add it to this block if possible
             if (nodeB && !nodeA) {
                 if (contents.block.activeOutputs[linkData.logicA] === true) {
-                    _this.crafting.grid.addBlockLink(contents.block.globalId, linkData.nodeB, linkData.logicA, linkData.logicB, true);
+                    _this.crafting.grid.addBlockLink(
+                        contents.block.globalId,
+                        linkData.nodeB,
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
                 }
                 // if we deleted a link to the bottom row, add it to this block if possible
             } else if (nodeA && !nodeB) {
                 if (contents.block.activeInputs[linkData.logicB] === true) {
-                    _this.crafting.grid.addBlockLink(linkData.nodeA, contents.block.globalId, linkData.logicA, linkData.logicB, true);
+                    _this.crafting.grid.addBlockLink(
+                        linkData.nodeA,
+                        contents.block.globalId,
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
                 }
             }
         });
@@ -453,48 +514,51 @@ realityEditor.gui.crafting.eventHelper.placeBlockInCell = function(contents, cel
         if (contents.block.y === 0 || contents.block.y === 3) {
             this.crafting.grid.updateInOutLinks(contents.block.globalId);
         }
-        
+
         // if it's being moved away from the top or bottom rows, re-add the invisible port block underneath
         if (prevCell) {
-            var prevCellsOver = grid.getCellsOver(prevCell, contents.block.blockSize, contents.item);
+            var prevCellsOver = grid.getCellsOver(
+                prevCell,
+                contents.block.blockSize,
+                contents.item
+            );
             this.replacePortBlocksIfNecessary(prevCellsOver);
         }
 
         this.convertTempLinkOutlinesToLinks(contents);
 
         contents = null;
-
     } else {
         this.removeTappedContents(contents);
     }
     this.crafting.updateGrid(globalStates.currentLogic.grid);
 };
 
-realityEditor.gui.crafting.eventHelper.removePortBlocksIfNecessary = function(cells) {
+realityEditor.gui.crafting.eventHelper.removePortBlocksIfNecessary = function (cells) {
     var portLinkData = [];
     var _this = this;
-    cells.forEach( function(cell, i) {
+    cells.forEach(function (cell, i) {
         if (cell) {
             var existingBlock = cell.blockAtThisLocation();
             if (existingBlock && existingBlock.isPortBlock) {
                 if (_this.isInputBlock(existingBlock)) {
                     var outgoingLinks = _this.getOutgoingLinks(existingBlock);
-                    outgoingLinks.forEach(function(link) {
+                    outgoingLinks.forEach(function (link) {
                         portLinkData.push({
                             nodeA: null,
                             nodeB: link.nodeB,
                             logicA: i,
-                            logicB: link.logicB
+                            logicB: link.logicB,
                         });
                     });
                 } else if (_this.isOutputBlock(existingBlock)) {
                     var incomingLinks = _this.getIncomingLinks(existingBlock);
-                    incomingLinks.forEach(function(link) {
+                    incomingLinks.forEach(function (link) {
                         portLinkData.push({
                             nodeA: link.nodeA,
                             nodeB: null,
                             logicA: link.logicA,
-                            logicB: i
+                            logicB: i,
                         });
                     });
                 }
@@ -506,7 +570,7 @@ realityEditor.gui.crafting.eventHelper.removePortBlocksIfNecessary = function(ce
 };
 
 // todo hasOwnProperty
-realityEditor.gui.crafting.eventHelper.getOutgoingLinks = function(block) {
+realityEditor.gui.crafting.eventHelper.getOutgoingLinks = function (block) {
     var outgoingLinks = [];
     for (var linkKey in globalStates.currentLogic.links) {
         var link = globalStates.currentLogic.links[linkKey];
@@ -518,7 +582,7 @@ realityEditor.gui.crafting.eventHelper.getOutgoingLinks = function(block) {
 };
 
 // todo hasOwnProperty
-realityEditor.gui.crafting.eventHelper.getIncomingLinks = function(block) {
+realityEditor.gui.crafting.eventHelper.getIncomingLinks = function (block) {
     var incomingLinks = [];
     for (var linkKey in globalStates.currentLogic.links) {
         var link = globalStates.currentLogic.links[linkKey];
@@ -529,24 +593,46 @@ realityEditor.gui.crafting.eventHelper.getIncomingLinks = function(block) {
     return incomingLinks;
 };
 
-realityEditor.gui.crafting.eventHelper.replacePortBlocksIfNecessary = function(cells) {
+realityEditor.gui.crafting.eventHelper.replacePortBlocksIfNecessary = function (cells) {
     var _this = this;
-    cells.forEach( function(cell) {
+    cells.forEach(function (cell) {
         if (cell && !cell.blockAtThisLocation()) {
-            if (cell.location.row === 0 || cell.location.row === globalStates.currentLogic.grid.size-1) {
+            if (
+                cell.location.row === 0 ||
+                cell.location.row === globalStates.currentLogic.grid.size - 1
+            ) {
                 var width = 1;
                 var privateData = {};
                 var publicData = {};
-                var activeInputs = (cell.location.row === 0) ? [false, false, false, false] : [true, false, false, false];
-                var activeOutputs = (cell.location.row === 0) ? [true, false, false, false] : [false, false, false, false];
-                var nameInput = ["","","",""];
-                var nameOutput = ["","","",""];
-                var blockPos = _this.crafting.grid.convertGridPosToBlockPos(cell.location.col, cell.location.row);
-                var inOrOut = blockPos.y === 0 ? "In" : "Out";
-                var type = "default";
-                var name = "edgePlaceholder" + inOrOut + blockPos.x;
+                var activeInputs =
+                    cell.location.row === 0
+                        ? [false, false, false, false]
+                        : [true, false, false, false];
+                var activeOutputs =
+                    cell.location.row === 0
+                        ? [true, false, false, false]
+                        : [false, false, false, false];
+                var nameInput = ['', '', '', ''];
+                var nameOutput = ['', '', '', ''];
+                var blockPos = _this.crafting.grid.convertGridPosToBlockPos(
+                    cell.location.col,
+                    cell.location.row
+                );
+                var inOrOut = blockPos.y === 0 ? 'In' : 'Out';
+                var type = 'default';
+                var name = 'edgePlaceholder' + inOrOut + blockPos.x;
                 var globalId = name;
-                var blockJSON = _this.crafting.utilities.toBlockJSON(type, name, width, privateData, publicData, activeInputs, activeOutputs, nameInput, nameOutput);
+                var blockJSON = _this.crafting.utilities.toBlockJSON(
+                    type,
+                    name,
+                    width,
+                    privateData,
+                    publicData,
+                    activeInputs,
+                    activeOutputs,
+                    nameInput,
+                    nameOutput
+                );
                 _this.crafting.grid.addBlock(blockPos.x, blockPos.y, blockJSON, globalId, true);
             }
         }
@@ -554,21 +640,20 @@ realityEditor.gui.crafting.eventHelper.replacePortBlocksIfNecessary = function(c
 };
 
 // todo hasOwnProperty
-realityEditor.gui.crafting.eventHelper.updateTempLinkOutlinesForBlock = function(contents) {
+realityEditor.gui.crafting.eventHelper.updateTempLinkOutlinesForBlock = function (contents) {
     for (var linkKey in globalStates.currentLogic.links) {
         var link = globalStates.currentLogic.links[linkKey];
         if (link.nodeB === contents.block.globalId) {
             globalStates.currentLogic.guiState.tempIncomingLinks.push({
                 nodeA: link.nodeA,
                 logicA: link.logicA,
-                logicB: link.logicB
+                logicB: link.logicB,
             });
-
         } else if (link.nodeA === contents.block.globalId) {
             globalStates.currentLogic.guiState.tempOutgoingLinks.push({
                 logicA: link.logicA,
                 nodeB: link.nodeB,
-                logicB: link.logicB
+                logicB: link.logicB,
             });
         }
     }
@@ -576,44 +661,75 @@ realityEditor.gui.crafting.eventHelper.updateTempLinkOutlinesForBlock = function
     this.crafting.grid.removeLinksForBlock(globalStates.currentLogic, contents.block.globalId);
 };
 
-realityEditor.gui.crafting.eventHelper.convertTempLinkOutlinesToLinks = function(contents) {
+realityEditor.gui.crafting.eventHelper.convertTempLinkOutlinesToLinks = function (contents) {
     var _this = this;
-    globalStates.currentLogic.guiState.tempIncomingLinks.forEach( function(linkData) {
+    globalStates.currentLogic.guiState.tempIncomingLinks.forEach(function (linkData) {
         if (_this.blocksExist(linkData.nodeA, contents.block.globalId)) {
-
             if (!_this.crafting.grid.isInOutBlock(linkData.nodeA)) {
                 // add regular link back
-                _this.crafting.grid.addBlockLink(linkData.nodeA, contents.block.globalId, linkData.logicA, linkData.logicB, true);
-
+                _this.crafting.grid.addBlockLink(
+                    linkData.nodeA,
+                    contents.block.globalId,
+                    linkData.logicA,
+                    linkData.logicB,
+                    true
+                );
             } else {
-                
                 // create separate links from in->edge and edge->block
                 var x = linkData.nodeA.slice(-1);
-                var placeholderBlockExists = !!(globalStates.currentLogic.blocks[_this.edgePlaceholderName(true, x)]);
-                if (placeholderBlockExists)  {
-                    _this.crafting.grid.addBlockLink(linkData.nodeA, _this.edgePlaceholderName(true, x), linkData.logicA, linkData.logicB, true);
-                    _this.crafting.grid.addBlockLink(_this.edgePlaceholderName(true, x), contents.block.globalId, linkData.logicA, linkData.logicB, true);
+                var placeholderBlockExists =
+                    !!globalStates.currentLogic.blocks[_this.edgePlaceholderName(true, x)];
+                if (placeholderBlockExists) {
+                    _this.crafting.grid.addBlockLink(
+                        linkData.nodeA,
+                        _this.edgePlaceholderName(true, x),
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
+                    _this.crafting.grid.addBlockLink(
+                        _this.edgePlaceholderName(true, x),
+                        contents.block.globalId,
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
                 }
-                
             }
-
         }
     });
 
-    globalStates.currentLogic.guiState.tempOutgoingLinks.forEach( function(linkData) {
+    globalStates.currentLogic.guiState.tempOutgoingLinks.forEach(function (linkData) {
         if (_this.blocksExist(linkData.nodeB, contents.block.globalId)) {
-
             if (!_this.crafting.grid.isInOutBlock(linkData.nodeB)) {
                 // add regular link back
-                _this.crafting.grid.addBlockLink(contents.block.globalId, linkData.nodeB, linkData.logicA, linkData.logicB, true);
-
+                _this.crafting.grid.addBlockLink(
+                    contents.block.globalId,
+                    linkData.nodeB,
+                    linkData.logicA,
+                    linkData.logicB,
+                    true
+                );
             } else {
                 // create separate links from block->edge and edge->out
                 var x = linkData.nodeB.slice(-1);
-                var placeholderBlockExists = !!(globalStates.currentLogic.blocks[_this.edgePlaceholderName(false, x)]);
+                var placeholderBlockExists =
+                    !!globalStates.currentLogic.blocks[_this.edgePlaceholderName(false, x)];
                 if (placeholderBlockExists) {
-                    _this.crafting.grid.addBlockLink(contents.block.globalId, _this.edgePlaceholderName(false, x), linkData.logicA, linkData.logicB, true);
-                    _this.crafting.grid.addBlockLink(_this.edgePlaceholderName(false, x), linkData.nodeB, linkData.logicA, linkData.logicB, true);
+                    _this.crafting.grid.addBlockLink(
+                        contents.block.globalId,
+                        _this.edgePlaceholderName(false, x),
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
+                    _this.crafting.grid.addBlockLink(
+                        _this.edgePlaceholderName(false, x),
+                        linkData.nodeB,
+                        linkData.logicA,
+                        linkData.logicB,
+                        true
+                    );
                 }
             }
         }
@@ -622,21 +738,21 @@ realityEditor.gui.crafting.eventHelper.convertTempLinkOutlinesToLinks = function
     this.resetTempLinkOutlines();
 };
 
-realityEditor.gui.crafting.eventHelper.edgePlaceholderName = function(isInBlock, x) {
-    return isInBlock ? "edgePlaceholderIn" + x : "edgePlaceholderOut" + x;
+realityEditor.gui.crafting.eventHelper.edgePlaceholderName = function (isInBlock, x) {
+    return isInBlock ? 'edgePlaceholderIn' + x : 'edgePlaceholderOut' + x;
 };
 
-realityEditor.gui.crafting.eventHelper.blocksExist = function(block1ID, block2ID) {
+realityEditor.gui.crafting.eventHelper.blocksExist = function (block1ID, block2ID) {
     var blocks = globalStates.currentLogic.blocks;
-    return !!(blocks[block1ID]) && !!(blocks[block2ID]);
+    return !!blocks[block1ID] && !!blocks[block2ID];
 };
 
-realityEditor.gui.crafting.eventHelper.resetTempLinkOutlines = function() {
+realityEditor.gui.crafting.eventHelper.resetTempLinkOutlines = function () {
     globalStates.currentLogic.guiState.tempIncomingLinks = [];
     globalStates.currentLogic.guiState.tempOutgoingLinks = [];
 };
 
-realityEditor.gui.crafting.eventHelper.removeTappedContents = function(contents) {
+realityEditor.gui.crafting.eventHelper.removeTappedContents = function (contents) {
     var grid = globalStates.currentLogic.grid;
     this.resetTempLinkOutlines();
     this.crafting.grid.removeBlock(globalStates.currentLogic, contents.block.globalId);
@@ -652,58 +768,70 @@ realityEditor.gui.crafting.eventHelper.removeTappedContents = function(contents)
     this.crafting.updateGrid(globalStates.currentLogic.grid);
 };
 
-realityEditor.gui.crafting.eventHelper.createTempLink = function(contents1, contents2) {
-    var newTempLink = this.crafting.grid.addBlockLink(contents1.block.globalId, contents2.block.globalId, contents1.item, contents2.item, false);
+realityEditor.gui.crafting.eventHelper.createTempLink = function (contents1, contents2) {
+    var newTempLink = this.crafting.grid.addBlockLink(
+        contents1.block.globalId,
+        contents2.block.globalId,
+        contents1.item,
+        contents2.item,
+        false
+    );
     this.crafting.grid.setTempLink(newTempLink);
     this.crafting.updateGrid(globalStates.currentLogic.grid);
 };
 
-realityEditor.gui.crafting.eventHelper.resetTempLink = function() {
+realityEditor.gui.crafting.eventHelper.resetTempLink = function () {
     this.crafting.grid.setTempLink(null);
     this.crafting.updateGrid(globalStates.currentLogic.grid);
 };
 
-realityEditor.gui.crafting.eventHelper.drawLinkLine = function(contents, endX, endY) {
+realityEditor.gui.crafting.eventHelper.drawLinkLine = function (contents, endX, endY) {
     var grid = globalStates.currentLogic.grid;
     var tempLine = globalStates.currentLogic.guiState.tempLine;
     // actual drawing happens in index.js loop, we just need to set endpoint here
     var startX = grid.getCellCenterX(contents.cell);
     var startY = grid.getCellCenterY(contents.cell);
     var hsl = contents.cell.getColorHSL();
-    var lineColor = 'hsl(' + hsl.h + ', '+ hsl.s +'%,'+ hsl.l +'%)';
+    var lineColor = 'hsl(' + hsl.h + ', ' + hsl.s + '%,' + hsl.l + '%)';
     tempLine.start = {
         x: startX,
-        y: startY
+        y: startY,
     };
     tempLine.end = {
         x: endX,
-        y: endY
+        y: endY,
     };
     tempLine.color = lineColor;
 };
 
-realityEditor.gui.crafting.eventHelper.resetLinkLine = function() {
+realityEditor.gui.crafting.eventHelper.resetLinkLine = function () {
     var tempLine = globalStates.currentLogic.guiState.tempLine;
     tempLine.start = null;
     tempLine.end = null;
     tempLine.color = null;
 };
 
-realityEditor.gui.crafting.eventHelper.drawCutLine = function(start, end) {
+realityEditor.gui.crafting.eventHelper.drawCutLine = function (start, end) {
     var cutLine = globalStates.currentLogic.guiState.cutLine;
     // actual drawing happens in index.js loop, we just need to set endpoint here
     cutLine.start = start;
     cutLine.end = end;
 };
 
-realityEditor.gui.crafting.eventHelper.resetCutLine = function() {
+realityEditor.gui.crafting.eventHelper.resetCutLine = function () {
     var cutLine = globalStates.currentLogic.guiState.cutLine;
     cutLine.start = null;
     cutLine.end = null;
 };
 
-realityEditor.gui.crafting.eventHelper.createLink = function(contents1, contents2, tempLink) {
-    var addedLink = this.crafting.grid.addBlockLink(contents1.block.globalId, contents2.block.globalId, contents1.item, contents2.item, true);
+realityEditor.gui.crafting.eventHelper.createLink = function (contents1, contents2, tempLink) {
+    var addedLink = this.crafting.grid.addBlockLink(
+        contents1.block.globalId,
+        contents2.block.globalId,
+        contents1.item,
+        contents2.item,
+        true
+    );
     if (addedLink && tempLink) {
         addedLink.route = tempLink.route; // copy over the route rather than recalculating everything
         addedLink.ballAnimationCount = tempLink.ballAnimationCount;
@@ -711,7 +839,7 @@ realityEditor.gui.crafting.eventHelper.createLink = function(contents1, contents
 };
 
 // todo hasOwnProperty
-realityEditor.gui.crafting.eventHelper.cutIntersectingLinks = function() {
+realityEditor.gui.crafting.eventHelper.cutIntersectingLinks = function () {
     var cutLine = globalStates.currentLogic.guiState.cutLine;
     if (!cutLine || !cutLine.start || !cutLine.end) return;
     var didRemoveAnyLinks = false;
@@ -722,7 +850,18 @@ realityEditor.gui.crafting.eventHelper.cutIntersectingLinks = function() {
         for (var j = 1; j < points.length; j++) {
             var start = points[j - 1];
             var end = points[j];
-            if (this.gui.utilities.checkLineCross(start.screenX, start.screenY, end.screenX, end.screenY, cutLine.start.x, cutLine.start.y, cutLine.end.x, cutLine.end.y)) {
+            if (
+                this.gui.utilities.checkLineCross(
+                    start.screenX,
+                    start.screenY,
+                    end.screenX,
+                    end.screenY,
+                    cutLine.start.x,
+                    cutLine.start.y,
+                    cutLine.end.x,
+                    cutLine.end.y
+                )
+            ) {
                 didIntersect = true;
             }
             if (didIntersect) {
@@ -736,24 +875,24 @@ realityEditor.gui.crafting.eventHelper.cutIntersectingLinks = function() {
     }
 };
 
-realityEditor.gui.crafting.eventHelper.getDomElementForBlock = function(block) {
+realityEditor.gui.crafting.eventHelper.getDomElementForBlock = function (block) {
     if (block.isPortBlock) return;
     return globalStates.currentLogic.guiState.blockDomElements[block.globalId];
 };
 
-realityEditor.gui.crafting.eventHelper.generateBlockGlobalId = function() {
-    return "block" + this.realityEditor.device.utilities.uuidTime();
+realityEditor.gui.crafting.eventHelper.generateBlockGlobalId = function () {
+    return 'block' + this.realityEditor.device.utilities.uuidTime();
 };
 
-realityEditor.gui.crafting.eventHelper.isInputBlock = function(block) {
+realityEditor.gui.crafting.eventHelper.isInputBlock = function (block) {
     return block.isPortBlock && block.y === 0;
 };
 
-realityEditor.gui.crafting.eventHelper.isOutputBlock = function(block) {
+realityEditor.gui.crafting.eventHelper.isOutputBlock = function (block) {
     return block.isPortBlock && !this.isInputBlock(block);
 };
 
-realityEditor.gui.crafting.eventHelper.addBlockFromMenu = function(blockJSON, pointerX, pointerY) {
+realityEditor.gui.crafting.eventHelper.addBlockFromMenu = function (blockJSON, pointerX, pointerY) {
     var globalId = this.generateBlockGlobalId();
     var addedBlock = this.crafting.grid.addBlock(-1, -1, blockJSON, globalId); // TODO: only upload after you've placed it
     this.crafting.addDomElementForBlock(addedBlock, globalStates.currentLogic.grid, true);
@@ -761,39 +900,45 @@ realityEditor.gui.crafting.eventHelper.addBlockFromMenu = function(blockJSON, po
     globalStates.currentLogic.guiState.tappedContents = {
         block: addedBlock,
         item: 0,
-        cell: null
+        cell: null,
     };
-    
-    this.crafting.eventHandlers.onPointerMove({
-        pageX: pointerX,
-        pageY: pointerY
-    }, true);
+
+    this.crafting.eventHandlers.onPointerMove(
+        {
+            pageX: pointerX,
+            pageY: pointerY,
+        },
+        true
+    );
 };
 
 //temporarily hide all other datacrafting divs. redisplay them when menu hides
-realityEditor.gui.crafting.eventHelper.changeDatacraftingDisplayForMenu = function(newDisplay) {
-    document.getElementById("datacraftingCanvas").style.display = newDisplay;
-    document.getElementById("blockPlaceholders").style.display = newDisplay;
-    document.getElementById("blocks").style.display = newDisplay;
-    document.getElementById("datacraftingEventDiv").style.display = newDisplay;
-    
+realityEditor.gui.crafting.eventHelper.changeDatacraftingDisplayForMenu = function (newDisplay) {
+    document.getElementById('datacraftingCanvas').style.display = newDisplay;
+    document.getElementById('blockPlaceholders').style.display = newDisplay;
+    document.getElementById('blocks').style.display = newDisplay;
+    document.getElementById('datacraftingEventDiv').style.display = newDisplay;
+
     if (newDisplay === 'none') {
-        document.getElementById("craftingMenusContainer").style.display = '';
+        document.getElementById('craftingMenusContainer').style.display = '';
     } else {
-        document.getElementById("craftingMenusContainer").style.display = 'none';
+        document.getElementById('craftingMenusContainer').style.display = 'none';
     }
 };
 
-realityEditor.gui.crafting.eventHelper.areAnyMenusOpen = function() {
+realityEditor.gui.crafting.eventHelper.areAnyMenusOpen = function () {
     return document.getElementById('craftingMenusContainer').style.display !== 'none';
 };
 
-realityEditor.gui.crafting.eventHelper.openBlockSettings = function(block) {
-
+realityEditor.gui.crafting.eventHelper.openBlockSettings = function (block) {
     this.changeDatacraftingDisplayForMenu('none');
-    
+
     var keys = this.getServerObjectLogicKeys(globalStates.currentLogic, block);
-    var settingsUrl = realityEditor.network.getURL(keys.ip,keys.port, '/logicBlock/' + block.type + "/index.html");
+    var settingsUrl = realityEditor.network.getURL(
+        keys.ip,
+        keys.port,
+        '/logicBlock/' + block.type + '/index.html'
+    );
     var craftingMenusContainer = document.getElementById('craftingMenusContainer');
     var blockSettingsContainer = document.createElement('iframe');
     blockSettingsContainer.setAttribute('id', 'blockSettingsContainer');
@@ -804,36 +949,50 @@ realityEditor.gui.crafting.eventHelper.openBlockSettings = function(block) {
     // var scaleMultiplier = Math.max(globalStates.currentLogic.grid.containerHeight / globalStates.currentLogic.grid.gridHeight, globalStates.currentLogic.grid.containerWidth / globalStates.currentLogic.grid.gridWidth);
     // blockSettingsContainer.style.transform = 'scale(' + scaleMultiplier + ')';
     blockSettingsContainer.style.left = 0;
-    
-    blockSettingsContainer.setAttribute("onload", "realityEditor.gui.crafting.eventHandlers.onLoadBlock('" + keys.objectKey + "','" + keys.frameKey + "','" + keys.logicKey + "','" + keys.blockKey + "','" + JSON.stringify(block.publicData) + "')");
+
+    blockSettingsContainer.setAttribute(
+        'onload',
+        "realityEditor.gui.crafting.eventHandlers.onLoadBlock('" +
+            keys.objectKey +
+            "','" +
+            keys.frameKey +
+            "','" +
+            keys.logicKey +
+            "','" +
+            keys.blockKey +
+            "','" +
+            JSON.stringify(block.publicData) +
+            "')"
+    );
     blockSettingsContainer.src = settingsUrl;
-    
+
     craftingMenusContainer.appendChild(blockSettingsContainer);
-    
-    realityEditor.gui.menus.buttonOn(["logicSetting"]);
+
+    realityEditor.gui.menus.buttonOn(['logicSetting']);
 };
 
-realityEditor.gui.crafting.eventHelper.hideBlockSettings = function() {
-    
+realityEditor.gui.crafting.eventHelper.hideBlockSettings = function () {
     var wasBlockSettingsOpen = false;
     var container = document.getElementById('blockSettingsContainer');
     if (container) {
-
         this.changeDatacraftingDisplayForMenu('');
-        
+
         container.parentNode.removeChild(container);
         wasBlockSettingsOpen = true;
     }
     return wasBlockSettingsOpen;
 };
 
-realityEditor.gui.crafting.eventHelper.openNodeSettings = function() {
-    if (document.getElementById('menuContainer') && document.getElementById('menuContainer').style.display !== "none") {
+realityEditor.gui.crafting.eventHelper.openNodeSettings = function () {
+    if (
+        document.getElementById('menuContainer') &&
+        document.getElementById('menuContainer').style.display !== 'none'
+    ) {
         return;
     }
-    
+
     var logic = globalStates.currentLogic;
-    
+
     // 1. temporarily hide all other datacrafting divs. redisplay them when menu hides
     this.changeDatacraftingDisplayForMenu('none');
 
@@ -844,7 +1003,7 @@ realityEditor.gui.crafting.eventHelper.openNodeSettings = function() {
     nodeSettingsContainer.setAttribute('class', 'settingsContainer');
 
     nodeSettingsContainer.classList.add('centerVerticallyAndHorizontally');
-    
+
     // center on iPads
     // nodeSettingsContainer.style.marginLeft = logic.grid.xMargin + 'px';
     // nodeSettingsContainer.style.marginTop = logic.grid.yMargin + 'px';
@@ -854,45 +1013,42 @@ realityEditor.gui.crafting.eventHelper.openNodeSettings = function() {
 
     // var scaleMultiplier = Math.max(logic.grid.containerHeight / logic.grid.gridHeight, logic.grid.containerWidth / logic.grid.gridWidth);
     // nodeSettingsContainer.style.transform = 'scale(' + scaleMultiplier + ')';
-    
+
     nodeSettingsContainer.style.left = 0;
 
     // nodeSettingsContainer.setAttribute("onload", "realityEditor.gui.crafting.eventHandlers.onLoadBlock('" + keys.objectKey + "','" + keys.frameKey + "','" + keys.logicKey + "','" + keys.blockKey + "','" + JSON.stringify(block.publicData) + "')");
     nodeSettingsContainer.src = 'src/gui/crafting/nodeSettings.html';
-    
-    nodeSettingsContainer.onload = function() {
 
+    nodeSettingsContainer.onload = function () {
         var keys = realityEditor.gui.crafting.eventHelper.getServerObjectLogicKeys(logic);
 
         var logicNodeData = {
-            
             version: realityEditor.getObject(keys.objectKey).integerVersion,
             ip: keys.ip,
             httpPort: keys.port,
-            port:keys.port,
-            
+            port: keys.port,
+
             objectKey: keys.objectKey,
             frameKey: keys.frameKey,
             nodeKey: keys.logicKey,
-            
+
             objectName: realityEditor.getObject(keys.objectKey).name,
             logicName: logic.name,
-            
+
             iconImageState: logic.iconImage,
-            autoImagePath: realityEditor.gui.crafting.getSrcForAutoIcon(logic)
+            autoImagePath: realityEditor.gui.crafting.getSrcForAutoIcon(logic),
         };
-        
+
         nodeSettingsContainer.contentWindow.postMessage(JSON.stringify(logicNodeData), '*');
-        
     };
-    
+
     var craftingMenusContainer = document.getElementById('craftingMenusContainer');
     craftingMenusContainer.appendChild(nodeSettingsContainer);
 
-    realityEditor.gui.menus.switchToMenu("crafting", ["logicSetting"], null);
+    realityEditor.gui.menus.switchToMenu('crafting', ['logicSetting'], null);
 };
 
-realityEditor.gui.crafting.eventHelper.hideNodeSettings = function() {
+realityEditor.gui.crafting.eventHelper.hideNodeSettings = function () {
     var wasBlockSettingsOpen = false;
     var container = document.getElementById('nodeSettingsContainer');
     if (container) {

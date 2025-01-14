@@ -47,7 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.device");
+createNameSpace('realityEditor.device');
 
 /**
  * @fileOverview realityEditor.device.onLoad.js
@@ -68,12 +68,15 @@ realityEditor.device.loaded = false;
  * ... and notify the native iOS code that the user interface finished loading
  */
 realityEditor.device.onload = async function () {
-
     realityEditor.gui.modal.createNotificationContainer();
 
     // Initialize some global variables for the device session
     this.cout('Running on platform: ' + globalStates.platform);
-    if (globalStates.platform !== 'iPad' && globalStates.platform !== 'iPhone' && globalStates.platform !== 'iPod touch') {
+    if (
+        globalStates.platform !== 'iPad' &&
+        globalStates.platform !== 'iPhone' &&
+        globalStates.platform !== 'iPod touch'
+    ) {
         globalStates.platform = false;
     }
 
@@ -82,14 +85,19 @@ realityEditor.device.onload = async function () {
     await realityEditor.addons.onInit();
 
     // Check whether we're offline by adding a cache-busting search parameter
-    fetch(window.location + '/?offlineCheck=' + Date.now()).then(res => {
+    fetch(window.location + '/?offlineCheck=' + Date.now()).then((res) => {
         if (!res.headers.has('X-Offline-Cache')) {
             return;
         }
 
         let message = 'Network Offline: Showing last known state. Most functionality is disabled.';
         // showBannerNotification removes notification after set time so no additional function is needed
-        realityEditor.gui.modal.showBannerNotification(message, 'offlineUIcontainer', 'offlineUItext', 5000);
+        realityEditor.gui.modal.showBannerNotification(
+            message,
+            'offlineUIcontainer',
+            'offlineUItext',
+            5000
+        );
     });
 
     // set up the global canvas for drawing the links
@@ -105,10 +113,10 @@ realityEditor.device.onload = async function () {
         realityEditor.gui.menus.init();
 
         // set active buttons and preload some images
-        realityEditor.gui.menus.switchToMenu("main", ["gui"], ["reset", "unconstrained"]);
+        realityEditor.gui.menus.switchToMenu('main', ['gui'], ['reset', 'unconstrained']);
         realityEditor.gui.buttons.initButtons();
     }
-    
+
     // initialize additional services
     try {
         realityEditor.device.initService();
@@ -155,17 +163,27 @@ realityEditor.device.onload = async function () {
         realityEditor.gui.search.initService();
     } catch (initError) {
         // show an error message rather than crash entirely; otherwise Vuforia Engine will never start
-        console.error('error in initService functions, might lead to corrupted app state', initError);
+        console.error(
+            'error in initService functions, might lead to corrupted app state',
+            initError
+        );
         try {
             let initializeMessage = 'Error initializing. Restart app or contact support.';
             // showBannerNotification removes notification after set time so no additional function is needed
-            realityEditor.gui.modal.showBannerNotification(initializeMessage, 'initializeErrorUI', 'initializeErrorText', 5000);
+            realityEditor.gui.modal.showBannerNotification(
+                initializeMessage,
+                'initializeErrorUI',
+                'initializeErrorText',
+                5000
+            );
         } catch (alertError) {
-            alert(`Error initializing. Restart app or contact support. ${initError}, ${alertError}`);
+            alert(
+                `Error initializing. Restart app or contact support. ${initError}, ${alertError}`
+            );
         }
     }
 
-    realityEditor.app.promises.getDeviceReady().then(deviceName => {
+    realityEditor.app.promises.getDeviceReady().then((deviceName) => {
         globalStates.device = deviceName;
         console.log('The Reality Editor is loaded on a ' + globalStates.device);
         realityEditor.device.layout.adjustForDevice(deviceName);
@@ -177,35 +195,41 @@ realityEditor.device.onload = async function () {
     // assign global pointers to frequently used UI elements
     overlayDiv = document.getElementById('overlay');
     overlayDiv2 = document.getElementById('overlay2');
-    
+
     // center the menu vertically if the screen is taller than 320 px
     var MENU_HEIGHT = 320;
     var menuHeightDifference = globalStates.width - MENU_HEIGHT;
-    document.getElementById('UIButtons').style.top = menuHeightDifference/2 + 'px';
+    document.getElementById('UIButtons').style.top = menuHeightDifference / 2 + 'px';
     CRAFTING_GRID_HEIGHT = globalStates.width - menuHeightDifference;
-	
-	// set up the pocket and memory bars
+
+    // set up the pocket and memory bars
     if (!TEMP_DISABLE_MEMORIES) {
         realityEditor.gui.memory.initMemoryBar();
     } else {
         var pocketMemoryBar = document.querySelector('.memoryBar');
         pocketMemoryBar.parentElement.removeChild(pocketMemoryBar);
     }
-	realityEditor.gui.memory.nodeMemories.initMemoryBar();
-	realityEditor.gui.pocket.pocketInit();
+    realityEditor.gui.memory.nodeMemories.initMemoryBar();
+    realityEditor.gui.pocket.pocketInit();
 
     // add a callback for messages posted up to the application from children iframes
-	window.addEventListener("message", realityEditor.network.onInternalPostMessage.bind(realityEditor.network), false);
-		
-	// adds all the event handlers for setting up the editor
+    window.addEventListener(
+        'message',
+        realityEditor.network.onInternalPostMessage.bind(realityEditor.network),
+        false
+    );
+
+    // adds all the event handlers for setting up the editor
     realityEditor.device.addDocumentTouchListeners();
-    
+
     // adjust for iPhoneX size if needed
     realityEditor.device.layout.adjustForScreenSize();
 
     // adjust when phone orientation changes - also triggers one time immediately with the initial orientation
     if (realityEditor.device.environment.variables.listenForDeviceOrientationChanges) {
-        realityEditor.app.enableOrientationChanges('realityEditor.device.layout.onOrientationChanged');
+        realityEditor.app.enableOrientationChanges(
+            'realityEditor.device.layout.onOrientationChanged'
+        );
     }
 
     // prevent touch events on overlayDiv
@@ -214,7 +238,7 @@ realityEditor.device.onload = async function () {
     });
 
     // release pointerevents that hit the background so that they can trigger pointerenter events on other elements
-    document.body.addEventListener('gotpointercapture', function(evt) {
+    document.body.addEventListener('gotpointercapture', function (evt) {
         evt.target.releasePointerCapture(evt.pointerId);
     });
 
@@ -224,13 +248,16 @@ realityEditor.device.onload = async function () {
         stats = new Stats();
         document.body.appendChild(stats.dom);
     }
-    
+
     // start TWEEN library for animations
     (function animate(time) {
         realityEditor.gui.ar.draw.frameNeedsToBeRendered = true;
         // TODO This is a hack to keep the crafting board running
-        if (globalStates.freezeButtonState && !realityEditor.device.environment.providesOwnUpdateLoop()) {
-            realityEditor.gui.ar.draw.update(realityEditor.gui.ar.draw.visibleObjectsCopy); 
+        if (
+            globalStates.freezeButtonState &&
+            !realityEditor.device.environment.providesOwnUpdateLoop()
+        ) {
+            realityEditor.gui.ar.draw.update(realityEditor.gui.ar.draw.visibleObjectsCopy);
         }
         requestAnimationFrame(animate);
         TWEEN.update(time);
@@ -239,9 +266,9 @@ realityEditor.device.onload = async function () {
             stats.update();
         }
     })();
-    
+
     if (realityEditor.device.initFunctions.length === 0) {
-        realityEditor.app.promises.didGrantNetworkPermissions().then(success => {
+        realityEditor.app.promises.didGrantNetworkPermissions().then((success) => {
             // network permissions are no longer required for the app to function, but we can
             // provide UI feedback if they try to use a feature (discovering unknown servers) that relies on this
             if (typeof success === 'boolean') {
@@ -249,17 +276,17 @@ realityEditor.device.onload = async function () {
             }
 
             // start the AR framework in native iOS
-            realityEditor.app.promises.getVuforiaReady().then(success => {
+            realityEditor.app.promises.getVuforiaReady().then((success) => {
                 realityEditor.app.callbacks.vuforiaIsReady(success);
             });
         });
     } else {
-        realityEditor.device.initFunctions.forEach(function(initFunction) {
+        realityEditor.device.initFunctions.forEach(function (initFunction) {
             initFunction();
         });
     }
 
-    this.cout("onload");
+    this.cout('onload');
 
     realityEditor.device.loaded = true;
 };

@@ -6,9 +6,9 @@ import {
     HIDDEN_JOINTS,
     HIDDEN_BONES,
     DISPLAY_HIDDEN_ELEMENTS,
-    DISPLAY_INVALID_ELEMENTS
+    DISPLAY_INVALID_ELEMENTS,
 } from './constants.js';
-import {MotionStudyColors} from "./MotionStudyColors.js";
+import { MotionStudyColors } from './MotionStudyColors.js';
 
 /**
  * A single 3d skeleton rendered in a HumanPoseRenderer's slot
@@ -45,11 +45,11 @@ export class HumanPoseRenderInstance {
             return false;
         }
 
-        Object.values(JOINT_TO_INDEX).forEach(index => {
+        Object.values(JOINT_TO_INDEX).forEach((index) => {
             this.renderer.setJointColorAt(this.slot, index, MotionStudyColors.base);
         });
 
-        Object.values(BONE_TO_INDEX).forEach(index => {
+        Object.values(BONE_TO_INDEX).forEach((index) => {
             this.renderer.setBoneColorAt(this.slot, index, MotionStudyColors.base);
         });
 
@@ -64,25 +64,12 @@ export class HumanPoseRenderInstance {
      */
     setJointPosition(jointId, position, visible = true) {
         const index = JOINT_TO_INDEX[jointId];
-        let matrix = new THREE.Matrix4().set(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 1,
-        );
+        let matrix = new THREE.Matrix4().set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         if (visible) {
-            matrix.makeTranslation(
-                position.x,
-                position.y,
-                position.z,
-            );
+            matrix.makeTranslation(position.x, position.y, position.z);
         }
 
-        this.renderer.setJointMatrixAt(
-            this.slot,
-            index,
-            matrix
-        );
+        this.renderer.setJointMatrixAt(this.slot, index, matrix);
     }
 
     /**
@@ -92,9 +79,10 @@ export class HumanPoseRenderInstance {
         if (this.slot < 0) {
             return;
         }
-        this.pose.forEachJoint(joint => {
-            let visible = (DISPLAY_HIDDEN_ELEMENTS || !HIDDEN_JOINTS.includes(joint.name)) && 
-                          (DISPLAY_INVALID_ELEMENTS || joint.valid);
+        this.pose.forEachJoint((joint) => {
+            let visible =
+                (DISPLAY_HIDDEN_ELEMENTS || !HIDDEN_JOINTS.includes(joint.name)) &&
+                (DISPLAY_INVALID_ELEMENTS || joint.valid);
             this.setJointPosition(joint.name, joint.position, visible);
         });
     }
@@ -106,12 +94,7 @@ export class HumanPoseRenderInstance {
      */
     updateBonePosition(bone, visible = true) {
         const boneIndex = BONE_TO_INDEX[bone.name];
-        let matrix = new THREE.Matrix4().set(
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 1,
-        );
+        let matrix = new THREE.Matrix4().set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 
         if (visible) {
             const jointAPos = bone.joint0.position;
@@ -123,7 +106,10 @@ export class HumanPoseRenderInstance {
             const scaleVector = new THREE.Vector3(1, scale / SCALE, 1);
 
             const direction = jointBPos.clone().sub(jointAPos).normalize();
-            const rot = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+            const rot = new THREE.Quaternion().setFromUnitVectors(
+                new THREE.Vector3(0, 1, 0),
+                direction
+            );
 
             matrix.compose(pos, rot, scaleVector);
         }
@@ -138,10 +124,11 @@ export class HumanPoseRenderInstance {
             return;
         }
 
-        this.pose.forEachBone(bone => {
+        this.pose.forEachBone((bone) => {
             // hides hands in general at the moment. But one could use this also for hiding joints based on their low confidence.
-            let visible = (DISPLAY_HIDDEN_ELEMENTS || !HIDDEN_BONES.includes(bone.name)) && 
-                          (DISPLAY_INVALID_ELEMENTS || bone.valid);
+            let visible =
+                (DISPLAY_HIDDEN_ELEMENTS || !HIDDEN_BONES.includes(bone.name)) &&
+                (DISPLAY_INVALID_ELEMENTS || bone.valid);
             this.updateBonePosition(bone, visible);
         });
     }
@@ -208,26 +195,35 @@ export class HumanPoseRenderInstance {
                 bones: Object.values(BONE_TO_INDEX).map(() => MotionStudyColors.undefined),
             };
         }
-        this.pose.forEachJoint(joint => {
-            this.lensColors[lens.name].joints[JOINT_TO_INDEX[joint.name]] = lens.getColorForJoint(joint);
+        this.pose.forEachJoint((joint) => {
+            this.lensColors[lens.name].joints[JOINT_TO_INDEX[joint.name]] =
+                lens.getColorForJoint(joint);
             if (!joint.valid) {
-                this.lensColors[lens.name].joints[JOINT_TO_INDEX[joint.name]] = MotionStudyColors.undefined;
+                this.lensColors[lens.name].joints[JOINT_TO_INDEX[joint.name]] =
+                    MotionStudyColors.undefined;
             }
         });
-        this.pose.forEachBone(bone => {
+        this.pose.forEachBone((bone) => {
             this.lensColors[lens.name].bones[BONE_TO_INDEX[bone.name]] = lens.getColorForBone(bone);
             if (!bone.valid) {
-                this.lensColors[lens.name].bones[BONE_TO_INDEX[bone.name]] = MotionStudyColors.undefined;
+                this.lensColors[lens.name].bones[BONE_TO_INDEX[bone.name]] =
+                    MotionStudyColors.undefined;
             }
         });
-        // MK - why this condition (lens === this.lens)? When switching lens this is not true and this is not applied. 
-        // Extra code needs to call this again after this.lens is updated to new lens.  
+        // MK - why this condition (lens === this.lens)? When switching lens this is not true and this is not applied.
+        // Extra code needs to call this again after this.lens is updated to new lens.
         if (lens === this.lens) {
-            this.pose.forEachJoint(joint => {
-                this.setJointColor(joint.name, this.lensColors[this.lens.name].joints[JOINT_TO_INDEX[joint.name]]);
+            this.pose.forEachJoint((joint) => {
+                this.setJointColor(
+                    joint.name,
+                    this.lensColors[this.lens.name].joints[JOINT_TO_INDEX[joint.name]]
+                );
             });
-            this.pose.forEachBone(bone => {
-                this.setBoneColor(bone.name, this.lensColors[this.lens.name].bones[BONE_TO_INDEX[bone.name]]);
+            this.pose.forEachBone((bone) => {
+                this.setBoneColor(
+                    bone.name,
+                    this.lensColors[this.lens.name].bones[BONE_TO_INDEX[bone.name]]
+                );
             });
         }
     }
@@ -272,7 +268,7 @@ export class HumanPoseRenderInstance {
     copy(other) {
         this.lens = other.lens;
         this.lensColors = {};
-        Object.keys(other.lensColors).forEach(lensName => {
+        Object.keys(other.lensColors).forEach((lensName) => {
             this.lensColors[lensName] = {
                 joints: other.lensColors[lensName].joints.slice(),
                 bones: other.lensColors[lensName].bones.slice(),
@@ -291,4 +287,3 @@ export class HumanPoseRenderInstance {
         this.visible = false;
     }
 }
-

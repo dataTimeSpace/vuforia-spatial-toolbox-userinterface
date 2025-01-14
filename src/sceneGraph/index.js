@@ -1,22 +1,21 @@
 /*
-* Created by Ben Reynolds on 07/13/20.
-*
-* Copyright (c) 2020 PTC Inc
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Created by Ben Reynolds on 07/13/20.
+ *
+ * Copyright (c) 2020 PTC Inc
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-createNameSpace("realityEditor.sceneGraph");
+createNameSpace('realityEditor.sceneGraph');
 
 /**
  * This is the new positioning API for objects, tools, and nodes
  * Scene Graph implementation was inspired by:
  * https://webglfundamentals.org/webgl/lessons/webgl-scene-graph.html
  */
-(function(exports) {
-
+(function (exports) {
     let SceneNode = realityEditor.sceneGraph.SceneNode;
 
     let utils = realityEditor.gui.ar.utilities;
@@ -41,7 +40,7 @@ createNameSpace("realityEditor.sceneGraph");
         ROOT: 'ROOT',
         CAMERA: 'CAMERA',
         DEVICE: 'DEVICE',
-        GROUNDPLANE: 'GROUNDPLANE'
+        GROUNDPLANE: 'GROUNDPLANE',
     });
     exports.NAMES = NAMES;
 
@@ -49,7 +48,7 @@ createNameSpace("realityEditor.sceneGraph");
         OBJECT: 'object',
         TOOL: 'tool',
         NODE: 'node',
-        ROTATE_X: 'rotateX'
+        ROTATE_X: 'rotateX',
     });
     exports.TAGS = TAGS;
 
@@ -154,11 +153,15 @@ createNameSpace("realityEditor.sceneGraph");
     }
 
     function setCameraPosition(cameraMatrix) {
-        if (!cameraNode) { return; }
+        if (!cameraNode) {
+            return;
+        }
 
         if (realityEditor.device.profiling.isEnabled()) {
             let numStopsRequired = realityEditor.device.profiling.countSubscribedFrames(); // stopTimeProcess will need to be called this many times
-            let matrixHash = realityEditor.device.profiling.getShortHashForString(JSON.stringify(cameraMatrix));
+            let matrixHash = realityEditor.device.profiling.getShortHashForString(
+                JSON.stringify(cameraMatrix)
+            );
             let processName = `cameraUpdate_${matrixHash}`;
             realityEditor.device.profiling.startTimeProcess(processName, { numStopsRequired });
         }
@@ -171,7 +174,9 @@ createNameSpace("realityEditor.sceneGraph");
 
     // this is the true position of the device, even if we are in VR mode
     function setDevicePosition(cameraMatrix) {
-        if (!deviceNode) { return; }
+        if (!deviceNode) {
+            return;
+        }
         deviceNode.setLocalMatrix(cameraMatrix);
     }
 
@@ -197,7 +202,7 @@ createNameSpace("realityEditor.sceneGraph");
     function getSceneNodeById(id) {
         return sceneGraph[id];
     }
-    
+
     function getCameraNode() {
         return sceneGraph[NAMES.CAMERA];
     }
@@ -239,7 +244,7 @@ createNameSpace("realityEditor.sceneGraph");
         // ...... calculate and store where it is relative to camera
         // ...... multiply by projection matrix etc to get CSS matrix
 
-        visibleObjectIds.forEach(function(objectKey) {
+        visibleObjectIds.forEach(function (objectKey) {
             let object = realityEditor.getObject(objectKey);
             let objectSceneNode = getSceneNodeById(objectKey); // todo: error handle
             if (!object || !objectSceneNode) {
@@ -252,18 +257,26 @@ createNameSpace("realityEditor.sceneGraph");
             if (didCameraUpdate || objectSceneNode.needsRerender) {
                 relativeToCamera[objectKey] = objectSceneNode.getMatrixRelativeTo(cameraNode);
                 finalCSSMatrices[objectKey] = [];
-                utils.multiplyMatrix(relativeToCamera[objectKey], globalStates.projectionMatrix, finalCSSMatrices[objectKey]);
+                utils.multiplyMatrix(
+                    relativeToCamera[objectKey],
+                    globalStates.projectionMatrix,
+                    finalCSSMatrices[objectKey]
+                );
                 objectSceneNode.needsRerender = false;
             }
 
             // skip this object if neither it or the camera have changed
-            if (!didCameraUpdate && !objectSceneNode.anythingInSubtreeNeedsRerender) { return; }
+            if (!didCameraUpdate && !objectSceneNode.anythingInSubtreeNeedsRerender) {
+                return;
+            }
 
-            Object.keys(object.frames).forEach( function(frameKey) {
+            Object.keys(object.frames).forEach(function (frameKey) {
                 let frame = realityEditor.getFrame(objectKey, frameKey);
                 let frameSceneNode = getSceneNodeById(frameKey);
 
-                if (!frameSceneNode) { return; }
+                if (!frameSceneNode) {
+                    return;
+                }
 
                 if (didCameraUpdate || frameSceneNode.needsRerender) {
                     relativeToCamera[frameKey] = frameSceneNode.getMatrixRelativeTo(cameraNode);
@@ -271,7 +284,11 @@ createNameSpace("realityEditor.sceneGraph");
                     // add in animations after everything else to get a new modelView matrix
                     if (realityEditor.device.isEditingUnconstrained(frame) && pocketDropAnimation) {
                         var animatedFinalMatrix = [];
-                        utils.multiplyMatrix(relativeToCamera[frameKey], editingAnimationsMatrix, animatedFinalMatrix);
+                        utils.multiplyMatrix(
+                            relativeToCamera[frameKey],
+                            editingAnimationsMatrix,
+                            animatedFinalMatrix
+                        );
                         utils.copyMatrixInPlace(animatedFinalMatrix, relativeToCamera[frameKey]);
                         frameSceneNode.needsRerender = true;
                     } else {
@@ -279,36 +296,55 @@ createNameSpace("realityEditor.sceneGraph");
                     }
 
                     finalCSSMatrices[frameKey] = [];
-                    utils.multiplyMatrix(relativeToCamera[frameKey], globalStates.projectionMatrix, finalCSSMatrices[frameKey]);
+                    utils.multiplyMatrix(
+                        relativeToCamera[frameKey],
+                        globalStates.projectionMatrix,
+                        finalCSSMatrices[frameKey]
+                    );
 
                     frameSceneNode.needsRerender = false;
                 }
 
                 // skip this frame if neither it or the camera have changed
-                if (!didCameraUpdate && !frameSceneNode.anythingInSubtreeNeedsRerender) { return; }
+                if (!didCameraUpdate && !frameSceneNode.anythingInSubtreeNeedsRerender) {
+                    return;
+                }
 
                 // TODO: only compute nodes when not in UI mode? if so we need to be sure to compute when switch mode
-                Object.keys(frame.nodes).forEach( function(nodeKey) {
+                Object.keys(frame.nodes).forEach(function (nodeKey) {
                     let node = realityEditor.getNode(objectKey, frameKey, nodeKey);
                     let nodeSceneNode = getSceneNodeById(nodeKey);
 
-                    if (!nodeSceneNode) { return; } // skip nodes without sceneNodes (true for invisible nodes)
+                    if (!nodeSceneNode) {
+                        return;
+                    } // skip nodes without sceneNodes (true for invisible nodes)
 
                     if (didCameraUpdate || nodeSceneNode.needsRerender) {
                         relativeToCamera[nodeKey] = nodeSceneNode.getMatrixRelativeTo(cameraNode);
 
                         // add in animations after everything else to get a new modelView matrix
-                        if (realityEditor.device.isEditingUnconstrained(node) && pocketDropAnimation) {
+                        if (
+                            realityEditor.device.isEditingUnconstrained(node) &&
+                            pocketDropAnimation
+                        ) {
                             var animatedFinalMatrix = [];
-                            utils.multiplyMatrix(relativeToCamera[nodeKey], editingAnimationsMatrix, animatedFinalMatrix);
+                            utils.multiplyMatrix(
+                                relativeToCamera[nodeKey],
+                                editingAnimationsMatrix,
+                                animatedFinalMatrix
+                            );
                             utils.copyMatrixInPlace(animatedFinalMatrix, relativeToCamera[nodeKey]);
                             frameSceneNode.needsRerender = true;
                         } else {
                             frameSceneNode.needsRerender = false;
                         }
-                        
+
                         finalCSSMatrices[nodeKey] = [];
-                        utils.multiplyMatrix(relativeToCamera[nodeKey], globalStates.projectionMatrix, finalCSSMatrices[nodeKey]);
+                        utils.multiplyMatrix(
+                            relativeToCamera[nodeKey],
+                            globalStates.projectionMatrix,
+                            finalCSSMatrices[nodeKey]
+                        );
 
                         // TODO: what to do about this? is this really needed? maybe only compute when needed
                         // finalCSSMatricesWithoutTransform[nodeKey] = realityEditor.gui.ar.utilities.copyMatrix(finalCSSMatrices[nodeKey]);
@@ -326,10 +362,14 @@ createNameSpace("realityEditor.sceneGraph");
         });
 
         if (cameraNode.anythingInSubtreeNeedsRerender) {
-            cameraNode.children.forEach(childNode => {
+            cameraNode.children.forEach((childNode) => {
                 relativeToCamera[childNode.id] = childNode.getMatrixRelativeTo(cameraNode);
                 finalCSSMatrices[childNode.id] = [];
-                utils.multiplyMatrix(relativeToCamera[childNode.id], globalStates.projectionMatrix, finalCSSMatrices[childNode.id]);
+                utils.multiplyMatrix(
+                    relativeToCamera[childNode.id],
+                    globalStates.projectionMatrix,
+                    finalCSSMatrices[childNode.id]
+                );
                 childNode.needsRerender = false;
             });
             cameraNode.anythingInSubtreeNeedsRerender = false;
@@ -339,9 +379,14 @@ createNameSpace("realityEditor.sceneGraph");
         for (let elementId in visualElements) {
             let miscellaneousElementNode = visualElements[elementId];
             if (didCameraUpdate || miscellaneousElementNode.needsRerender) {
-                relativeToCamera[elementId] = miscellaneousElementNode.getMatrixRelativeTo(cameraNode);
+                relativeToCamera[elementId] =
+                    miscellaneousElementNode.getMatrixRelativeTo(cameraNode);
                 finalCSSMatrices[elementId] = [];
-                utils.multiplyMatrix(relativeToCamera[elementId], globalStates.projectionMatrix, finalCSSMatrices[elementId]);
+                utils.multiplyMatrix(
+                    relativeToCamera[elementId],
+                    globalStates.projectionMatrix,
+                    finalCSSMatrices[elementId]
+                );
                 miscellaneousElementNode.needsRerender = false;
             }
         }
@@ -363,11 +408,20 @@ createNameSpace("realityEditor.sceneGraph");
 
         if (faceTowardsCamera) {
             // flip it so it faces towards the camera instead of away from the camera
-            let unflippedLocalMatrix = realityEditor.gui.ar.utilities.copyMatrix(requiredLocalMatrix);
+            let unflippedLocalMatrix =
+                realityEditor.gui.ar.utilities.copyMatrix(requiredLocalMatrix);
             // let q = realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw(Math.PI, Math.PI, 0);
-            let q = realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw(0, Math.PI, Math.PI);
+            let q = realityEditor.gui.ar.utilities.getQuaternionFromPitchRollYaw(
+                0,
+                Math.PI,
+                Math.PI
+            );
             let rotationMatrix = realityEditor.gui.ar.utilities.getMatrixFromQuaternion(q);
-            realityEditor.gui.ar.utilities.multiplyMatrix(rotationMatrix, unflippedLocalMatrix, requiredLocalMatrix);
+            realityEditor.gui.ar.utilities.multiplyMatrix(
+                rotationMatrix,
+                unflippedLocalMatrix,
+                requiredLocalMatrix
+            );
         }
 
         sceneNode.setLocalMatrix(requiredLocalMatrix);
@@ -383,7 +437,11 @@ createNameSpace("realityEditor.sceneGraph");
         let transform = sceneNode.getTransformMatrix();
         let inverseTransform = utils.invertMatrix(transform);
 
-        utils.multiplyMatrix(inverseTransform, finalCSSMatrices[activeKey], finalCSSMatricesWithoutTransform[activeKey]);
+        utils.multiplyMatrix(
+            inverseTransform,
+            finalCSSMatrices[activeKey],
+            finalCSSMatricesWithoutTransform[activeKey]
+        );
 
         return finalCSSMatricesWithoutTransform[activeKey];
     }
@@ -401,26 +459,32 @@ createNameSpace("realityEditor.sceneGraph");
     // look at implementation of realityEditor.gui.ar.positioning.getScreenPosition to get other coordinates
     function getScreenPosition(activeKey, frameCoordinateVector) {
         if (typeof frameCoordinateVector === 'undefined') {
-            frameCoordinateVector = [0,0,0,1]; // defaults to center. [-halfWidth, -halfHeight, 0, 1] is upperLeft
+            frameCoordinateVector = [0, 0, 0, 1]; // defaults to center. [-halfWidth, -halfHeight, 0, 1] is upperLeft
         }
         if (finalCSSMatrices[activeKey]) {
-            return realityEditor.gui.ar.positioning.getProjectedCoordinates(frameCoordinateVector, finalCSSMatrices[activeKey]);
+            return realityEditor.gui.ar.positioning.getProjectedCoordinates(
+                frameCoordinateVector,
+                finalCSSMatrices[activeKey]
+            );
         }
-        console.warn(activeKey + ' hasn\'t been processed in the sceneGraph yet in order to get correct screen position');
+        console.warn(
+            activeKey +
+                " hasn't been processed in the sceneGraph yet in order to get correct screen position"
+        );
         return {
-            x: window.innerWidth/2,
-            y: window.innerHeight/2
-        }
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+        };
     }
 
     function getWorldPosition(activeKey) {
         let sceneNode = getSceneNodeById(activeKey);
         return {
             // TODO: should we normalize all of these by default?
-            x: sceneNode.worldMatrix[12]/sceneNode.worldMatrix[15],
-            y: sceneNode.worldMatrix[13]/sceneNode.worldMatrix[15],
-            z: sceneNode.worldMatrix[14]/sceneNode.worldMatrix[15]
-        }
+            x: sceneNode.worldMatrix[12] / sceneNode.worldMatrix[15],
+            y: sceneNode.worldMatrix[13] / sceneNode.worldMatrix[15],
+            z: sceneNode.worldMatrix[14] / sceneNode.worldMatrix[15],
+        };
     }
 
     function getPositionRelativeToCamera(activeKey) {
@@ -431,15 +495,15 @@ createNameSpace("realityEditor.sceneGraph");
                 relativeToCamera[activeKey] = objectSceneNode.getMatrixRelativeTo(cameraNode);
                 relativePosition = relativeToCamera[activeKey];
             } else {
-                console.warn("Error, no scene node for " + activeKey);
+                console.warn('Error, no scene node for ' + activeKey);
                 return { x: 0, y: 0, z: 0 };
             }
         }
         return {
-            x: relativePosition[12]/relativePosition[15],
-            y: relativePosition[13]/relativePosition[15],
-            z: relativePosition[14]/relativePosition[15]
-        }
+            x: relativePosition[12] / relativePosition[15],
+            y: relativePosition[13] / relativePosition[15],
+            z: relativePosition[14] / relativePosition[15],
+        };
     }
 
     function getModelViewMatrix(activeKey) {
@@ -456,7 +520,8 @@ createNameSpace("realityEditor.sceneGraph");
     }
 
     function isInFrontOfCamera(activeKey) {
-        let positionRelativeToCamera = realityEditor.sceneGraph.getPositionRelativeToCamera(activeKey);
+        let positionRelativeToCamera =
+            realityEditor.sceneGraph.getPositionRelativeToCamera(activeKey);
         // z axis faces opposite direction as expected so this distance is negative if in front, positive if behind
         return positionRelativeToCamera.z < 0;
     }
@@ -474,7 +539,9 @@ createNameSpace("realityEditor.sceneGraph");
     }
 
     function setLoyalty(loyaltyString, objectKey, frameKey, nodeKey) {
-        if (!loyaltyString) { return; }
+        if (!loyaltyString) {
+            return;
+        }
 
         let vehicle = realityEditor.getVehicle(objectKey, frameKey, nodeKey);
         if (vehicle) {
@@ -488,7 +555,9 @@ createNameSpace("realityEditor.sceneGraph");
             } else if (loyaltyString === 'groundplane') {
                 newParentId = NAMES.GROUNDPLANE;
             } else if (loyaltyString === 'object') {
-                newParentId = realityEditor.network.availableFrames.getBestObjectInfoForFrame(realityEditor.getFrame(objectKey, frameKey).src);
+                newParentId = realityEditor.network.availableFrames.getBestObjectInfoForFrame(
+                    realityEditor.getFrame(objectKey, frameKey).src
+                );
             }
 
             if (newParentId && vehicleSceneNode) {
@@ -546,7 +615,7 @@ createNameSpace("realityEditor.sceneGraph");
     function changeParent(sceneNode, newParentId, preserveWorldPosition) {
         let parentNode = getSceneNodeById(newParentId);
         if (!parentNode) {
-            console.warn('can\'t find the parent SceneNode to add this to');
+            console.warn("can't find the parent SceneNode to add this to");
         }
         // check if the parent needs all of its children to be added to a rotateX node inside of it instead
         parentNode = getNodeOrRotateXChild(parentNode);
@@ -556,7 +625,11 @@ createNameSpace("realityEditor.sceneGraph");
             let desiredWorldMatrix = sceneNode.worldMatrix;
             let newParentWorldMatrix = sceneNode.parent.worldMatrix;
             let requiredLocalMatrix = [];
-            utils.multiplyMatrix(desiredWorldMatrix, utils.invertMatrix(newParentWorldMatrix), requiredLocalMatrix);
+            utils.multiplyMatrix(
+                desiredWorldMatrix,
+                utils.invertMatrix(newParentWorldMatrix),
+                requiredLocalMatrix
+            );
             let transform = sceneNode.getTransformMatrix();
             let inverseTransform = utils.invertMatrix(transform);
             let untransformed = [];
@@ -606,7 +679,10 @@ createNameSpace("realityEditor.sceneGraph");
      */
     function getWorldId() {
         let bestWorldObject = realityEditor.worldObjects.getBestWorldObject();
-        if (bestWorldObject && bestWorldObject.objectId !== realityEditor.worldObjects.getLocalWorldId()) {
+        if (
+            bestWorldObject &&
+            bestWorldObject.objectId !== realityEditor.worldObjects.getLocalWorldId()
+        ) {
             return bestWorldObject.objectId;
         }
         return null;
@@ -631,20 +707,14 @@ createNameSpace("realityEditor.sceneGraph");
             processedInput = input.elements;
         } else if (typeof input.length !== 'undefined' && input.length === 3) {
             inputType = 'vector3';
-            processedInput = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                input[0], input[1], input[2], 1
-            ];
-        } else if (typeof input.x !== 'undefined' && typeof input.y !== 'undefined' && typeof input.z !== 'undefined') {
+            processedInput = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, input[0], input[1], input[2], 1];
+        } else if (
+            typeof input.x !== 'undefined' &&
+            typeof input.y !== 'undefined' &&
+            typeof input.z !== 'undefined'
+        ) {
             inputType = 'position';
-            processedInput = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                input.x, input.y, input.z, 1
-            ];
+            processedInput = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, input.x, input.y, input.z, 1];
         }
 
         let relativeMatrix = currentParentSceneNode.getMatrixRelativeTo(newParentSceneNode);
@@ -658,9 +728,13 @@ createNameSpace("realityEditor.sceneGraph");
             realityEditor.gui.threejsScene.setMatrixFromArray(matrixThree, output);
             return matrixThree;
         } else if (inputType === 'vector3') {
-            return [output[12]/output[15], output[13]/output[15], output[14]/output[15]];
+            return [output[12] / output[15], output[13] / output[15], output[14] / output[15]];
         } else if (inputType === 'position') {
-            return { x: output[12]/output[15], y: output[13]/output[15], z: output[14]/output[15] };
+            return {
+                x: output[12] / output[15],
+                y: output[13] / output[15],
+                z: output[14] / output[15],
+            };
         }
     }
 
@@ -673,33 +747,75 @@ createNameSpace("realityEditor.sceneGraph");
      * @param {SceneNode} camNode - which node should act as the cameraNode
      * @returns {{x: number, y: number, z: number}} - position in ROOT coordinates, or whatever coordinateSystem is specified
      */
-    function getPointAtDistanceFromCamera(screenX, screenY, distance, coordinateSystem = rootNode, camNode = cameraNode) {
+    function getPointAtDistanceFromCamera(
+        screenX,
+        screenY,
+        distance,
+        coordinateSystem = rootNode,
+        camNode = cameraNode
+    ) {
         let distanceRaycastVector = [
             (screenX / window.innerWidth) * 2.0 - 1,
-            - (screenY / window.innerHeight) * 2.0 + 1,
+            -(screenY / window.innerHeight) * 2.0 + 1,
             0,
-            1
+            1,
         ];
-        let unprojectedVector = utils.multiplyMatrix4(distanceRaycastVector, utils.invertMatrix(globalStates.realProjectionMatrix));
-        let localDistanceVector = utils.scalarMultiply(utils.normalize([unprojectedVector[0], unprojectedVector[1], unprojectedVector[2]]), distance);
-        let inputPosition = {x: localDistanceVector[0], y: localDistanceVector[1], z: localDistanceVector[2]};
+        let unprojectedVector = utils.multiplyMatrix4(
+            distanceRaycastVector,
+            utils.invertMatrix(globalStates.realProjectionMatrix)
+        );
+        let localDistanceVector = utils.scalarMultiply(
+            utils.normalize([unprojectedVector[0], unprojectedVector[1], unprojectedVector[2]]),
+            distance
+        );
+        let inputPosition = {
+            x: localDistanceVector[0],
+            y: localDistanceVector[1],
+            z: localDistanceVector[2],
+        };
         return convertToNewCoordSystem(inputPosition, camNode, coordinateSystem);
     }
 
     // preserves the position and scale of the sceneNode[id] and rotates it to look at sceneNode[idToLookAt]
     // if resulting matrix is looking away from target instead of towards, or is flipped upside-down, use flipX, flipY to correct it
-    function getModelMatrixLookingAt(id, idToLookAt, {flipX = true, flipY = true, includeScale = true} = {}) {
+    function getModelMatrixLookingAt(
+        id,
+        idToLookAt,
+        { flipX = true, flipY = true, includeScale = true } = {}
+    ) {
         let utils = realityEditor.gui.ar.utilities;
 
         // convert everything into a consistent reference frame, regardless of remote operator vs AR platform
-        let worldNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+        let worldNode = realityEditor.sceneGraph.getSceneNodeById(
+            realityEditor.sceneGraph.getWorldId()
+        );
         let sourceNode = realityEditor.sceneGraph.getSceneNodeById(id);
         let mSource = sourceNode.getMatrixRelativeTo(worldNode);
-        let mTarget = realityEditor.sceneGraph.getSceneNodeById(idToLookAt).getMatrixRelativeTo(worldNode);
+        let mTarget = realityEditor.sceneGraph
+            .getSceneNodeById(idToLookAt)
+            .getMatrixRelativeTo(worldNode);
 
-        let sourcePosition = { x: mSource[12] / mSource[15], y: mSource[13] / mSource[15], z: mSource[14] / mSource[15] };
-        let targetPosition = { x: mTarget[12] / mTarget[15], y: mTarget[13] / mTarget[15], z: mTarget[14] / mTarget[15] };
-        let lookAtMatrix = utils.lookAt(sourcePosition.x, sourcePosition.y, sourcePosition.z, targetPosition.x, targetPosition.y, targetPosition.z, 0, 1, 0);
+        let sourcePosition = {
+            x: mSource[12] / mSource[15],
+            y: mSource[13] / mSource[15],
+            z: mSource[14] / mSource[15],
+        };
+        let targetPosition = {
+            x: mTarget[12] / mTarget[15],
+            y: mTarget[13] / mTarget[15],
+            z: mTarget[14] / mTarget[15],
+        };
+        let lookAtMatrix = utils.lookAt(
+            sourcePosition.x,
+            sourcePosition.y,
+            sourcePosition.z,
+            targetPosition.x,
+            targetPosition.y,
+            targetPosition.z,
+            0,
+            1,
+            0
+        );
         let correspondingModelMatrix = utils.invertMatrix(lookAtMatrix); // lookAt returns a ~"view" matrix, invert to get the model matrix
 
         // ensure we preserve the scale from before
@@ -707,7 +823,7 @@ createNameSpace("realityEditor.sceneGraph");
         if (includeScale) {
             let scale = sourceNode.getVehicleScale();
             let transformMatrix = utils.newIdentityMatrix();
-            [0, 5, 10].forEach(index => transformMatrix[index] = scale);
+            [0, 5, 10].forEach((index) => (transformMatrix[index] = scale));
             utils.multiplyMatrix(transformMatrix, correspondingModelMatrix, scaledModelMatrix);
         } else {
             scaledModelMatrix = correspondingModelMatrix;
@@ -719,8 +835,8 @@ createNameSpace("realityEditor.sceneGraph");
 
         // flip the element upside-down or left-right if needed
         let flipMatrix = utils.newIdentityMatrix();
-        flipMatrix[0] = (flipX ? -1 : 1);
-        flipMatrix[5] = (flipY ? -1 : 1);
+        flipMatrix[0] = flipX ? -1 : 1;
+        flipMatrix[5] = flipY ? -1 : 1;
         let flippedModelMatrix = [];
         utils.multiplyMatrix(flipMatrix, modelMatrix, flippedModelMatrix);
         // modelMatrix = flippedModelMatrix;
@@ -744,13 +860,13 @@ createNameSpace("realityEditor.sceneGraph");
 
         // image target objects require one coordinate system rotation. ground plane requires another.
         if (groundPlaneVariation) {
-            sceneNodeRotateX.setLocalMatrix(realityEditor.gui.ar.utilities.makeGroundPlaneRotationX(-(Math.PI/2)));
+            sceneNodeRotateX.setLocalMatrix(
+                realityEditor.gui.ar.utilities.makeGroundPlaneRotationX(-(Math.PI / 2))
+            );
         } else {
-            sceneNodeRotateX.setLocalMatrix([ // transform coordinate system by rotateX
-                1, 0, 0, 0,
-                0, -1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
+            sceneNodeRotateX.setLocalMatrix([
+                // transform coordinate system by rotateX
+                1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             ]);
         }
     }
@@ -781,41 +897,41 @@ createNameSpace("realityEditor.sceneGraph");
     }
 
     function getObjects() {
-        return Object.values(sceneGraph).filter(function(sceneNode) {
+        return Object.values(sceneGraph).filter(function (sceneNode) {
             return sceneNode.tags[TAGS.OBJECT];
         });
     }
 
     function getTools() {
-        return Object.values(sceneGraph).filter(function(sceneNode) {
+        return Object.values(sceneGraph).filter(function (sceneNode) {
             return sceneNode.tags[TAGS.TOOL];
         });
     }
 
     function getNodes() {
-        return Object.values(sceneGraph).filter(function(sceneNode) {
+        return Object.values(sceneGraph).filter(function (sceneNode) {
             return sceneNode.tags[TAGS.NODE];
         });
     }
 
     function getObjectsWithinCameraDistance(maxDistance) {
-        return getObjects().filter(function(sceneNode) {
+        return getObjects().filter(function (sceneNode) {
             let distance = sceneNode.getDistanceTo(cameraNode);
-            return distance < maxDistance
+            return distance < maxDistance;
         });
     }
 
     function getToolsWithinCameraDistance(maxDistance) {
-        return getTools().filter(function(sceneNode) {
+        return getTools().filter(function (sceneNode) {
             let distance = sceneNode.getDistanceTo(cameraNode);
-            return distance < maxDistance
+            return distance < maxDistance;
         });
     }
 
     function getNodesWithinCameraDistance(maxDistance) {
-        return getNodes().filter(function(sceneNode) {
+        return getNodes().filter(function (sceneNode) {
             let distance = sceneNode.getDistanceTo(cameraNode);
-            return distance < maxDistance
+            return distance < maxDistance;
         });
     }
 
@@ -859,7 +975,7 @@ createNameSpace("realityEditor.sceneGraph");
 
     // public method to recompute sceneGraph for all visible entities
     exports.calculateFinalMatrices = calculateFinalMatrices;
-    
+
     // public function to get the worldId to which everything is localized
     exports.getWorldId = getWorldId;
 
@@ -876,5 +992,4 @@ createNameSpace("realityEditor.sceneGraph");
     exports.getObjectsWithinCameraDistance = getObjectsWithinCameraDistance;
     exports.getToolsWithinCameraDistance = getToolsWithinCameraDistance;
     exports.getNodesWithinCameraDistance = getNodesWithinCameraDistance;
-
 })(realityEditor.sceneGraph);

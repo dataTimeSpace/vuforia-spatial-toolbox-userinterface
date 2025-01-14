@@ -304,7 +304,24 @@
     right: 65px;
     top: 0;
     visibility: hidden;
-    -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -10000, 1); /* render behind settings */
+    -webkit-transform: matrix3d(
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        -10000,
+        1
+    ); /* render behind settings */
 }
 #groundPlaneResetButtonDiv {
     position: fixed;
@@ -322,7 +339,7 @@
     right: 0px;
     width: 60px;
     height: 320px;
-    pointer-events:none;
+    pointer-events: none;
     visibility: hidden;
 }
 #bigTrashButtonDiv {
@@ -331,7 +348,7 @@
     right: 0px;
     width: 60px;
     height: 320px;
-    pointer-events:none;
+    pointer-events: none;
     visibility: hidden;
     z-index: 20;
 }
@@ -359,7 +376,7 @@
     right: 0;
     width: 60px;
     height: 160px;
-    pointer-events:none;
+    pointer-events: none;
     visibility: hidden;
 }
 #halfTrashButtonDiv {
@@ -368,7 +385,7 @@
     right: 0;
     width: 60px;
     height: 160px;
-    pointer-events:none;
+    pointer-events: none;
     visibility: hidden;
     z-index: 20;
 }
@@ -484,34 +501,65 @@
  */
 
 .colorBackground {
-    background-color: #00FFFF;
+    background-color: #00ffff;
 }
-.blue{fill:#00FFFF;}
-.green{fill:#00FF00;}
-.red{fill:#FF007C;}
-.clearSky{opacity: 0.0;}
-.inactive{opacity:0; touch-action: none}
-.active{opacity:0.3; touch-action: none}
-.touched{opacity:0.6; touch-action: none}
+.blue {
+    fill: #00ffff;
+}
+.green {
+    fill: #00ff00;
+}
+.red {
+    fill: #ff007c;
+}
+.clearSky {
+    opacity: 0;
+}
+.inactive {
+    opacity: 0;
+    touch-action: none;
+}
+.active {
+    opacity: 0.3;
+    touch-action: none;
+}
+.touched {
+    opacity: 0.6;
+    touch-action: none;
+}
 
 .blue-stroked {
     fill: none;
-    stroke: #00FFFF;
+    stroke: #00ffff;
     stroke-miterlimit: 10;
 }
 
 .searchCell {
-    margin-top: 5px; margin-left: 5px;
-    height: 34px; width: 160px; -webkit-transform: translateZ(9000px);
-    display: inline-table; background-color: rgba(0,255,255,0.1);
+    margin-top: 5px;
+    margin-left: 5px;
+    height: 34px;
+    width: 160px;
+    -webkit-transform: translateZ(9000px);
+    display: inline-table;
+    background-color: rgba(0, 255, 255, 0.1);
 }
 
 .searchItem {
-    display: table-cell; width: 33px;
+    display: table-cell;
+    width: 33px;
 }
 
 .searchText {
-    display: table-cell; padding-left: 5px; text-align: left; height: 33px; overflow: hidden; vertical-align: middle;
-    font-family: Helvetica Neue, Helvetica, sans-serif; font-size:16px; font-weight: bold;
-
+    display: table-cell;
+    padding-left: 5px;
+    text-align: left;
+    height: 33px;
+    overflow: hidden;
+    vertical-align: middle;
+    font-family:
+        Helvetica Neue,
+        Helvetica,
+        sans-serif;
+    font-size: 16px;
+    font-weight: bold;
 }

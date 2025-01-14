@@ -2,8 +2,8 @@ export class Tag {
     constructor(tagName) {
         this.name = tagName;
         this.colors = {
-            text: "#FFFFFF",
-            background: "#000000",
+            text: '#FFFFFF',
+            background: '#000000',
         };
     }
 
@@ -71,11 +71,7 @@ export class TagSystem {
     }
 
     addCategory(category) {
-        if (
-            this.categories.some(
-                (existingCategory) => existingCategory.name === category.name,
-            )
-        ) {
+        if (this.categories.some((existingCategory) => existingCategory.name === category.name)) {
             return this;
         }
         this.categories.push(category);

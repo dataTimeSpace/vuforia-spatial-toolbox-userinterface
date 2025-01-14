@@ -1,6 +1,6 @@
-createNameSpace("realityEditor.gui.glRenderer");
+createNameSpace('realityEditor.gui.glRenderer');
 
-(function(exports) {
+(function (exports) {
     let workerIds = {};
     let nextWorkerId = 1;
     let toolIdToProxy = {};
@@ -68,10 +68,13 @@ createNameSpace("realityEditor.gui.glRenderer");
             const res = this.executeCommand(message);
 
             if (message.wantsResponse) {
-                this.worker.postMessage({
-                    id: message.id,
-                    result: res,
-                }, '*');
+                this.worker.postMessage(
+                    {
+                        id: message.id,
+                        result: res,
+                    },
+                    '*'
+                );
             }
         }
 
@@ -115,12 +118,10 @@ createNameSpace("realityEditor.gui.glRenderer");
 
             const targettedBinds = {
                 // Note that all targetted binds should be stored using a VAO
-
                 // bindAttribLocation: true,
                 // bindBuffer: true,
                 // bindFramebuffer: true,
                 // bindRenderbuffer: true,
-
                 // bindTexture: true, // can't be here because of activeTexture nonsense
                 // pixelStorei: true,
                 // texParameterf: true, // 2 hmm
@@ -136,7 +137,7 @@ createNameSpace("realityEditor.gui.glRenderer");
                 }
                 let isReturnToDefault =
                     (this.lastCapabilities[capaId] && message.name === 'enable') ||
-                    ((!this.lastCapabilities[capaId]) && message.name === 'disable');
+                    (!this.lastCapabilities[capaId] && message.name === 'disable');
                 if (isReturnToDefault) {
                     delete this.lastCapabilities[capaId];
                 }
@@ -150,7 +151,8 @@ createNameSpace("realityEditor.gui.glRenderer");
                 if (!this.lastTextureBinds[activeTexture]) {
                     this.lastTextureBinds[activeTexture] = {};
                 }
-                this.lastTextureBinds[activeTexture][message.name + '-' + message.args[0]] = message;
+                this.lastTextureBinds[activeTexture][message.name + '-' + message.args[0]] =
+                    message;
             }
 
             let res;
@@ -165,7 +167,7 @@ createNameSpace("realityEditor.gui.glRenderer");
 
             if (typeof res === 'object') {
                 this.uncloneables[message.id] = res;
-                res = {fakeClone: true, index: message.id};
+                res = { fakeClone: true, index: message.id };
             }
             return res;
         }
@@ -175,7 +177,7 @@ createNameSpace("realityEditor.gui.glRenderer");
             for (let command of this.commandBuffer) {
                 let messages = command.messages || [command];
                 for (let message of messages) {
-                    let args = message.args.map(arg => {
+                    let args = message.args.map((arg) => {
                         // if (arg.hasOwnProperty('0') && typeof arg !== 'string') {}
                         if (typeof arg === 'object' && arg) {
                             // let arrayArg = [];
@@ -183,7 +185,10 @@ createNameSpace("realityEditor.gui.glRenderer");
                             //   arrayArg.push(typeof a);
                             // }
                             if (arg.length || arg[0]) {
-                                arg = [(typeof arg[0]) || 'object', arg.length || Object.keys(arg).length];
+                                arg = [
+                                    typeof arg[0] || 'object',
+                                    arg.length || Object.keys(arg).length,
+                                ];
                             } else {
                                 return arg.toString();
                             }
@@ -262,7 +267,7 @@ createNameSpace("realityEditor.gui.glRenderer");
         getFrameCommands() {
             this.buffering = true;
             this.commandBuffer = [];
-            this.worker.postMessage({name: 'frame', time: Date.now()}, '*');
+            this.worker.postMessage({ name: 'frame', time: Date.now() }, '*');
             return new Promise((res) => {
                 this.frameEndListener = res;
             });
@@ -289,7 +294,7 @@ createNameSpace("realityEditor.gui.glRenderer");
         canvas.style.height = canvas.height + 'px';
         gl = canvas.getContext('webgl2');
 
-        realityEditor.device.layout.onWindowResized(({width, height}) => {
+        realityEditor.device.layout.onWindowResized(({ width, height }) => {
             canvas.style.width = width + 'px';
             canvas.style.height = height + 'px';
             // note: don't need to update canvas.width and height, just style.width and height
@@ -305,12 +310,12 @@ createNameSpace("realityEditor.gui.glRenderer");
 
         for (let key in gl) {
             switch (typeof gl[key]) {
-            case 'function':
-                functions.push(key);
-                break;
-            case 'number':
-                constants[key] = gl[key];
-                break;
+                case 'function':
+                    functions.push(key);
+                    break;
+                case 'number':
+                    constants[key] = gl[key];
+                    break;
             }
             if (key === 'canvas') {
                 constants[key] = {
@@ -340,8 +345,7 @@ createNameSpace("realityEditor.gui.glRenderer");
         var result = new Array(n),
             len = arr.length,
             taken = new Array(len);
-        if (n > len)
-            throw new RangeError("getRandom: more elements taken than available");
+        if (n > len) throw new RangeError('getRandom: more elements taken than available');
         while (n--) {
             var x = Math.floor(Math.random() * len);
             result[n] = arr[x in taken ? taken[x] : x];
@@ -375,7 +379,7 @@ createNameSpace("realityEditor.gui.glRenderer");
                 setTimeout(res, 100, false);
             });
         }
-        proxies.forEach(function(thisProxy) {
+        proxies.forEach(function (thisProxy) {
             let toolId = thisProxy.toolId;
             let element = globalDOMCache['object' + toolId];
             if (element && window.getComputedStyle(element).display !== 'none') {
@@ -386,7 +390,9 @@ createNameSpace("realityEditor.gui.glRenderer");
         let proxiesToBeRenderedThisFrame = getSafeProxySubset(proxiesToConsider);
 
         // Get all the commands from the worker iframes
-        let prommies = proxiesToBeRenderedThisFrame.map(proxy => Promise.race([makeWatchdog(), proxy.getFrameCommands()]));
+        let prommies = proxiesToBeRenderedThisFrame.map((proxy) =>
+            Promise.race([makeWatchdog(), proxy.getFrameCommands()])
+        );
         let res = await Promise.all(prommies);
         if (!res) {
             console.warn('glRenderer watchdog is barking');
@@ -394,10 +400,10 @@ createNameSpace("realityEditor.gui.glRenderer");
             return;
         }
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);  // Clear to black, fully opaque
-        gl.clearDepth(1.0);                 // Clear everything
-        gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-        gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+        gl.clearColor(0.0, 0.0, 0.0, 0.0); // Clear to black, fully opaque
+        gl.clearDepth(1.0); // Clear everything
+        gl.enable(gl.DEPTH_TEST); // Enable depth testing
+        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
         // Clear the canvas before we start drawing on it.
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -450,20 +456,26 @@ createNameSpace("realityEditor.gui.glRenderer");
         proxies.push(proxy);
         toolIdToProxy[toolId] = proxy;
 
-        worker.postMessage(JSON.stringify({
-            workerId: workerIds[toolId]
-        }), '*');
+        worker.postMessage(
+            JSON.stringify({
+                workerId: workerIds[toolId],
+            }),
+            '*'
+        );
 
-        const {width, height} = globalStates;
+        const { width, height } = globalStates;
 
         setTimeout(() => {
-            worker.postMessage({
-                name: 'bootstrap',
-                functions,
-                constants,
-                width: height,
-                height: width,
-            }, '*');
+            worker.postMessage(
+                {
+                    name: 'bootstrap',
+                    functions,
+                    constants,
+                    width: height,
+                    height: width,
+                },
+                '*'
+            );
         }, 200);
     }
 
@@ -479,7 +491,8 @@ createNameSpace("realityEditor.gui.glRenderer");
     }
 
     function onVehicleDeleted(params) {
-        if (params.objectKey && params.frameKey && !params.nodeKey) { // only react to frames, not nodes
+        if (params.objectKey && params.frameKey && !params.nodeKey) {
+            // only react to frames, not nodes
             if (typeof toolIdToProxy[params.frameKey] !== 'undefined') {
                 removeWebGlProxy(params.frameKey);
             }
@@ -490,5 +503,4 @@ createNameSpace("realityEditor.gui.glRenderer");
     exports.addWebGlProxy = addWebGlProxy;
     exports.removeWebGlProxy = removeWebGlProxy;
     exports.renderFrame = renderFrame;
-
 })(realityEditor.gui.glRenderer);

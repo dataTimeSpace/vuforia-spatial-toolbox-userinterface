@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.gui.threejsScene");
+createNameSpace('realityEditor.gui.threejsScene');
 
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 import { CSS2DRenderer } from '../../thirdPartyCode/three/CSS2DRenderer.js';
@@ -6,17 +6,22 @@ import { GLTFLoader } from '../../thirdPartyCode/three/GLTFLoader.module.js';
 import { mergeBufferGeometries } from '../../thirdPartyCode/three/BufferGeometryUtils.module.js';
 import { MeshBVH } from '../../thirdPartyCode/three-mesh-bvh.module.js';
 import { TransformControls } from '../../thirdPartyCode/three/TransformControls.js';
-import { ViewFrustum, frustumVertexShader, frustumFragmentShader, MAX_VIEW_FRUSTUMS, UNIFORMS } from './ViewFrustum.js';
-import { MapShaderSettingsUI } from "../measure/mapShaderSettingsUI.js";
-import GroundPlane from "./scene/GroundPlane.js";
-import AnchoredGroup from "./scene/AnchoredGroup.js";
-import { WebXRCamera, DefaultCamera, LayerConfig } from "./scene/Camera.js";
-import { Renderer } from "./scene/Renderer.js";
-import {setMatrixFromArray} from "./scene/utils.js";
+import {
+    ViewFrustum,
+    frustumVertexShader,
+    frustumFragmentShader,
+    MAX_VIEW_FRUSTUMS,
+    UNIFORMS,
+} from './ViewFrustum.js';
+import { MapShaderSettingsUI } from '../measure/mapShaderSettingsUI.js';
+import GroundPlane from './scene/GroundPlane.js';
+import AnchoredGroup from './scene/AnchoredGroup.js';
+import { WebXRCamera, DefaultCamera, LayerConfig } from './scene/Camera.js';
+import { Renderer } from './scene/Renderer.js';
+import { setMatrixFromArray } from './scene/utils.js';
 import { getPendingCapture } from './sceneCapture.js';
 
-(function(exports) {
-
+(function (exports) {
     /**
      * this layer renders the grid first
      */
@@ -39,7 +44,7 @@ import { getPendingCapture } from './sceneCapture.js';
      */
     let groundPlane;
     let isGroundPlanePositionSet = false; // gets updated when the ground plane collider is added
-    let isWorldMeshLoadedAndProcessed = false;  // gets updated when area target mesh and navmesh have been processed
+    let isWorldMeshLoadedAndProcessed = false; // gets updated when area target mesh and navmesh have been processed
     let distanceRaycastVector = new THREE.Vector3();
     let distanceRaycastResultPosition = new THREE.Vector3();
     let originBoxes = {};
@@ -53,11 +58,11 @@ import { getPendingCapture } from './sceneCapture.js';
     let callbacks = {
         onGltfDownloadProgress: [],
         onGltfLoaded: [],
-    }
+    };
     // values for the 'renderMode' property of objects
     const RENDER_MODES = Object.freeze({
         mesh: 'mesh',
-        ai: 'ai'
+        ai: 'ai',
     });
 
     const DISPLAY_ORIGIN_BOX = true;
@@ -70,7 +75,7 @@ import { getPendingCapture } from './sceneCapture.js';
     /**
      * for now, this contains everything not attached to a specific world object
      * @type {AnchoredGroup}
-     */ 
+     */
     var threejsContainer;
 
     /**
@@ -94,18 +99,18 @@ import { getPendingCapture } from './sceneCapture.js';
         const domElement = document.getElementById('mainThreejsCanvas');
         mainRenderer = new Renderer(domElement);
 
-        defaultCamera = new DefaultCamera("Default Camera", window.innerWidth / window.innerHeight);
+        defaultCamera = new DefaultCamera('Default Camera', window.innerWidth / window.innerHeight);
         webXRCamera = null; // can only be initilized if we have a webxr session
         mainRenderer.add(defaultCamera); // Normally not needed, but needed in order to add child objects relative to camera
         mainRenderer.setCamera(defaultCamera);
 
         // create a parent 3D object to contain all the non-world-aligned three js objects
         // we can apply the transform to this object and all of its children objects will be affected
-        threejsContainer = new AnchoredGroup("threejsContainer");
+        threejsContainer = new AnchoredGroup('threejsContainer');
         mainRenderer.add(threejsContainer);
 
         customMaterials = new CustomMaterials();
-        let _mapShaderUI = new MapShaderSettingsUI();        
+        let _mapShaderUI = new MapShaderSettingsUI();
 
         // additional 3d content can be added to the scene like so:
         // var radius = 75;
@@ -125,17 +130,25 @@ import { getPendingCapture } from './sceneCapture.js';
         realityEditor.gui.ar.draw.addUpdateListener(renderScene);
 
         if (DISPLAY_ORIGIN_BOX) {
-            realityEditor.gui.settings.addToggle('Display Origin Boxes', 'show debug cubes at origin', 'displayOriginCubes',  '../../../svg/move.svg', false, function(newValue) {
-                toggleDisplayOriginBoxes(newValue);
-            }, { dontPersist: true });
+            realityEditor.gui.settings.addToggle(
+                'Display Origin Boxes',
+                'show debug cubes at origin',
+                'displayOriginCubes',
+                '../../../svg/move.svg',
+                false,
+                function (newValue) {
+                    toggleDisplayOriginBoxes(newValue);
+                },
+                { dontPersist: true }
+            );
         }
-        
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'n' || e.key === 'N') {
                 e.stopPropagation();
                 navmesh.visible = !navmesh.visible;
             }
-        })
+        });
 
         cssRenderer = new CSS2DRenderer();
         cssRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -154,7 +167,9 @@ import { getPendingCapture } from './sceneCapture.js';
         defaultCamera.setCameraMatrixFromArray(matrix);
         if (customMaterials) {
             let forwardVector = realityEditor.gui.ar.utilities.getForwardVector(matrix);
-            customMaterials.updateCameraDirection(new THREE.Vector3(forwardVector[0], forwardVector[1], forwardVector[2]));
+            customMaterials.updateCameraDirection(
+                new THREE.Vector3(forwardVector[0], forwardVector[1], forwardVector[2])
+            );
         }
     }
 
@@ -164,8 +179,10 @@ import { getPendingCapture } from './sceneCapture.js';
         const sceneSizeInMeters = 100; // not actually infinite, but relative to any area target this should cover it
 
         isGroundPlanePositionSet = true;
-        groundPlane = new GroundPlane(sceneSizeInMeters / mainRenderer.getGlobalScale().getSceneScale());
-        addToScene(groundPlane.getInternalObject(), {occluded: true});
+        groundPlane = new GroundPlane(
+            sceneSizeInMeters / mainRenderer.getGlobalScale().getSceneScale()
+        );
+        addToScene(groundPlane.getInternalObject(), { occluded: true });
 
         let areaTargetNavmesh = null;
         realityEditor.app.targetDownloader.onNavmeshCreated((navmesh) => {
@@ -174,10 +191,12 @@ import { getPendingCapture } from './sceneCapture.js';
         });
 
         let areaTargetMesh = null;
-        realityEditor.avatar.network.onLoadOcclusionObject((_cachedWorldObject, cachedOcclusionObject) => {
-            areaTargetMesh = cachedOcclusionObject;
-            tryUpdatingGroundPlanePosition();
-        });
+        realityEditor.avatar.network.onLoadOcclusionObject(
+            (_cachedWorldObject, cachedOcclusionObject) => {
+                areaTargetMesh = cachedOcclusionObject;
+                tryUpdatingGroundPlanePosition();
+            }
+        );
 
         const tryUpdatingGroundPlanePosition = () => {
             if (!areaTargetMesh || !areaTargetNavmesh) return; // only continue after both have been processed
@@ -186,7 +205,7 @@ import { getPendingCapture } from './sceneCapture.js';
             groundPlane.tryUpdatingGroundPlanePosition(areaTargetMesh, areaTargetNavmesh);
 
             isGroundPlanePositionSet = true;
-        }
+        };
     }
 
     function renderScene() {
@@ -198,23 +217,26 @@ import { getPendingCapture } from './sceneCapture.js';
             // 1 meter is 1 device unit
             if (globalScale.getDeviceScale() !== 1) {
                 globalScale.setDeviceScale(1);
-                webXRCamera = new WebXRCamera("WebXR Camera", mainRenderer);
+                webXRCamera = new WebXRCamera('WebXR Camera', mainRenderer);
                 mainRenderer.setCamera(webXRCamera);
-                console.log("webXR camera")
+                console.log('webXR camera');
             }
         } else {
             // 1 meter is 1000 device units
             if (globalScale.getDeviceScale() !== 1000) {
                 globalScale.setDeviceScale(1000);
                 mainRenderer.setCamera(defaultCamera);
-                console.log("default camera")
+                console.log('default camera');
             }
         }
 
-        cssRenderer.render(mainRenderer.getInternalScene(), mainRenderer.getCamera().getInternalObject());
-        
+        cssRenderer.render(
+            mainRenderer.getInternalScene(),
+            mainRenderer.getCamera().getInternalObject()
+        );
+
         // additional modules, e.g. spatialCursor, should trigger their update function with an animationCallback
-        animationCallbacks.forEach(callback => {
+        animationCallbacks.forEach((callback) => {
             callback(deltaTime);
         });
 
@@ -224,7 +246,7 @@ import { getPendingCapture } from './sceneCapture.js';
         }
 
         const worldObjectIds = realityEditor.worldObjects.getWorldObjectKeys();
-        worldObjectIds.forEach(worldObjectId => {
+        worldObjectIds.forEach((worldObjectId) => {
             if (!worldObjectGroups[worldObjectId]) {
                 const group = new THREE.Group();
                 group.name = worldObjectId + '_group';
@@ -233,30 +255,51 @@ import { getPendingCapture } from './sceneCapture.js';
                 mainRenderer.add(group);
 
                 // Helps visualize world object origin point for debugging
-                if (DISPLAY_ORIGIN_BOX && worldObjectId !== realityEditor.worldObjects.getLocalWorldId() && !realityEditor.device.environment.variables.hideOriginCube) {
-                    const originBox = new THREE.Mesh(new THREE.BoxGeometry(10,10,10),new THREE.MeshNormalMaterial());
-                    const xBox = new THREE.Mesh(new THREE.BoxGeometry(5,5,5),new THREE.MeshBasicMaterial({color:0xff0000}));
-                    const yBox = new THREE.Mesh(new THREE.BoxGeometry(5,5,5),new THREE.MeshBasicMaterial({color:0x00ff00}));
-                    const zBox = new THREE.Mesh(new THREE.BoxGeometry(5,5,5),new THREE.MeshBasicMaterial({color:0x0000ff}));
+                if (
+                    DISPLAY_ORIGIN_BOX &&
+                    worldObjectId !== realityEditor.worldObjects.getLocalWorldId() &&
+                    !realityEditor.device.environment.variables.hideOriginCube
+                ) {
+                    const originBox = new THREE.Mesh(
+                        new THREE.BoxGeometry(10, 10, 10),
+                        new THREE.MeshNormalMaterial()
+                    );
+                    const xBox = new THREE.Mesh(
+                        new THREE.BoxGeometry(5, 5, 5),
+                        new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                    );
+                    const yBox = new THREE.Mesh(
+                        new THREE.BoxGeometry(5, 5, 5),
+                        new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+                    );
+                    const zBox = new THREE.Mesh(
+                        new THREE.BoxGeometry(5, 5, 5),
+                        new THREE.MeshBasicMaterial({ color: 0x0000ff })
+                    );
                     xBox.position.x = 15;
                     yBox.position.y = 15;
                     zBox.position.z = 15;
                     group.add(originBox);
-                    originBox.scale.set(10,10,10);
+                    originBox.scale.set(10, 10, 10);
                     originBox.add(xBox);
                     originBox.add(yBox);
                     originBox.add(zBox);
 
                     originBoxes[worldObjectId] = originBox;
-                    if (typeof realityEditor.gui.settings.toggleStates.displayOriginCubes !== 'undefined') {
-                        originBox.visible = realityEditor.gui.settings.toggleStates.displayOriginCubes;
+                    if (
+                        typeof realityEditor.gui.settings.toggleStates.displayOriginCubes !==
+                        'undefined'
+                    ) {
+                        originBox.visible =
+                            realityEditor.gui.settings.toggleStates.displayOriginCubes;
                     }
                 }
             }
 
             // each of the world object containers has its origin set to the origin matrix of that world object
             const group = worldObjectGroups[worldObjectId];
-            const worldMatrix = realityEditor.sceneGraph.getSceneNodeById(worldObjectId).worldMatrix;
+            const worldMatrix =
+                realityEditor.sceneGraph.getSceneNodeById(worldObjectId).worldMatrix;
             if (worldMatrix) {
                 setMatrixFromArray(group.matrix, worldMatrix);
                 group.visible = true;
@@ -300,9 +343,9 @@ import { getPendingCapture } from './sceneCapture.js';
     }
 
     /**
-     * 
-     * @param {THREE.Object3D} obj 
-     * @param {*} parameters 
+     *
+     * @param {THREE.Object3D} obj
+     * @param {*} parameters
      */
     function addToScene(obj, parameters) {
         if (!parameters) {
@@ -317,7 +360,7 @@ import { getPendingCapture } from './sceneCapture.js';
             while (queue.length > 0) {
                 const currentObj = queue.pop();
                 currentObj.renderOrder = 2;
-                currentObj.children.forEach(child => queue.push(child));
+                currentObj.children.forEach((child) => queue.push(child));
             }
         }
         if (parentToCamera) {
@@ -342,8 +385,8 @@ import { getPendingCapture } from './sceneCapture.js';
     }
 
     /**
-     * 
-     * @param {THREE.Object3D} obj 
+     *
+     * @param {THREE.Object3D} obj
      */
     function removeFromScene(obj) {
         if (obj && obj.parent) {
@@ -370,9 +413,9 @@ import { getPendingCapture } from './sceneCapture.js';
         }
 
         const gltfLoader = new GLTFLoader();
-        gltfLoader.load(pathToGltf, function(gltf) {
+        gltfLoader.load(pathToGltf, function (gltf) {
             const geometries = [];
-            gltf.scene.traverse(obj => {
+            gltf.scene.traverse((obj) => {
                 if (obj.geometry) {
                     obj.geometry.deleteAttribute('uv'); // Messes with merge if present in some geometries but not others
                     obj.geometry.deleteAttribute('uv2'); // Messes with merge if present in some geometries but not others
@@ -395,7 +438,7 @@ import { getPendingCapture } from './sceneCapture.js';
             geometry.computeVertexNormals();
 
             // Add the BVH to the boundsTree variable so that the acceleratedRaycast can work
-            geometry.boundsTree = new MeshBVH( geometry );
+            geometry.boundsTree = new MeshBVH(geometry);
 
             const material = new THREE.MeshNormalMaterial();
             material.colorWrite = false; // Makes it invisible
@@ -435,191 +478,230 @@ import { getPendingCapture } from './sceneCapture.js';
         originRotation = {x: 0, y: 2.661627109291353, z: 0};
         maxHeight = 2.3 // use to slice off the ceiling above this height (meters)
      */
-    function addGltfToScene(pathToGltf, map, steepnessMap, heightMap, originOffset, originRotation, maxHeight, ceilingAndFloor, center, callback) {
+    function addGltfToScene(
+        pathToGltf,
+        map,
+        steepnessMap,
+        heightMap,
+        originOffset,
+        originRotation,
+        maxHeight,
+        ceilingAndFloor,
+        center,
+        callback
+    ) {
         const gltfLoader = new GLTFLoader();
-        gltfLoader.load(pathToGltf, function(gltf) {
-            let wireMesh;
-            let wireMaterial = customMaterials.areaTargetMaterialWithTextureAndHeight(new THREE.MeshStandardMaterial({
-                wireframe: true,
-                color: 0x777777,
-            }), {
-                maxHeight: maxHeight,
-                center: center,
-                animateOnLoad: true,
-                inverted: true,
-                useFrustumCulling: false
-            });
-
-            if (gltf.scene.geometry) {
-                allMeshes.push(gltf.scene);
-                if (typeof maxHeight !== 'undefined') {
-                    if (!gltf.scene.material) {
-                        console.warn('no material', gltf.scene);
-                    } else {
-                        // cache the original gltf material on mobile browsers, to improve performance
-                        gltf.scene.originalMaterial = gltf.scene.material.clone();
-                        if (realityEditor.device.environment.isDesktop()) {
-                            gltf.scene.colorMaterial = customMaterials.areaTargetMaterialWithTextureAndHeight(gltf.scene.material, {
-                                maxHeight: maxHeight,
-                                center: center,
-                                animateOnLoad: true,
-                                inverted: false,
-                                useFrustumCulling: false,
-                            });
-                        }
+        gltfLoader.load(
+            pathToGltf,
+            function (gltf) {
+                let wireMesh;
+                let wireMaterial = customMaterials.areaTargetMaterialWithTextureAndHeight(
+                    new THREE.MeshStandardMaterial({
+                        wireframe: true,
+                        color: 0x777777,
+                    }),
+                    {
+                        maxHeight: maxHeight,
+                        center: center,
+                        animateOnLoad: true,
+                        inverted: true,
+                        useFrustumCulling: false,
                     }
-                }
-                gltf.scene.geometry.computeVertexNormals();
-                gltf.scene.geometry.computeBoundingBox();
-                gltf.scene.heightMaterial = customMaterials.heightMapMaterial(gltf.scene.material, {ceilingAndFloor: ceilingAndFloor});
-                gltf.scene.gradientMaterial = customMaterials.gradientMapMaterial(gltf.scene.material);
-                gltf.scene.material = gltf.scene.colorMaterial || gltf.scene.originalMaterial;
+                );
 
-                // Add the BVH to the boundsTree variable so that the acceleratedRaycast can work
-                gltf.scene.geometry.boundsTree = new MeshBVH( gltf.scene.geometry );
-
-                wireMesh = new THREE.Mesh(gltf.scene.geometry, wireMaterial);
-            } else {
-                let meshesToRemove = [];
-                gltf.scene.traverse(child => {
-                    if (child.material && child.geometry) {
-                        // meshes scanned with ATC have additional untextured mesh(es) with this naming convention
-                        // the scan may visually look better if they are removed. textured meshes are named "texture_N"
-                        if (child.name && child.name.toLocaleLowerCase().startsWith('mesh_')) {
-                            meshesToRemove.push(child);
-                            return;
-                        }
-                        allMeshes.push(child);
-                    }
-                });
-
-                // make sure we don't remove ALL meshes, if certain scanning software (e.g. Polycam) names all children mesh_X
-                if (allMeshes.length > 0) {
-                    for (let mesh of meshesToRemove) {
-                        mesh.removeFromParent();
-                    }
-                } else {
-                    for (let mesh of meshesToRemove) {
-                        allMeshes.push(mesh);
-                    }
-                }
-
-                allMeshes.forEach(child => {
+                if (gltf.scene.geometry) {
+                    allMeshes.push(gltf.scene);
                     if (typeof maxHeight !== 'undefined') {
-                        // TODO: to re-enable frustum culling on desktop, add this: if (!realityEditor.device.environment.isDesktop())
-                        //  so that we don't swap to the original material on desktop. also need to update desktopRenderer.js
-                        // cache the original gltf material on mobile browsers, to improve performance
-                        child.originalMaterial = child.material.clone();
-                        if (realityEditor.device.environment.isDesktop()) {
-                            child.colorMaterial = customMaterials.areaTargetMaterialWithTextureAndHeight(child.material, {
-                                maxHeight: maxHeight,
-                                center: center,
-                                animateOnLoad: true,
-                                inverted: false,
-                                useFrustumCulling: false,
-                            });
+                        if (!gltf.scene.material) {
+                            console.warn('no material', gltf.scene);
+                        } else {
+                            // cache the original gltf material on mobile browsers, to improve performance
+                            gltf.scene.originalMaterial = gltf.scene.material.clone();
+                            if (realityEditor.device.environment.isDesktop()) {
+                                gltf.scene.colorMaterial =
+                                    customMaterials.areaTargetMaterialWithTextureAndHeight(
+                                        gltf.scene.material,
+                                        {
+                                            maxHeight: maxHeight,
+                                            center: center,
+                                            animateOnLoad: true,
+                                            inverted: false,
+                                            useFrustumCulling: false,
+                                        }
+                                    );
+                            }
+                        }
+                    }
+                    gltf.scene.geometry.computeVertexNormals();
+                    gltf.scene.geometry.computeBoundingBox();
+                    gltf.scene.heightMaterial = customMaterials.heightMapMaterial(
+                        gltf.scene.material,
+                        { ceilingAndFloor: ceilingAndFloor }
+                    );
+                    gltf.scene.gradientMaterial = customMaterials.gradientMapMaterial(
+                        gltf.scene.material
+                    );
+                    gltf.scene.material = gltf.scene.colorMaterial || gltf.scene.originalMaterial;
+
+                    // Add the BVH to the boundsTree variable so that the acceleratedRaycast can work
+                    gltf.scene.geometry.boundsTree = new MeshBVH(gltf.scene.geometry);
+
+                    wireMesh = new THREE.Mesh(gltf.scene.geometry, wireMaterial);
+                } else {
+                    let meshesToRemove = [];
+                    gltf.scene.traverse((child) => {
+                        if (child.material && child.geometry) {
+                            // meshes scanned with ATC have additional untextured mesh(es) with this naming convention
+                            // the scan may visually look better if they are removed. textured meshes are named "texture_N"
+                            if (child.name && child.name.toLocaleLowerCase().startsWith('mesh_')) {
+                                meshesToRemove.push(child);
+                                return;
+                            }
+                            allMeshes.push(child);
+                        }
+                    });
+
+                    // make sure we don't remove ALL meshes, if certain scanning software (e.g. Polycam) names all children mesh_X
+                    if (allMeshes.length > 0) {
+                        for (let mesh of meshesToRemove) {
+                            mesh.removeFromParent();
+                        }
+                    } else {
+                        for (let mesh of meshesToRemove) {
+                            allMeshes.push(mesh);
                         }
                     }
 
-                    child.geometry.computeVertexNormals();
-                    child.heightMaterial = customMaterials.heightMapMaterial(child.material, {ceilingAndFloor: ceilingAndFloor});
-                    child.gradientMaterial = customMaterials.gradientMapMaterial(child.material);
-                    child.material = child.colorMaterial || child.originalMaterial;
+                    allMeshes.forEach((child) => {
+                        if (typeof maxHeight !== 'undefined') {
+                            // TODO: to re-enable frustum culling on desktop, add this: if (!realityEditor.device.environment.isDesktop())
+                            //  so that we don't swap to the original material on desktop. also need to update desktopRenderer.js
+                            // cache the original gltf material on mobile browsers, to improve performance
+                            child.originalMaterial = child.material.clone();
+                            if (realityEditor.device.environment.isDesktop()) {
+                                child.colorMaterial =
+                                    customMaterials.areaTargetMaterialWithTextureAndHeight(
+                                        child.material,
+                                        {
+                                            maxHeight: maxHeight,
+                                            center: center,
+                                            animateOnLoad: true,
+                                            inverted: false,
+                                            useFrustumCulling: false,
+                                        }
+                                    );
+                            }
+                        }
 
-                    // the attributes must be non-indexed in order to add a barycentric coordinate buffer
-                    child.geometry = child.geometry.toNonIndexed();
-
-                    // we assign barycentric coordinates to each vertex in order to render a wireframe shader
-                    let positionAttribute = child.geometry.getAttribute('position');
-                    let barycentricBuffer = [];
-                    const count = positionAttribute.count / 3;
-                    for (let i = 0; i < count; i++) {
-                        barycentricBuffer.push(
-                            0, 0, 1,
-                            0, 1, 0,
-                            1, 0, 0
+                        child.geometry.computeVertexNormals();
+                        child.heightMaterial = customMaterials.heightMapMaterial(child.material, {
+                            ceilingAndFloor: ceilingAndFloor,
+                        });
+                        child.gradientMaterial = customMaterials.gradientMapMaterial(
+                            child.material
                         );
-                    }
+                        child.material = child.colorMaterial || child.originalMaterial;
 
-                    child.geometry.setAttribute('a_barycentric', new THREE.BufferAttribute(new Uint8Array(barycentricBuffer), 3));
-                });
-                const mergedGeometry = mergeBufferGeometries(allMeshes.map(child => {
-                  let geo = child.geometry.clone();
-                  geo.deleteAttribute('uv');
-                  geo.deleteAttribute('uv2');
-                  return geo;
-                }));
-                mergedGeometry.computeBoundingBox();
-                gltfBoundingBox = mergedGeometry.boundingBox;
+                        // the attributes must be non-indexed in order to add a barycentric coordinate buffer
+                        child.geometry = child.geometry.toNonIndexed();
 
-                // Add the BVH to the boundsTree variable so that the acceleratedRaycast can work
-                allMeshes.map(child => {
-                    child.geometry.boundsTree = new MeshBVH(child.geometry);
-                });
+                        // we assign barycentric coordinates to each vertex in order to render a wireframe shader
+                        let positionAttribute = child.geometry.getAttribute('position');
+                        let barycentricBuffer = [];
+                        const count = positionAttribute.count / 3;
+                        for (let i = 0; i < count; i++) {
+                            barycentricBuffer.push(0, 0, 1, 0, 1, 0, 1, 0, 0);
+                        }
 
-                wireMesh = new THREE.Mesh(mergedGeometry, wireMaterial);
-            }
-            
-            navmesh = realityEditor.app.pathfinding.initService(map, steepnessMap, heightMap);
-            // add in the navmesh
-            // navmesh.scale.set(1000, 1000, 1000);
-            // navmesh.position.set(gltfBoundingBox.min.x * 1000, 0, gltfBoundingBox.min.z * 1000);
-            // navmesh.visible = false;
-            // threejsContainerObj.add(navmesh);
+                        child.geometry.setAttribute(
+                            'a_barycentric',
+                            new THREE.BufferAttribute(new Uint8Array(barycentricBuffer), 3)
+                        );
+                    });
+                    const mergedGeometry = mergeBufferGeometries(
+                        allMeshes.map((child) => {
+                            let geo = child.geometry.clone();
+                            geo.deleteAttribute('uv');
+                            geo.deleteAttribute('uv2');
+                            return geo;
+                        })
+                    );
+                    mergedGeometry.computeBoundingBox();
+                    gltfBoundingBox = mergedGeometry.boundingBox;
 
-            // align the coordinate systems
-            gltf.scene.scale.set(1000, 1000, 1000); // convert meters -> mm
-            wireMesh.scale.set(1000, 1000, 1000); // convert meters -> mm
-            if (typeof originOffset !== 'undefined') {
-                gltf.scene.position.set(originOffset.x, originOffset.y, originOffset.z);
-                wireMesh.position.set(originOffset.x, originOffset.y, originOffset.z);
-            }
-            if (typeof originRotation !== 'undefined') {
-                gltf.scene.rotation.set(originRotation.x, originRotation.y, originRotation.z);
-                wireMesh.rotation.set(originRotation.x, originRotation.y, originRotation.z);
-            }
+                    // Add the BVH to the boundsTree variable so that the acceleratedRaycast can work
+                    allMeshes.map((child) => {
+                        child.geometry.boundsTree = new MeshBVH(child.geometry);
+                    });
 
-            wireMesh.renderOrder = RENDER_ORDER_SCAN;
-            gltf.scene.renderOrder = RENDER_ORDER_SCAN;
-            wireMesh.layers.set(LayerConfig.LAYER_SCAN);
-            gltf.scene.layers.set(LayerConfig.LAYER_SCAN);
-            gltf.scene.traverse(child => {
-                if (child.layers) {
-                    child.layers.set(LayerConfig.LAYER_SCAN);
+                    wireMesh = new THREE.Mesh(mergedGeometry, wireMaterial);
                 }
-            });
 
-            threejsContainer.add( wireMesh );
-            setTimeout(() => {
-                threejsContainer.remove(wireMesh);
-            }, 5000);
-            threejsContainer.add( gltf.scene );
+                navmesh = realityEditor.app.pathfinding.initService(map, steepnessMap, heightMap);
+                // add in the navmesh
+                // navmesh.scale.set(1000, 1000, 1000);
+                // navmesh.position.set(gltfBoundingBox.min.x * 1000, 0, gltfBoundingBox.min.z * 1000);
+                // navmesh.visible = false;
+                // threejsContainerObj.add(navmesh);
 
-            realityEditor.network.addPostMessageHandler('getAreaTargetMesh', (_, fullMessageData) => {
-                realityEditor.network.postMessageIntoFrame(fullMessageData.frame, {
-                    areaTargetMesh: {
-                        mesh: gltf.scene.toJSON(),
+                // align the coordinate systems
+                gltf.scene.scale.set(1000, 1000, 1000); // convert meters -> mm
+                wireMesh.scale.set(1000, 1000, 1000); // convert meters -> mm
+                if (typeof originOffset !== 'undefined') {
+                    gltf.scene.position.set(originOffset.x, originOffset.y, originOffset.z);
+                    wireMesh.position.set(originOffset.x, originOffset.y, originOffset.z);
+                }
+                if (typeof originRotation !== 'undefined') {
+                    gltf.scene.rotation.set(originRotation.x, originRotation.y, originRotation.z);
+                    wireMesh.rotation.set(originRotation.x, originRotation.y, originRotation.z);
+                }
+
+                wireMesh.renderOrder = RENDER_ORDER_SCAN;
+                gltf.scene.renderOrder = RENDER_ORDER_SCAN;
+                wireMesh.layers.set(LayerConfig.LAYER_SCAN);
+                gltf.scene.layers.set(LayerConfig.LAYER_SCAN);
+                gltf.scene.traverse((child) => {
+                    if (child.layers) {
+                        child.layers.set(LayerConfig.LAYER_SCAN);
                     }
                 });
-            });
 
-            if (callback) {
-              callback(gltf.scene, wireMesh);
+                threejsContainer.add(wireMesh);
+                setTimeout(() => {
+                    threejsContainer.remove(wireMesh);
+                }, 5000);
+                threejsContainer.add(gltf.scene);
+
+                realityEditor.network.addPostMessageHandler(
+                    'getAreaTargetMesh',
+                    (_, fullMessageData) => {
+                        realityEditor.network.postMessageIntoFrame(fullMessageData.frame, {
+                            areaTargetMesh: {
+                                mesh: gltf.scene.toJSON(),
+                            },
+                        });
+                    }
+                );
+
+                if (callback) {
+                    callback(gltf.scene, wireMesh);
+                }
+
+                // in addition to triggering the callback provided by the caller of this function,
+                // also trigger callbacks for any other modules listening for gltf loaded events
+                callbacks.onGltfLoaded.forEach((cb) => {
+                    cb(pathToGltf);
+                });
+            },
+            (xhr) => {
+                // can be used to display download progress, useful if loading large gltf files on slow networks
+                callbacks.onGltfDownloadProgress.forEach((cb) => {
+                    cb(pathToGltf, xhr.loaded, xhr.total);
+                });
             }
-
-            // in addition to triggering the callback provided by the caller of this function,
-            // also trigger callbacks for any other modules listening for gltf loaded events
-            callbacks.onGltfLoaded.forEach((cb) => {
-                cb(pathToGltf);
-            });
-        }, (xhr) => {
-            // can be used to display download progress, useful if loading large gltf files on slow networks
-            callbacks.onGltfDownloadProgress.forEach((cb) => {
-                cb(pathToGltf, xhr.loaded, xhr.total);
-            });
-        });
+        );
     }
-    
+
     function changeMeasureMapType(mapType) {
         switch (mapType) {
             case 'color':
@@ -651,23 +733,29 @@ import { getPendingCapture } from './sceneCapture.js';
                 break;
         }
     }
-    
+
     function postHeightMapChangeEventIntoIframes(objectkey, framekey) {
-        if (realityEditor.envelopeManager.getFrameTypeFromKey(objectkey, framekey) === 'spatialMeasure') {
+        if (
+            realityEditor.envelopeManager.getFrameTypeFromKey(objectkey, framekey) ===
+            'spatialMeasure'
+        ) {
             let iframe = document.getElementById('iframe' + framekey);
-            iframe.contentWindow.postMessage(JSON.stringify({
-                isHeightMapOn: isHeightMapOn,
-                isSteepnessMapOn: isSteepnessMapOn,
-            }), '*');
+            iframe.contentWindow.postMessage(
+                JSON.stringify({
+                    isHeightMapOn: isHeightMapOn,
+                    isSteepnessMapOn: isSteepnessMapOn,
+                }),
+                '*'
+            );
         }
     }
-    
+
     function highlightWalkableArea(isOn) {
         if (customMaterials) {
             customMaterials.highlightWalkableArea(isOn);
         }
     }
-    
+
     function updateGradientMapThreshold(minAngle, maxAngle) {
         if (customMaterials) {
             customMaterials.updateGradientMapThreshold(minAngle, maxAngle);
@@ -683,21 +771,22 @@ import { getPendingCapture } from './sceneCapture.js';
      */
     function getPointAtDistanceFromCamera(clientX, clientY, distance) {
         distanceRaycastVector.set(
-            ( clientX / window.innerWidth ) * 2 - 1,
-            - ( clientY / window.innerHeight ) * 2 + 1,
+            (clientX / window.innerWidth) * 2 - 1,
+            -(clientY / window.innerHeight) * 2 + 1,
             0
         );
         distanceRaycastVector.unproject(mainRenderer.getCamera().getInternalObject());
         distanceRaycastVector.normalize();
-        distanceRaycastResultPosition.set(0, 0, 0).add(distanceRaycastVector.multiplyScalar(distance));
+        distanceRaycastResultPosition
+            .set(0, 0, 0)
+            .add(distanceRaycastVector.multiplyScalar(distance));
         return distanceRaycastResultPosition;
     }
 
     function getObjectByName(name) {
         return mainRenderer.getObjectByName(name);
     }
-    
-    
+
     function getObjectsByName(name) {
         return mainRenderer.getObjectsByName(name);
     }
@@ -730,7 +819,9 @@ import { getPendingCapture } from './sceneCapture.js';
         if (!collisionObject) return sceneNode.worldMatrix;
 
         // let toolPosition = realityEditor.sceneGraph.getWorldPosition(frameKey);
-        let toolMatrixGP = sceneNode.getMatrixRelativeTo(realityEditor.sceneGraph.getGroundPlaneNode());
+        let toolMatrixGP = sceneNode.getMatrixRelativeTo(
+            realityEditor.sceneGraph.getGroundPlaneNode()
+        );
         let toolPosition = new THREE.Vector3(toolMatrixGP[12], toolMatrixGP[13], toolMatrixGP[14]);
 
         const raycaster = new THREE.Raycaster();
@@ -789,23 +880,28 @@ import { getPendingCapture } from './sceneCapture.js';
      * Helper function to create a new ViewFrustum instance with preset camera internals
      * @returns {ViewFrustum}
      */
-    const createCullingFrustum = function() {
-        areaTargetMaterials.forEach(material => {
+    const createCullingFrustum = function () {
+        areaTargetMaterials.forEach((material) => {
             material.transparent = true;
         });
 
         // TODO: get these camera parameters dynamically?
         const iPhoneVerticalFOV = 41.22673; // https://discussions.apple.com/thread/250970597
-        const widthToHeightRatio = 1920/1080;
+        const widthToHeightRatio = 1920 / 1080;
 
         const MAX_DIST_OBSERVED = 5000;
         const FAR_PLANE_MM = Math.min(MAX_DIST_OBSERVED, 5000) + 100; // extend it slightly beyond the extent of the LiDAR sensor
         const NEAR_PLANE_MM = 10;
 
         let frustum = new ViewFrustum();
-        frustum.setCameraInternals(iPhoneVerticalFOV * 0.95, widthToHeightRatio, NEAR_PLANE_MM / 1000, FAR_PLANE_MM / 1000);
+        frustum.setCameraInternals(
+            iPhoneVerticalFOV * 0.95,
+            widthToHeightRatio,
+            NEAR_PLANE_MM / 1000,
+            FAR_PLANE_MM / 1000
+        );
         return frustum;
-    }
+    };
 
     /**
      * Creates a frustum, or updates the existing frustum with this id, to move it to this position and orientation.
@@ -817,7 +913,13 @@ import { getPendingCapture } from './sceneCapture.js';
      * @param {number} maxDepthMeters - furthest point detected by the LiDAR sensor this frame
      * @returns {{normal1: Vector3, normal2: Vector3, normal3: Vector3, normal4: Vector3, normal5: Vector3, normal6: Vector3, D1: number, D2: number, D3: number, D4: number, D5: number, D6: number}}
      */
-    function updateMaterialCullingFrustum(id, cameraPosition, cameraLookAtPosition, cameraUp, maxDepthMeters) {
+    function updateMaterialCullingFrustum(
+        id,
+        cameraPosition,
+        cameraLookAtPosition,
+        cameraUp,
+        maxDepthMeters
+    ) {
         if (typeof materialCullingFrustums[id] === 'undefined') {
             materialCullingFrustums[id] = createCullingFrustum();
         }
@@ -825,15 +927,26 @@ import { getPendingCapture } from './sceneCapture.js';
         let frustum = materialCullingFrustums[id];
 
         if (typeof maxDepthMeters !== 'undefined') {
-            frustum.setCameraInternals(frustum.angle, frustum.ratio, frustum.nearD, (frustum.farD + maxDepthMeters) / 2, true);
+            frustum.setCameraInternals(
+                frustum.angle,
+                frustum.ratio,
+                frustum.nearD,
+                (frustum.farD + maxDepthMeters) / 2,
+                true
+            );
         }
 
         frustum.setCameraDef(cameraPosition, cameraLookAtPosition, cameraUp);
 
-        let viewingCameraForwardVector = realityEditor.gui.ar.utilities.getForwardVector(realityEditor.sceneGraph.getCameraNode().worldMatrix);
-        let viewAngleSimilarity = realityEditor.gui.ar.utilities.dotProduct(materialCullingFrustums[id].planes[5].normal, viewingCameraForwardVector);
+        let viewingCameraForwardVector = realityEditor.gui.ar.utilities.getForwardVector(
+            realityEditor.sceneGraph.getCameraNode().worldMatrix
+        );
+        let viewAngleSimilarity = realityEditor.gui.ar.utilities.dotProduct(
+            materialCullingFrustums[id].planes[5].normal,
+            viewingCameraForwardVector
+        );
         viewAngleSimilarity = Math.max(0, viewAngleSimilarity); // limit it to 0 instead of going to -1 if viewing from anti-parallel direction
-        
+
         return {
             normal1: array3ToXYZ(materialCullingFrustums[id].planes[0].normal),
             normal2: array3ToXYZ(materialCullingFrustums[id].planes[1].normal),
@@ -847,8 +960,8 @@ import { getPendingCapture } from './sceneCapture.js';
             D4: materialCullingFrustums[id].planes[3].D,
             D5: materialCullingFrustums[id].planes[4].D,
             D6: materialCullingFrustums[id].planes[5].D,
-            viewAngleSimilarity: viewAngleSimilarity
-        }
+            viewAngleSimilarity: viewAngleSimilarity,
+        };
     }
 
     /**
@@ -869,8 +982,11 @@ import { getPendingCapture } from './sceneCapture.js';
 
         let numFrustums = Object.keys(materialCullingFrustums).length;
 
-        areaTargetMaterials.forEach(material => {
-            material.uniforms[UNIFORMS.numFrustums].value = Math.min(numFrustums, MAX_VIEW_FRUSTUMS);
+        areaTargetMaterials.forEach((material) => {
+            material.uniforms[UNIFORMS.numFrustums].value = Math.min(
+                numFrustums,
+                MAX_VIEW_FRUSTUMS
+            );
             if (numFrustums === 0) {
                 material.transparent = false; // optimize by turning off transparency when no virtualizers are connected
             }
@@ -884,27 +1000,42 @@ import { getPendingCapture } from './sceneCapture.js';
             this.gradientMapMaterials = [];
             this.lastUpdate = -1;
         }
-        areaTargetVertexShader({useFrustumCulling, useLoadingAnimation, center}) {
-            if (!useLoadingAnimation && !useFrustumCulling) return THREE.ShaderChunk.meshphysical_vert;
+        areaTargetVertexShader({ useFrustumCulling, useLoadingAnimation, center }) {
+            if (!useLoadingAnimation && !useFrustumCulling)
+                return THREE.ShaderChunk.meshphysical_vert;
             if (useLoadingAnimation && !useFrustumCulling) {
                 return this.loadingAnimationVertexShader(center);
             }
-            return frustumVertexShader({useLoadingAnimation: useLoadingAnimation, center: center});
+            return frustumVertexShader({
+                useLoadingAnimation: useLoadingAnimation,
+                center: center,
+            });
         }
-        areaTargetFragmentShader({useFrustumCulling, useLoadingAnimation, inverted}) {
-            if (!useLoadingAnimation && !useFrustumCulling) return THREE.ShaderChunk.meshphysical_frag;
+        areaTargetFragmentShader({ useFrustumCulling, useLoadingAnimation, inverted }) {
+            if (!useLoadingAnimation && !useFrustumCulling)
+                return THREE.ShaderChunk.meshphysical_frag;
             if (useLoadingAnimation && !useFrustumCulling) {
                 return this.loadingAnimationFragmentShader(inverted);
             }
-            return frustumFragmentShader({useLoadingAnimation: useLoadingAnimation, inverted: inverted});
+            return frustumFragmentShader({
+                useLoadingAnimation: useLoadingAnimation,
+                inverted: inverted,
+            });
         }
         loadingAnimationVertexShader(center) {
             return THREE.ShaderChunk.meshphysical_vert
-                .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+                .replace(
+                    '#include <worldpos_vertex>',
+                    `#include <worldpos_vertex>
     len = length(position - vec3(${center.x}, ${center.y}, ${center.z}));
-    `).replace('#include <common>', `#include <common>
+    `
+                )
+                .replace(
+                    '#include <common>',
+                    `#include <common>
     varying float len;
-    `);
+    `
+                );
         }
         loadingAnimationFragmentShader(inverted) {
             let condition = 'if (len > maxHeight) discard;';
@@ -913,67 +1044,80 @@ import { getPendingCapture } from './sceneCapture.js';
                 condition = 'if (len < maxHeight) discard;';
             }
             return THREE.ShaderChunk.meshphysical_frag
-                .replace('#include <clipping_planes_fragment>', `
+                .replace(
+                    '#include <clipping_planes_fragment>',
+                    `
                          ${condition}
-                         #include <clipping_planes_fragment>`)
-                .replace(`#include <common>`, `
+                         #include <clipping_planes_fragment>`
+                )
+                .replace(
+                    `#include <common>`,
+                    `
                          #include <common>
                          varying float len;
                          uniform float maxHeight;
-                         `);
+                         `
+                );
         }
         buildDefaultFrustums(numFrustums) {
             let frustums = [];
             for (let i = 0; i < numFrustums; i++) {
                 frustums.push({
-                    normal1: {x: 1, y: 0, z: 0},
-                    normal2: {x: 1, y: 0, z: 0},
-                    normal3: {x: 1, y: 0, z: 0},
-                    normal4: {x: 1, y: 0, z: 0},
-                    normal5: {x: 1, y: 0, z: 0},
-                    normal6: {x: 1, y: 0, z: 0},
+                    normal1: { x: 1, y: 0, z: 0 },
+                    normal2: { x: 1, y: 0, z: 0 },
+                    normal3: { x: 1, y: 0, z: 0 },
+                    normal4: { x: 1, y: 0, z: 0 },
+                    normal5: { x: 1, y: 0, z: 0 },
+                    normal6: { x: 1, y: 0, z: 0 },
                     D1: 0,
                     D2: 0,
                     D3: 0,
                     D4: 0,
                     D5: 0,
                     D6: 0,
-                    viewAngleSimilarity: 0
-                })
+                    viewAngleSimilarity: 0,
+                });
             }
             return frustums;
         }
         updateCameraDirection(cameraDirection) {
-            areaTargetMaterials.forEach(material => {
+            areaTargetMaterials.forEach((material) => {
                 for (let i = 0; i < material.uniforms[UNIFORMS.numFrustums].value; i++) {
                     let thisFrustum = material.uniforms[UNIFORMS.frustums].value[i];
-                    let frustumDir = [thisFrustum.normal6.x, thisFrustum.normal6.y, thisFrustum.normal6.z];
+                    let frustumDir = [
+                        thisFrustum.normal6.x,
+                        thisFrustum.normal6.y,
+                        thisFrustum.normal6.z,
+                    ];
                     let viewingDir = [cameraDirection.x, cameraDirection.y, cameraDirection.z];
                     // set to 1 if parallel, 0 if perpendicular. lower bound clamped to 0 instead of going to -1 if antiparallel
-                    thisFrustum.viewAngleSimilarity = Math.max(0, realityEditor.gui.ar.utilities.dotProduct(frustumDir, viewingDir));
+                    thisFrustum.viewAngleSimilarity = Math.max(
+                        0,
+                        realityEditor.gui.ar.utilities.dotProduct(frustumDir, viewingDir)
+                    );
                 }
             });
         }
-        heightMapMaterial(sourceMaterial, {ceilingAndFloor}) {
+        heightMapMaterial(sourceMaterial, { ceilingAndFloor }) {
             let material = sourceMaterial.clone();
 
             material.uniforms = THREE.UniformsUtils.merge([
                 THREE.ShaderLib.physical.uniforms,
                 {
-                    heightMap_maxY: {value: ceilingAndFloor.ceiling},
-                    heightMap_minY: {value: ceilingAndFloor.floor},
-                    distanceToCamera: {value: 0} // todo Steve; later in the code, need to set gltf.scene.material.uniforms['....'] to desired value
-                }
+                    heightMap_maxY: { value: ceilingAndFloor.ceiling },
+                    heightMap_minY: { value: ceilingAndFloor.floor },
+                    distanceToCamera: { value: 0 }, // todo Steve; later in the code, need to set gltf.scene.material.uniforms['....'] to desired value
+                },
             ]);
 
             material.vertexShader = realityEditor.gui.shaders.heightMapVertexShader();
-            
+
             material.fragmentShader = realityEditor.gui.shaders.heightMapFragmentShader();
 
             material.type = 'verycoolheightmapmaterial';
 
             material.needsUpdate = true;
-            
+
             this.heightMapMaterials.push(material);
 
             return material;
@@ -984,11 +1128,11 @@ import { getPendingCapture } from './sceneCapture.js';
             material.uniforms = THREE.UniformsUtils.merge([
                 THREE.ShaderLib.physical.uniforms,
                 {
-                    gradientMap_minAngle: {value: 0},
-                    gradientMap_maxAngle: {value: 25},
-                    gradientMap_outOfRangeAreaOriginalColor: {value: false},
-                    distanceToCamera: {value: 0}
-                }
+                    gradientMap_minAngle: { value: 0 },
+                    gradientMap_maxAngle: { value: 25 },
+                    gradientMap_outOfRangeAreaOriginalColor: { value: false },
+                    distanceToCamera: { value: 0 },
+                },
             ]);
 
             material.vertexShader = realityEditor.gui.shaders.gradientMapVertexShader();
@@ -1014,35 +1158,38 @@ import { getPendingCapture } from './sceneCapture.js';
                 material.uniforms['gradientMap_maxAngle'].value = maxAngle;
             });
         }
-        areaTargetMaterialWithTextureAndHeight(sourceMaterial, {maxHeight, center, animateOnLoad, inverted, useFrustumCulling}) {
+        areaTargetMaterialWithTextureAndHeight(
+            sourceMaterial,
+            { maxHeight, center, animateOnLoad, inverted, useFrustumCulling }
+        ) {
             let material = sourceMaterial.clone();
-            
+
             // for the shader to work, we must fully populate the frustums uniform array
             // with placeholder data (e.g. normals and constants for all 5 frustums),
             // but as long as numFrustums is 0 then it won't have any effect
             let defaultFrustums = this.buildDefaultFrustums(MAX_VIEW_FRUSTUMS);
-            
+
             material.uniforms = THREE.UniformsUtils.merge([
                 THREE.ShaderLib.physical.uniforms,
                 {
-                    maxHeight: {value: maxHeight},
-                    numFrustums: {value: 0},
-                    frustums: {value: defaultFrustums}
-                }
+                    maxHeight: { value: maxHeight },
+                    numFrustums: { value: 0 },
+                    frustums: { value: defaultFrustums },
+                },
             ]);
 
             material.vertexShader = this.areaTargetVertexShader({
                 useFrustumCulling: useFrustumCulling,
                 useLoadingAnimation: animateOnLoad,
-                center: center
+                center: center,
             });
             material.fragmentShader = this.areaTargetFragmentShader({
                 useFrustumCulling: useFrustumCulling,
                 useLoadingAnimation: animateOnLoad,
-                inverted: inverted
+                inverted: inverted,
             });
 
-            material.transparent = (Object.keys(materialCullingFrustums).length > 0);
+            material.transparent = Object.keys(materialCullingFrustums).length > 0;
             areaTargetMaterials.push(material);
 
             if (animateOnLoad) {
@@ -1050,7 +1197,7 @@ import { getPendingCapture } from './sceneCapture.js';
                     material: material,
                     currentHeight: -15, // -maxHeight,
                     maxHeight: maxHeight * 4,
-                    animationSpeed: 0.02 / 2
+                    animationSpeed: 0.02 / 2,
                 });
             }
 
@@ -1061,7 +1208,9 @@ import { getPendingCapture } from './sceneCapture.js';
             return material;
         }
         update() {
-            if (this.materialsToAnimate.length === 0) { return; }
+            if (this.materialsToAnimate.length === 0) {
+                return;
+            }
 
             let now = window.performance.now();
             if (this.lastUpdate < 0) {
@@ -1071,7 +1220,7 @@ import { getPendingCapture } from './sceneCapture.js';
             this.lastUpdate = now;
 
             let indicesToRemove = [];
-            this.materialsToAnimate.forEach(function(entry, index) {
+            this.materialsToAnimate.forEach(function (entry, index) {
                 let material = entry.material;
                 if (entry.currentHeight < entry.maxHeight) {
                     entry.currentHeight += entry.animationSpeed * dt;
@@ -1081,7 +1230,7 @@ import { getPendingCapture } from './sceneCapture.js';
                 }
             });
 
-            for (let i = indicesToRemove.length-1; i >= 0; i--) {
+            for (let i = indicesToRemove.length - 1; i >= 0; i--) {
                 let matIndex = indicesToRemove[i];
                 this.materialsToAnimate.splice(matIndex, 1);
             }
@@ -1096,7 +1245,10 @@ import { getPendingCapture } from './sceneCapture.js';
      * @returns {TransformControls}
      */
     function addTransformControlsTo(object, options, onChange, onDraggingChanged) {
-        let transformControls = new TransformControls(defaultCamera.getInternalObject(), mainRenderer.getInternalCanvas());
+        let transformControls = new TransformControls(
+            defaultCamera.getInternalObject(),
+            mainRenderer.getInternalCanvas()
+        );
         if (options && typeof options.hideX !== 'undefined') {
             transformControls.showX = !options.hideX;
         }
@@ -1116,44 +1268,56 @@ import { getPendingCapture } from './sceneCapture.js';
             transformControls.addEventListener('change', onChange);
         }
         if (typeof onDraggingChanged === 'function') {
-            transformControls.addEventListener('dragging-changed', onDraggingChanged)
+            transformControls.addEventListener('dragging-changed', onDraggingChanged);
         }
         return transformControls;
     }
 
     exports.getScreenXY = (meshPosition) => mainRenderer.getCamera().getScreenXY(meshPosition);
 
-    
-    exports.isPointOnScreen = (pointPosition) => mainRenderer.getCamera().isPointOnScreen(pointPosition);
+    exports.isPointOnScreen = (pointPosition) =>
+        mainRenderer.getCamera().isPointOnScreen(pointPosition);
 
     // gets the position relative to groundplane (common coord system for threejsScene)
-    exports.getToolPosition = function(toolId) {
+    exports.getToolPosition = function (toolId) {
         let toolSceneNode = realityEditor.sceneGraph.getSceneNodeById(toolId);
         let groundPlaneNode = realityEditor.sceneGraph.getGroundPlaneNode();
-        let tp = realityEditor.sceneGraph.convertToNewCoordSystem({x: 0, y: 0, z: 0}, toolSceneNode, groundPlaneNode);
+        let tp = realityEditor.sceneGraph.convertToNewCoordSystem(
+            { x: 0, y: 0, z: 0 },
+            toolSceneNode,
+            groundPlaneNode
+        );
         return new THREE.Vector3(tp.x, tp.y, tp.z);
-    }
-    
-    exports.getCameraPosition = function() {
+    };
+
+    exports.getCameraPosition = function () {
         let cameraSceneNode = realityEditor.sceneGraph.getCameraNode();
         let groundPlaneNode = realityEditor.sceneGraph.getGroundPlaneNode();
-        let cp = realityEditor.sceneGraph.convertToNewCoordSystem({x: 0, y: 0, z: 0}, cameraSceneNode, groundPlaneNode);
+        let cp = realityEditor.sceneGraph.convertToNewCoordSystem(
+            { x: 0, y: 0, z: 0 },
+            cameraSceneNode,
+            groundPlaneNode
+        );
         return new THREE.Vector3(cp.x, cp.y, cp.z);
-    }
+    };
 
     // gets the direction the tool is facing, within the coordinate system of the groundplane
     // todo Steve: currently this is not correct. Need further debugging
-    exports.getToolDirection = function(toolId) {
+    exports.getToolDirection = function (toolId) {
         let toolSceneNode = realityEditor.sceneGraph.getSceneNodeById(toolId);
         let groundPlaneNode = realityEditor.sceneGraph.getGroundPlaneNode();
-        let toolMatrix = realityEditor.sceneGraph.convertToNewCoordSystem(realityEditor.gui.ar.utilities.newIdentityMatrix(), toolSceneNode, groundPlaneNode);
+        let toolMatrix = realityEditor.sceneGraph.convertToNewCoordSystem(
+            realityEditor.gui.ar.utilities.newIdentityMatrix(),
+            toolSceneNode,
+            groundPlaneNode
+        );
         let forwardVector = realityEditor.gui.ar.utilities.getForwardVector(toolMatrix);
         return new THREE.Vector3(forwardVector[0], forwardVector[1], forwardVector[2]);
-    }
-    
-    exports.getGltfBoundingBox = function() {
+    };
+
+    exports.getGltfBoundingBox = function () {
         return gltfBoundingBox;
-    }
+    };
 
     /**
      * @return {Renderer} Various internal objects necessary for advanced (hacky) functions
@@ -1182,11 +1346,14 @@ import { getPendingCapture } from './sceneCapture.js';
         if (worldObject) {
             worldObject.renderMode = RENDER_MODES.ai;
             if (!broadcastToOthers) return;
-            realityEditor.network.postObjectRenderMode(worldObject.ip, worldObject.objectId, worldObject.renderMode).then(_response => {
-                // console.log('successfully sent renderMode to other clients via the server', response);
-            }).catch(err => {
-                console.warn('error in postObjectRenderMode', err);
-            });
+            realityEditor.network
+                .postObjectRenderMode(worldObject.ip, worldObject.objectId, worldObject.renderMode)
+                .then((_response) => {
+                    // console.log('successfully sent renderMode to other clients via the server', response);
+                })
+                .catch((err) => {
+                    console.warn('error in postObjectRenderMode', err);
+                });
         }
     }
 
@@ -1206,11 +1373,14 @@ import { getPendingCapture } from './sceneCapture.js';
         if (worldObject) {
             worldObject.renderMode = RENDER_MODES.mesh;
             if (!broadcastToOthers) return;
-            realityEditor.network.postObjectRenderMode(worldObject.ip, worldObject.objectId, worldObject.renderMode).then(_response => {
-                // console.log('successfully sent renderMode to other clients via the server', response);
-            }).catch(err => {
-                console.warn('error in postObjectRenderMode', err);
-            });
+            realityEditor.network
+                .postObjectRenderMode(worldObject.ip, worldObject.objectId, worldObject.renderMode)
+                .then((_response) => {
+                    // console.log('successfully sent renderMode to other clients via the server', response);
+                })
+                .catch((err) => {
+                    console.warn('error in postObjectRenderMode', err);
+                });
         }
     }
 
@@ -1258,14 +1428,22 @@ import { getPendingCapture } from './sceneCapture.js';
     exports.removeAnimationCallback = removeAnimationCallback;
     exports.addToScene = addToScene;
     exports.removeFromScene = removeFromScene;
-    exports.getScreenRay = (clientX, clientY) => {return mainRenderer.getScreenRay(clientX, clientY)};
-    exports.getRaycastIntersects = (clientX, clientY, objectsToCheck) => {return mainRenderer.getRaycastIntersects(clientX, clientY, objectsToCheck)};
+    exports.getScreenRay = (clientX, clientY) => {
+        return mainRenderer.getScreenRay(clientX, clientY);
+    };
+    exports.getRaycastIntersects = (clientX, clientY, objectsToCheck) => {
+        return mainRenderer.getRaycastIntersects(clientX, clientY, objectsToCheck);
+    };
     exports.getPointAtDistanceFromCamera = getPointAtDistanceFromCamera;
     exports.getObjectByName = getObjectByName;
     exports.getObjectsByName = getObjectsByName;
     exports.getGroundPlaneCollider = getGroundPlaneCollider;
-    exports.isGroundPlanePositionSet = () => { return isGroundPlanePositionSet; };
-    exports.isWorldMeshLoadedAndProcessed = () => { return isWorldMeshLoadedAndProcessed; }
+    exports.isGroundPlanePositionSet = () => {
+        return isGroundPlanePositionSet;
+    };
+    exports.isWorldMeshLoadedAndProcessed = () => {
+        return isWorldMeshLoadedAndProcessed;
+    };
     exports.setMatrixFromArray = setMatrixFromArray;
     exports.getObjectForWorldRaycasts = getObjectForWorldRaycasts;
     exports.getToolGroundPlaneShadowMatrix = getToolGroundPlaneShadowMatrix;
@@ -1282,10 +1460,10 @@ import { getPendingCapture } from './sceneCapture.js';
     exports.GLTFLoader = GLTFLoader;
     exports.onGltfDownloadProgress = (cb) => {
         callbacks.onGltfDownloadProgress.push(cb);
-    }
+    };
     exports.onGltfLoaded = (cb) => {
         callbacks.onGltfLoaded.push(cb);
-    }
+    };
     exports.enableExternalSceneRendering = enableExternalSceneRendering;
     exports.disableExternalSceneRendering = disableExternalSceneRendering;
     exports.RENDER_MODES = RENDER_MODES;

@@ -1,6 +1,6 @@
-import {MotionStudyLens} from './MotionStudyLens.js';
-import {MotionStudyColors} from './MotionStudyColors.js';
-import {JOINTS} from './constants.js';
+import { MotionStudyLens } from './MotionStudyLens.js';
+import { MotionStudyColors } from './MotionStudyColors.js';
+import { JOINTS } from './constants.js';
 
 /**
  * SensorActiveLens is a lens that stores whether a given spatial sensor is
@@ -20,19 +20,23 @@ export class SensorActiveLens extends MotionStudyLens {
 
     applyLensToPose(pose) {
         let anyActive = false;
-        pose.forEachJoint(joint => {
+        pose.forEachJoint((joint) => {
             if (!joint.sensorActive) {
                 joint.sensorActive = {};
             }
-            const value = this.motionStudy.sensors.isPositionInSensor(this.sensorFrame, joint.position);
+            const value = this.motionStudy.sensors.isPositionInSensor(
+                this.sensorFrame,
+                joint.position
+            );
             anyActive = anyActive || value;
             joint.sensorActive[this.sensorFrame] = value;
         });
-        pose.forEachBone(bone => {
+        pose.forEachBone((bone) => {
             if (!bone.sensorActive) {
                 bone.sensorActive = {};
             }
-            const value = bone.joint0.sensorActive[this.sensorFrame] ||
+            const value =
+                bone.joint0.sensorActive[this.sensorFrame] ||
                 bone.joint1.sensorActive[this.sensorFrame];
 
             anyActive = anyActive || value;
@@ -49,7 +53,7 @@ export class SensorActiveLens extends MotionStudyLens {
     }
 
     applyLensToHistory(poseHistory) {
-        return poseHistory.map(pose => {
+        return poseHistory.map((pose) => {
             return this.applyLensToPose(pose);
         });
     }
@@ -58,18 +62,18 @@ export class SensorActiveLens extends MotionStudyLens {
         if (!joint.sensors || !joint.sensors.hasOwnProperty(this.sensorFrame)) {
             return MotionStudyColors.undefined;
         }
-        return joint.sensors[this.sensorFrame] ?
-            this.motionStudy.sensors.getSensorColor(this.sensorFrame) :
-            MotionStudyColors.gray;
+        return joint.sensors[this.sensorFrame]
+            ? this.motionStudy.sensors.getSensorColor(this.sensorFrame)
+            : MotionStudyColors.gray;
     }
 
     getColorForBone(bone) {
         if (!bone.sensors || !bone.sensors.hasOwnProperty(this.sensorFrame)) {
             return MotionStudyColors.undefined;
         }
-        return bone.sensors[this.sensorFrame] ?
-            this.motionStudy.sensors.getSensorColor(this.sensorFrame) :
-            MotionStudyColors.gray;
+        return bone.sensors[this.sensorFrame]
+            ? this.motionStudy.sensors.getSensorColor(this.sensorFrame)
+            : MotionStudyColors.gray;
     }
 
     getColorForPose(pose) {
@@ -77,4 +81,3 @@ export class SensorActiveLens extends MotionStudyLens {
         return MotionStudyColors.fade(this.getColorForJoint(joint));
     }
 }
-

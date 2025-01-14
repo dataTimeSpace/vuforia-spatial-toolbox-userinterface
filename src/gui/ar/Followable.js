@@ -36,5 +36,4 @@ export class Followable {
     onCameraStoppedFollowing() {
         // Optionally trigger an effect the viewer stops following this
     }
-
 }

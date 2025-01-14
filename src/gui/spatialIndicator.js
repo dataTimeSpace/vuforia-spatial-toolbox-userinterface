@@ -1,14 +1,14 @@
-createNameSpace("realityEditor.gui.spatialIndicator");
+createNameSpace('realityEditor.gui.spatialIndicator');
 
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 import { mergeBufferGeometries } from '../../thirdPartyCode/three/BufferGeometryUtils.module.js';
-import { remap } from "../utilities/MathUtils.js";
+import { remap } from '../utilities/MathUtils.js';
 
 (function (exports) {
     let camera;
 
     const DISABLE_SPATIAL_INDICATORS = true;
-    
+
     const vertexShader = `
     varying vec2 vUv;
     
@@ -18,7 +18,7 @@ import { remap } from "../utilities/MathUtils.js";
         gl_Position = projectionMatrix * mvPosition;
     }
     `;
-    
+
     const cylinderFragmentShader = `
         #define S(a, b, x) smoothstep(a, b, x)
         #define PI 3.14159
@@ -109,15 +109,18 @@ import { remap } from "../utilities/MathUtils.js";
     const amount = 5;
     let lines = [];
 
-    let color = 'rgb(0, 255, 255)', colorLighter = 'rgb(255, 255, 255)';
-    let finalColor = [{
-        color: new THREE.Color(color),
-        colorLighter: new THREE.Color(colorLighter)
-    }];
+    let color = 'rgb(0, 255, 255)',
+        colorLighter = 'rgb(255, 255, 255)';
+    let finalColor = [
+        {
+            color: new THREE.Color(color),
+            colorLighter: new THREE.Color(colorLighter),
+        },
+    ];
     let uniforms = {
-        'avatarColor': {value: finalColor},
-        'amount': {value: amount},
-        'lines': {value: lines},
+        avatarColor: { value: finalColor },
+        amount: { value: amount },
+        lines: { value: lines },
     };
 
     const cylinderMaterial = new THREE.ShaderMaterial({
@@ -150,7 +153,11 @@ import { remap } from "../utilities/MathUtils.js";
         // }
         if (cachedWorldObject && objectsToCheck.length > 0) {
             // by default, three.js raycast returns coordinates in the top-level scene coordinate system
-            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(screenX, screenY, objectsToCheck);
+            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                screenX,
+                screenY,
+                objectsToCheck
+            );
             if (raycastIntersects.length > 0) {
                 // if hit a cylinder indicator, then make the cylinders expand and last longer
                 if (raycastIntersects[0].object.parent.name === 'cylinderIndicator') {
@@ -159,29 +166,35 @@ import { remap } from "../utilities/MathUtils.js";
                 }
                 let groundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
                 let inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-                realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, groundPlaneMatrix);
+                realityEditor.gui.threejsScene.setMatrixFromArray(
+                    inverseGroundPlaneMatrix,
+                    groundPlaneMatrix
+                );
                 inverseGroundPlaneMatrix.invert();
                 raycastIntersects[0].scenePoint.applyMatrix4(inverseGroundPlaneMatrix);
                 let trInvGroundPlaneMat = inverseGroundPlaneMatrix.clone().transpose();
                 worldIntersectPoint = {
                     point: raycastIntersects[0].point,
-                    normalVector: raycastIntersects[0].face.normal.clone().applyMatrix4(trInvGroundPlaneMat).normalize(),
-                }
+                    normalVector: raycastIntersects[0].face.normal
+                        .clone()
+                        .applyMatrix4(trInvGroundPlaneMat)
+                        .normalize(),
+                };
             }
         }
         return worldIntersectPoint; // these are relative to the world object
     }
-    
+
     async function getMyAvatarColor() {
         let myAvatarColor = await realityEditor.avatar.getMyAvatarColor();
         color = `${myAvatarColor.color}`;
         colorLighter = `${myAvatarColor.colorLighter}`;
         finalColor[0] = {
             color: new THREE.Color(color),
-            colorLighter: new THREE.Color(colorLighter)
+            colorLighter: new THREE.Color(colorLighter),
         };
     }
-    
+
     let spatialIndicatorActivated = false;
     function handleMouseClick(e) {
         // if (!avatarActive) return;
@@ -197,17 +210,21 @@ import { remap } from "../utilities/MathUtils.js";
     const iAnimDuration = 1;
     const iScaleFactor = 1.1;
     let indicatorList = [];
-    
+
     let innerWidth = 20;
     let innerBottomHeight = 70;
     let innerTopHeight = 250;
     let innerHeightOffset = 50;
-    
+
     function addSpatialIndicator() {
         console.info('should add a cylinder to the scene');
         // add an indicator group
         const indicatorGroup = new THREE.Group();
-        indicatorGroup.position.set(worldIntersectPoint.point.x, worldIntersectPoint.point.y, worldIntersectPoint.point.z);
+        indicatorGroup.position.set(
+            worldIntersectPoint.point.x,
+            worldIntersectPoint.point.y,
+            worldIntersectPoint.point.z
+        );
         // make worldIntersectPoint normalVector always point towards the same side of the camera
         let normalVector = worldIntersectPoint.normalVector.clone();
         let camPos = new THREE.Vector3();
@@ -222,15 +239,21 @@ import { remap } from "../utilities/MathUtils.js";
         indicatorGroup.name = indicatorName;
         indicatorGroup.avatarColor = color;
         indicatorGroup.avatarColorLighter = colorLighter;
-        const material1 = new THREE.MeshStandardMaterial( {
+        const material1 = new THREE.MeshStandardMaterial({
             color: finalColor[0].color,
             transparent: true,
             opacity: 1,
             flatShading: true,
         });
-        
+
         // add inner cones
-        const bottomConeGeometry = new THREE.ConeGeometry(innerWidth, innerBottomHeight, 4, 1, true);
+        const bottomConeGeometry = new THREE.ConeGeometry(
+            innerWidth,
+            innerBottomHeight,
+            4,
+            1,
+            true
+        );
         bottomConeGeometry.translate(0, innerBottomHeight / 2, 0);
         bottomConeGeometry.rotateX(Math.PI);
         const topConeGeometry = new THREE.ConeGeometry(innerWidth, innerTopHeight, 4, 1, true);
@@ -239,9 +262,9 @@ import { remap } from "../utilities/MathUtils.js";
         const innerCone = new THREE.Mesh(innerConeGeometry, material1);
         innerCone.position.y = innerBottomHeight + innerHeightOffset;
         indicatorGroup.add(innerCone);
-        
+
         // add outer cylinder
-        const geometry2 = new THREE.CylinderGeometry( 50, 50, indicatorHeight, 32, 1, true );
+        const geometry2 = new THREE.CylinderGeometry(50, 50, indicatorHeight, 32, 1, true);
         const cylinder2 = new THREE.Mesh(geometry2, cylinderMaterial);
         cylinder2.position.set(0, indicatorHeight / 2, 0);
         indicatorGroup.add(cylinder2);
@@ -268,7 +291,9 @@ import { remap } from "../utilities/MathUtils.js";
                 cachedWorldObject = null; // don't accept the local world object
             }
             if (cachedWorldObject && !cachedOcclusionObject) {
-                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(cachedWorldObject.objectId);
+                cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(
+                    cachedWorldObject.objectId
+                );
                 if (cachedOcclusionObject) {
                     // trigger the callback and clear the interval
                     callback(cachedWorldObject, cachedOcclusionObject);
@@ -278,17 +303,17 @@ import { remap } from "../utilities/MathUtils.js";
             }
         }, 1000);
     }
-    
+
     async function initService() {
         onLoadOcclusionObject((worldObject, occlusionObject) => {
             cachedWorldObject = worldObject;
             cachedOcclusionObject = occlusionObject;
         });
-        
+
         // initialize 20 line data
         for (let i = 0; i < amount; i++) {
-            let width = remap(Math.random(), 0, 1, .002, .006);
-            let height = remap(Math.random(), 0, 1, .2, .4);
+            let width = remap(Math.random(), 0, 1, 0.002, 0.006);
+            let height = remap(Math.random(), 0, 1, 0.2, 0.4);
             let x = remap(Math.random(), 0, 1, width / 2, 1 - width / 2);
             let y = 0;
             let speed = remap(Math.random(), 0, 1, 2, 6);
@@ -298,42 +323,42 @@ import { remap } from "../utilities/MathUtils.js";
                 height: height,
                 x: x,
                 y: y,
-                speed: speed
+                speed: speed,
             });
         }
-        
+
         finalColor[0] = {
             color: new THREE.Color(color),
-            colorLighter: new THREE.Color(colorLighter)
+            colorLighter: new THREE.Color(colorLighter),
         };
-        
+
         camera = realityEditor.gui.threejsScene.getInternals().getCamera();
-        
+
         update();
 
         await getMyAvatarColor();
         uniforms['avatarColor'].value = finalColor;
     }
-    
+
     function updateUniforms() {
         if (!spatialIndicatorActivated) return;
-        
+
         // change the Lines data here
-        lines.forEach(line => {
+        lines.forEach((line) => {
             if (line.y >= 1) {
-                line.width = remap(Math.random(), 0, 1, .004, .012);
-                line.height = remap(Math.random(), 0, 1, .2, .4);
+                line.width = remap(Math.random(), 0, 1, 0.004, 0.012);
+                line.height = remap(Math.random(), 0, 1, 0.2, 0.4);
                 line.x = remap(Math.random(), 0, 1, line.width / 2, 1 - line.width / 2);
                 line.y = 0;
                 line.speed = remap(Math.random(), 0, 1, 2, 6);
             } else {
-                line.y += .01 * line.speed;
+                line.y += 0.01 * line.speed;
             }
-        })
-        
+        });
+
         uniforms['lines'].value = lines;
     }
-    
+
     function changeIndicatorTransforms() {
         for (let i = 0; i < indicatorList.length; i++) {
             let item = indicatorList[i];
@@ -342,10 +367,19 @@ import { remap } from "../utilities/MathUtils.js";
             let iTime = iClock.getElapsedTime();
             // translate up/down and rotate the inner cones
             let innerCone = item.children[0];
-            innerCone.position.y = remap(Math.sin(iTime * 4), -1, 1, innerBottomHeight + innerHeightOffset + 60, innerBottomHeight + innerHeightOffset - 60);
+            innerCone.position.y = remap(
+                Math.sin(iTime * 4),
+                -1,
+                1,
+                innerBottomHeight + innerHeightOffset + 60,
+                innerBottomHeight + innerHeightOffset - 60
+            );
             innerCone.rotation.y = iTime;
             // change the entire indicator group scale
-            let y1 = Math.pow(iScaleFactor, iClick) * (-1 / iAnimDuration * (iTime - 0.3 * iClick) + (iDuration + iAnimDuration) / iAnimDuration);
+            let y1 =
+                Math.pow(iScaleFactor, iClick) *
+                ((-1 / iAnimDuration) * (iTime - 0.3 * iClick) +
+                    (iDuration + iAnimDuration) / iAnimDuration);
             let y2 = Math.min(Math.pow(iScaleFactor, iClick), Math.max(0, y1));
             if (y2 <= 0) {
                 // if indicator scale <= 0, remove it from the scene & indicatorList
@@ -358,18 +392,17 @@ import { remap } from "../utilities/MathUtils.js";
             }
         }
     }
-    
+
     function update() {
         updateUniforms();
         changeIndicatorTransforms();
         window.requestAnimationFrame(update);
     }
-    
+
     function getIndicatorName() {
         return indicatorName;
     }
-    
+
     exports.initService = initService;
     exports.getIndicatorName = getIndicatorName;
-    
 })(realityEditor.gui.spatialIndicator);

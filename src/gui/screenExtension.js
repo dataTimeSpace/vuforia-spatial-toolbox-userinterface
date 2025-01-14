@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.gui.screenExtension");
+createNameSpace('realityEditor.gui.screenExtension');
 
 // all screenObjects ever detected in the system
 // maps frameKey -> (object, frame, node)
@@ -9,19 +9,19 @@ realityEditor.gui.screenExtension.registeredScreenObjects = {};
 realityEditor.gui.screenExtension.visibleScreenObjects = {};
 
 realityEditor.gui.screenExtension.screenObject = {
-    touchState : null,
-    closestObject : null,
-    x : 0,
-    y : 0,
-    scale : 1,
-    object : null,
-    frame : null,
-    node : null,
+    touchState: null,
+    closestObject: null,
+    x: 0,
+    y: 0,
+    scale: 1,
+    object: null,
+    frame: null,
+    node: null,
     isScreenVisible: false,
     touchOffsetX: 0,
     touchOffsetY: 0,
     touches: null,
-    lastEditor: globalStates.tempUuid
+    lastEditor: globalStates.tempUuid,
 };
 
 // distance to screen when first tap down
@@ -30,16 +30,19 @@ realityEditor.gui.screenExtension.initialDistance = null;
 /**
  * @type {CallbackHandler}
  */
-realityEditor.gui.screenExtension.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('gui/screenExtension');
+realityEditor.gui.screenExtension.callbackHandler =
+    new realityEditor.moduleCallbacks.CallbackHandler('gui/screenExtension');
 
 /**
  * Adds a callback function that will be invoked when the specified function is called
  * @param {string} functionName
  * @param {function} callback
  */
-realityEditor.gui.screenExtension.registerCallback = function(functionName, callback) {
+realityEditor.gui.screenExtension.registerCallback = function (functionName, callback) {
     if (!this.callbackHandler) {
-        this.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('gui/screenExtension');
+        this.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler(
+            'gui/screenExtension'
+        );
     }
     this.callbackHandler.registerCallback(functionName, callback);
 };
@@ -51,21 +54,23 @@ realityEditor.gui.screenExtension.registerCallback = function(functionName, call
 //   but I can imagine a future where that tool isn't needed and we can remove this flag
 realityEditor.gui.screenExtension.disableAutoRegistration = true;
 
-realityEditor.gui.screenExtension.initService = function() {
+realityEditor.gui.screenExtension.initService = function () {
     if (this.disableAutoRegistration) {
         console.warn('SCREEN EXTENSION initService is currently internally-disabled');
         return;
     }
 
     // register screen objects when they are loaded
-    realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
+    realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
         // check if this object is visualization===screen and if so, add to registeredScreenObjects
-        if (object.visualization !== 'screen') { return; }
+        if (object.visualization !== 'screen') {
+            return;
+        }
 
         realityEditor.gui.screenExtension.registeredScreenObjects[objectKey] = {
             object: objectKey,
             frame: null,
-            node: null
+            node: null,
         };
     });
 
@@ -73,39 +78,43 @@ realityEditor.gui.screenExtension.initService = function() {
     // TODO: this would require a network listener to detect changes
 
     // use registeredScreenObjects and visibleObjects to get visibleScreenObjects
-    realityEditor.gui.ar.draw.addUpdateListener(function(visibleObjects) {
+    realityEditor.gui.ar.draw.addUpdateListener(function (visibleObjects) {
         // return if no registered screenObjects
         let screenExtension = realityEditor.gui.screenExtension;
         let registeredObjectKeys = Object.keys(screenExtension.registeredScreenObjects);
-        if (registeredObjectKeys.length === 0) { return; }
+        if (registeredObjectKeys.length === 0) {
+            return;
+        }
 
         // remove visibleScreenObjects that aren't in visibleObjects anymore
         let visibleRegisteredObjectKeys = Object.keys(screenExtension.visibleScreenObjects);
-        visibleRegisteredObjectKeys.forEach(function(objectKey) {
+        visibleRegisteredObjectKeys.forEach(function (objectKey) {
             if (!visibleObjects.hasOwnProperty(objectKey)) {
                 delete screenExtension.visibleScreenObjects[objectKey];
             }
         });
 
         // add objects that are registered and visible but not in visibleScreenObjects yet
-        registeredObjectKeys.forEach(function(objectKey) {
-            if (visibleObjects.hasOwnProperty(objectKey) && !screenExtension.visibleScreenObjects.hasOwnProperty(objectKey)) {
+        registeredObjectKeys.forEach(function (objectKey) {
+            if (
+                visibleObjects.hasOwnProperty(objectKey) &&
+                !screenExtension.visibleScreenObjects.hasOwnProperty(objectKey)
+            ) {
                 screenExtension.visibleScreenObjects[objectKey] = {
                     object: objectKey,
                     frame: null,
                     node: null,
                     x: 0,
                     y: 0,
-                    touches: null
+                    touches: null,
                 };
             }
         });
     });
 };
 
-realityEditor.gui.screenExtension.shouldSendTouchesToScreen = function(eventObject) {
-    
-    // don't send touches 
+realityEditor.gui.screenExtension.shouldSendTouchesToScreen = function (eventObject) {
+    // don't send touches
     if (globalStates.guiState !== 'ui') {
         return false;
     }
@@ -119,64 +128,69 @@ realityEditor.gui.screenExtension.shouldSendTouchesToScreen = function(eventObje
     if (realityEditor.gui.pocket.pocketShown()) {
         return false;
     }
-    
+
     return true;
 };
 
-realityEditor.gui.screenExtension.touchStart = function (eventObject){
-
+realityEditor.gui.screenExtension.touchStart = function (eventObject) {
     if (!this.shouldSendTouchesToScreen(eventObject)) return;
-    
+
     // additionally, don't send touch start to screen if tapping a menu button
     var frontTouchedElement = document.elementFromPoint(eventObject.x, eventObject.y);
-    var didTouchMenuButton = frontTouchedElement && frontTouchedElement.id && frontTouchedElement.id.indexOf('ButtonDiv') > -1;
+    var didTouchMenuButton =
+        frontTouchedElement &&
+        frontTouchedElement.id &&
+        frontTouchedElement.id.indexOf('ButtonDiv') > -1;
     if (didTouchMenuButton) return;
-    
+
     // this.updateScreenObject(eventObject);
     this.onScreenTouchDown(eventObject);
-    
-    var didTouchARFrame = (!!this.screenObject.object && !!this.screenObject.frame);
-    
-    if(this.areAnyScreensVisible() && !didTouchARFrame) {
+
+    var didTouchARFrame = !!this.screenObject.object && !!this.screenObject.frame;
+
+    if (this.areAnyScreensVisible() && !didTouchARFrame) {
         realityEditor.gui.screenExtension.sendScreenObject();
     }
 };
 
-realityEditor.gui.screenExtension.touchMove = function (eventObject){
-    
+realityEditor.gui.screenExtension.touchMove = function (eventObject) {
     if (!this.shouldSendTouchesToScreen(eventObject)) return;
-    
+
     // this will retroactively set the screen object to a new frame when it gets added by dragging in from the pocket
-    if (eventObject.object && eventObject.frame && !this.screenObject.object && !this.screenObject.frame){
+    if (
+        eventObject.object &&
+        eventObject.frame &&
+        !this.screenObject.object &&
+        !this.screenObject.frame
+    ) {
         this.onScreenTouchDown(eventObject);
     }
-    
+
     this.onScreenTouchMove(eventObject);
 
     // make sure we aren't manipulating a screenObject frame with AR visualization mode
-    var thisVisualization = "";
+    var thisVisualization = '';
     if (this.screenObject.object && this.screenObject.frame) {
         var activeFrame = realityEditor.getFrame(this.screenObject.object, this.screenObject.frame);
         if (activeFrame) {
             thisVisualization = activeFrame.visualization;
         }
     }
-    
-    if (this.areAnyScreensVisible() && thisVisualization !== "ar") {
+
+    if (this.areAnyScreensVisible() && thisVisualization !== 'ar') {
         realityEditor.gui.screenExtension.sendScreenObject();
     }
 };
 
-realityEditor.gui.screenExtension.touchEnd = function (eventObject){
-    
+realityEditor.gui.screenExtension.touchEnd = function (eventObject) {
     if (!this.shouldSendTouchesToScreen(eventObject)) return;
-    
+
     this.onScreenTouchUp(eventObject);
 
     if (this.areAnyScreensVisible()) {
         realityEditor.gui.screenExtension.sendScreenObject();
     }
-    
+
     this.screenObject.x = 0;
     this.screenObject.y = 0;
     this.screenObject.scale = 1;
@@ -185,9 +199,9 @@ realityEditor.gui.screenExtension.touchEnd = function (eventObject){
     // this.screenObject.node = null;
     this.screenObject.closestObject = null;
     this.screenObject.touchState = null;
-    
+
     globalStates.initialDistance = null;
-    
+
     //console.log("end", this.screenObject);
 };
 
@@ -196,56 +210,59 @@ realityEditor.gui.screenExtension.touchEnd = function (eventObject){
  * @param {ScreenEventObject} eventObject
  * @return {Array.<{screenX: number, screenY: number, type: string}>}
  */
-realityEditor.gui.screenExtension.getValidTouches = function(eventObject) {
-    return eventObject.touches.filter(function(touch) {
-        return touch && (typeof touch.screenX === "number" && typeof touch.screenY === "number");
+realityEditor.gui.screenExtension.getValidTouches = function (eventObject) {
+    return eventObject.touches.filter(function (touch) {
+        return touch && typeof touch.screenX === 'number' && typeof touch.screenY === 'number';
     });
 };
 
-realityEditor.gui.screenExtension.onScreenTouchDown = function(eventObject) {
+realityEditor.gui.screenExtension.onScreenTouchDown = function (eventObject) {
     // figure out if I'm touching on AR frame, screen frame, or nothing
     // console.log('onScreenTouchDown', eventObject, this.screenObject);
 
     this.screenObject.closestObject = realityEditor.gui.ar.getClosestObject()[0];
     this.screenObject.touchState = eventObject.type;
-    
-    if (this.getValidTouches(eventObject).length < 2) { // don't reset in between scaling gestures
+
+    if (this.getValidTouches(eventObject).length < 2) {
+        // don't reset in between scaling gestures
         this.screenObject.object = eventObject.object;
         this.screenObject.frame = eventObject.frame;
         this.screenObject.node = eventObject.node;
     }
 
-    var didTouchARFrame = (!!eventObject.object && !!eventObject.frame);
+    var didTouchARFrame = !!eventObject.object && !!eventObject.frame;
 
     this.screenObject.isScreenVisible = !didTouchARFrame;
 
     if (this.screenObject.closestObject && !didTouchARFrame) {
-
         // for every visible screen, calculate this touch's exact x,y coordinate within that screen plane
         for (var frameKey in this.visibleScreenObjects) {
             if (!this.visibleScreenObjects.hasOwnProperty(frameKey)) continue;
             var visibleScreenObject = this.visibleScreenObjects[frameKey];
-            var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(visibleScreenObject.object, eventObject.x, eventObject.y);
+            var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+                visibleScreenObject.object,
+                eventObject.x,
+                eventObject.y
+            );
             visibleScreenObject.x = point.x;
             visibleScreenObject.y = point.y;
         }
-        
     }
-    
+
     // console.log(this.screenObject);
 };
 
 /**
- * 
+ *
  * @param {ScreenEventObject} eventObject
  */
-realityEditor.gui.screenExtension.onScreenTouchMove = function(eventObject) {
+realityEditor.gui.screenExtension.onScreenTouchMove = function (eventObject) {
     // do nothing other than send xy to screen // maybe iff I'm touching on screen frame, move AR frame to mirror its position
     // console.log('onScreenTouchMove', eventObject, this.screenObject);
 
     this.screenObject.closestObject = realityEditor.gui.ar.getClosestObject()[0];
     this.screenObject.touchState = eventObject.type;
-    
+
     if (!this.screenObject.closestObject) {
         return;
     }
@@ -254,12 +271,16 @@ realityEditor.gui.screenExtension.onScreenTouchMove = function(eventObject) {
     for (var frameKey in this.visibleScreenObjects) {
         if (!this.visibleScreenObjects.hasOwnProperty(frameKey)) continue;
         var visibleScreenObject = this.visibleScreenObjects[frameKey];
-        var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(visibleScreenObject.object, eventObject.x, eventObject.y);
+        var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+            visibleScreenObject.object,
+            eventObject.x,
+            eventObject.y
+        );
         visibleScreenObject.x = point.x;
         visibleScreenObject.y = point.y;
-        
+
         // console.log('touched (x,y) = (' + visibleScreenObject.x + ', ' + visibleScreenObject.y + ')')
-        
+
         // var targetWidth = targetSize.width;
         // var screenX = point.x + targetWidth/2;
         //
@@ -271,24 +292,34 @@ realityEditor.gui.screenExtension.onScreenTouchMove = function(eventObject) {
             visibleScreenObject.touches[0] = {
                 x: point.x,
                 y: point.y,
-                type: eventObject.type
+                type: eventObject.type,
             };
 
-            var secondPoint = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(visibleScreenObject.object, eventObject.touches[1].screenX, eventObject.touches[1].screenY);
+            var secondPoint = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+                visibleScreenObject.object,
+                eventObject.touches[1].screenX,
+                eventObject.touches[1].screenY
+            );
             visibleScreenObject.touches[1] = {
                 x: secondPoint.x,
                 y: secondPoint.y,
-                type: eventObject.touches[1].type
+                type: eventObject.touches[1].type,
             };
         } else {
             visibleScreenObject.touches = null;
         }
 
         // also needs to update AR frame positions so that AR nodes match their screen frames' positions
-        if (this.screenObject.object && this.screenObject.frame && this.screenObject.object === visibleScreenObject.object) {
-            var matchingARFrame = realityEditor.getFrame(this.screenObject.object, this.screenObject.frame);
+        if (
+            this.screenObject.object &&
+            this.screenObject.frame &&
+            this.screenObject.object === visibleScreenObject.object
+        ) {
+            var matchingARFrame = realityEditor.getFrame(
+                this.screenObject.object,
+                this.screenObject.frame
+            );
             if (matchingARFrame && matchingARFrame.visualization === 'screen') {
-
                 // console.log('moved matching ar frame from (' + matchingARFrame.ar.x + ', ' + matchingARFrame.ar.y + ') ...');
 
                 // keep the invisible AR frames synchronized with the position of their screen frames (so that nodes are in same place and pulls out in the right place)
@@ -299,42 +330,40 @@ realityEditor.gui.screenExtension.onScreenTouchMove = function(eventObject) {
             }
         }
     }
-    
+
     // console.log(this.screenObject);
 };
 
-realityEditor.gui.screenExtension.onScreenTouchUp = function(eventObject) {
+realityEditor.gui.screenExtension.onScreenTouchUp = function (eventObject) {
     // reset screen object to null and update screen state to match
     // console.log('onScreenTouchUp', eventObject, this.screenObject);
 
     this.screenObject.closestObject = realityEditor.gui.ar.getClosestObject()[0];
     this.screenObject.touchState = eventObject.type;
-    
-    if (this.getValidTouches(eventObject).length < 2) { // don't reset in between scaling gestures
+
+    if (this.getValidTouches(eventObject).length < 2) {
+        // don't reset in between scaling gestures
         this.screenObject.object = null;
         this.screenObject.frame = null;
         this.screenObject.node = null;
     }
-    
+
     // console.log(this.screenObject);
 };
 
-realityEditor.gui.screenExtension.update = function (){
-
+realityEditor.gui.screenExtension.update = function () {
     if (globalStates.guiState !== 'ui') return;
     if (!this.areAnyScreensVisible()) return;
 
     // console.log("end", this.screenObject);
-    if(this.screenObject.touchState) {
+    if (this.screenObject.touchState) {
         realityEditor.gui.screenExtension.calculatePushPop();
     }
-    
 };
 
-realityEditor.gui.screenExtension.receiveObject = function (object){
-
+realityEditor.gui.screenExtension.receiveObject = function (object) {
     // console.log('receiveObject', object);
-    
+
     this.screenObject.object = object.object;
     this.screenObject.frame = object.frame;
     this.screenObject.node = object.node;
@@ -348,34 +377,31 @@ realityEditor.gui.screenExtension.receiveObject = function (object){
     } else {
         overlayDiv.classList.remove('overlayScreenFrame');
     }
-
 };
 
-realityEditor.gui.screenExtension.onScreenPushIn = function(screenFrame) {
+realityEditor.gui.screenExtension.onScreenPushIn = function (screenFrame) {
     // set screen object visible, wait to hear that the screen received it, then hide AR frame
-    
+
     var isScreenVisible = true;
 
     if (isScreenVisible !== this.screenObject.isScreenVisible) {
-
         console.log('onScreenPushIn');
 
         this.screenObject.isScreenVisible = true;
-        this.screenObject.scale = realityEditor.gui.ar.positioning.getPositionData(screenFrame).scale;
+        this.screenObject.scale =
+            realityEditor.gui.ar.positioning.getPositionData(screenFrame).scale;
         // realityEditor.gui.ar.draw.changeVisualization(screenFrame, newVisualization); // TODO: combine this with updateArFrameVisibility
         realityEditor.app.tap();
         realityEditor.gui.screenExtension.updateArFrameVisibility();
     }
-
 };
 
-realityEditor.gui.screenExtension.onScreenPullOut = function() {
+realityEditor.gui.screenExtension.onScreenPullOut = function () {
     // set screen object hidden, wait to hear that the screen received it, then move AR frame to position and show AR frame
 
     var isScreenVisible = false;
 
     if (isScreenVisible !== this.screenObject.isScreenVisible) {
-
         console.log('onScreenPullOut');
 
         this.screenObject.isScreenVisible = false;
@@ -383,12 +409,11 @@ realityEditor.gui.screenExtension.onScreenPullOut = function() {
         realityEditor.app.tap();
         realityEditor.gui.screenExtension.updateArFrameVisibility();
     }
-
 };
 
-realityEditor.gui.screenExtension.calculatePushPop = function() {
+realityEditor.gui.screenExtension.calculatePushPop = function () {
     if (globalStates.freezeButtonState) return; // don't allow pushing and pulling if the background is frozen
-    
+
     var screenFrame = realityEditor.getFrame(this.screenObject.object, this.screenObject.frame);
     if (!screenFrame) return;
 
@@ -396,26 +421,34 @@ realityEditor.gui.screenExtension.calculatePushPop = function() {
     if (pocketFrame.vehicle && pocketFrame.vehicle.uuid === this.screenObject.frame) {
         return;
     }
-    
+
     // don't do it if we're transitioning the tool from another object
     if (globalStates.inTransitionFrame === this.screenObject.frame) {
         return;
     }
 
-    var isScreenObjectVisible = !!realityEditor.gui.ar.draw.visibleObjects[this.screenObject.object]; // can only push in frames to visible objects
-    if (screenFrame && isScreenObjectVisible && !pocketDropAnimation) { // can only push in frames not being animated forwards when dropping from pocket
-        
-        if (screenFrame.location === 'global') { // only able to push global frames into the screen
+    var isScreenObjectVisible =
+        !!realityEditor.gui.ar.draw.visibleObjects[this.screenObject.object]; // can only push in frames to visible objects
+    if (screenFrame && isScreenObjectVisible && !pocketDropAnimation) {
+        // can only push in frames not being animated forwards when dropping from pocket
+
+        if (screenFrame.location === 'global') {
+            // only able to push global frames into the screen
 
             let toolNode = realityEditor.sceneGraph.getSceneNodeById(this.screenObject.frame);
             let objectNode = realityEditor.sceneGraph.getSceneNodeById(this.screenObject.object);
 
             // get position of tool relative to object, because this is used to push things into the screen
-            let relativeMatrix = (toolNode && objectNode) ? toolNode.getMatrixRelativeTo(objectNode) : realityEditor.gui.ar.utilities.newIdentityMatrix();
+            let relativeMatrix =
+                toolNode && objectNode
+                    ? toolNode.getMatrixRelativeTo(objectNode)
+                    : realityEditor.gui.ar.utilities.newIdentityMatrix();
             let zDistance = relativeMatrix[14];
 
             // calculate distance from camera to object, because this is used to pull things out of screen
-            var distanceToObject = realityEditor.sceneGraph.getDistanceToCamera(this.screenObject.object);
+            var distanceToObject = realityEditor.sceneGraph.getDistanceToCamera(
+                this.screenObject.object
+            );
 
             if (!globalStates.initialDistance) {
                 globalStates.initialDistance = distanceToObject;
@@ -425,10 +458,14 @@ realityEditor.gui.screenExtension.calculatePushPop = function() {
 
             // only push in frame if it is within the width and height of the image target (screen size)
             var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
-            var projectedPoint = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(this.screenObject.object, touchPosition.x, touchPosition.y);
+            var projectedPoint = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+                this.screenObject.object,
+                touchPosition.x,
+                touchPosition.y
+            );
             let targetSize = realityEditor.gui.utilities.getTargetSize(this.screenObject.object);
-            var isWithinWidth = Math.abs(projectedPoint.x) < (targetSize.width * 1000)/2;
-            var isWithinHeight = Math.abs(projectedPoint.y) < (targetSize.height * 1000)/2;
+            var isWithinWidth = Math.abs(projectedPoint.x) < (targetSize.width * 1000) / 2;
+            var isWithinHeight = Math.abs(projectedPoint.y) < (targetSize.height * 1000) / 2;
 
             var didPushIn = false;
 
@@ -438,20 +475,21 @@ realityEditor.gui.screenExtension.calculatePushPop = function() {
             }
 
             // pulling out happens when current distance to screen exceeds initial distance by a certain threshold
-            var didPullOut = (distanceToObject > (globalStates.initialDistance + distanceThreshold) ||
-                                !isWithinWidth || !isWithinHeight);
+            var didPullOut =
+                distanceToObject > globalStates.initialDistance + distanceThreshold ||
+                !isWithinWidth ||
+                !isWithinHeight;
 
-            if (didPullOut) { 
+            if (didPullOut) {
                 this.onScreenPullOut(screenFrame);
-            } else if (didPushIn) { 
+            } else if (didPushIn) {
                 this.onScreenPushIn(screenFrame);
             }
         }
     }
 };
 
-realityEditor.gui.screenExtension.sendScreenObject = function (){
-    
+realityEditor.gui.screenExtension.sendScreenObject = function () {
     for (var frameKey in this.visibleScreenObjects) {
         if (!this.visibleScreenObjects.hasOwnProperty(frameKey)) continue;
         var visibleScreenObject = this.visibleScreenObjects[frameKey];
@@ -460,18 +498,20 @@ realityEditor.gui.screenExtension.sendScreenObject = function (){
         screenObjectClone.y = visibleScreenObject.y;
         screenObjectClone.targetScreen = {
             object: visibleScreenObject.object,
-            frame: visibleScreenObject.frame
+            frame: visibleScreenObject.frame,
         };
         screenObjectClone.touches = visibleScreenObject.touches;
-        
-        var iframe = globalDOMCache["iframe" + frameKey];
+
+        var iframe = globalDOMCache['iframe' + frameKey];
         if (iframe) {
-            iframe.contentWindow.postMessage(JSON.stringify({
-                screenObject: screenObjectClone
-            }), '*');
+            iframe.contentWindow.postMessage(
+                JSON.stringify({
+                    screenObject: screenObjectClone,
+                }),
+                '*'
+            );
         }
     }
-    
 };
 
 /**
@@ -480,67 +520,67 @@ realityEditor.gui.screenExtension.sendScreenObject = function (){
  * @param thisFrame
  * @return {{x: number, y: number}}
  */
-realityEditor.gui.screenExtension.getTouchOffsetAsPercent = function(thisFrame) {
-
+realityEditor.gui.screenExtension.getTouchOffsetAsPercent = function (thisFrame) {
     var frameWidth = parseInt(thisFrame.width);
     var frameHeight = parseInt(thisFrame.height);
 
     var frameDimensions = {
         width: frameWidth * thisFrame.ar.scale,
-        height: frameHeight * thisFrame.ar.scale
+        height: frameHeight * thisFrame.ar.scale,
     };
 
     // touchOffset is only (0,0) on the upper left corner of an iframe if that frame has scale=1
     // otherwise, the upper left corner "scales into" a higher x,y touchOffset coordinate
     // this calculation corrects for that so that frames of any scale have (0,0) at upper left
     var touchOffsetCorrectedForScale = {
-        x: realityEditor.device.editingState.touchOffset.x - frameWidth * (1.0 - thisFrame.ar.scale) / 2,
-        y: realityEditor.device.editingState.touchOffset.y - frameHeight * (1.0 - thisFrame.ar.scale) / 2
+        x:
+            realityEditor.device.editingState.touchOffset.x -
+            (frameWidth * (1.0 - thisFrame.ar.scale)) / 2,
+        y:
+            realityEditor.device.editingState.touchOffset.y -
+            (frameHeight * (1.0 - thisFrame.ar.scale)) / 2,
     };
 
-    var xPercent = (touchOffsetCorrectedForScale.x / frameDimensions.width);
-    var yPercent = (touchOffsetCorrectedForScale.y / frameDimensions.height);
+    var xPercent = touchOffsetCorrectedForScale.x / frameDimensions.width;
+    var yPercent = touchOffsetCorrectedForScale.y / frameDimensions.height;
 
     return {
         x: xPercent,
-        y: yPercent
+        y: yPercent,
     };
 };
 
-realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
+realityEditor.gui.screenExtension.updateArFrameVisibility = function () {
     var thisFrame = realityEditor.getFrame(this.screenObject.object, this.screenObject.frame);
-    if(thisFrame) {
-        
+    if (thisFrame) {
         globalStates.initialDistance = null;
-        
+
         var oldVisualizationPositionData = null;
-        
+
         if (this.screenObject.isScreenVisible) {
             console.log('hide frame -> screen');
-            thisFrame.visualization = "screen";
-            
+            thisFrame.visualization = 'screen';
+
             if (realityEditor.device.editingState.touchOffset) {
-                
                 var touchOffsetPercent = this.getTouchOffsetAsPercent(thisFrame);
                 this.screenObject.touchOffsetX = touchOffsetPercent.x;
                 this.screenObject.touchOffsetY = touchOffsetPercent.y;
-                
             }
 
-            realityEditor.gui.ar.draw.hideTransformed(thisFrame.uuid, thisFrame, globalDOMCache, cout);
+            realityEditor.gui.ar.draw.hideTransformed(
+                thisFrame.uuid,
+                thisFrame,
+                globalDOMCache,
+                cout
+            );
 
             thisFrame.ar.x = 0;
             thisFrame.ar.y = 0;
             thisFrame.begin = [];
-            thisFrame.ar.matrix = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            ];
-            
+            thisFrame.ar.matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
             oldVisualizationPositionData = thisFrame.ar;
-            
+
             realityEditor.device.resetEditingState();
 
             // update position on server
@@ -548,11 +588,10 @@ realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
             // var content = thisFrame.ar;
             // content.lastEditor = globalStates.tempUuid;
             // realityEditor.network.postData(urlEndpoint, content);
-            
         } else {
             console.log('show frame -> AR');
 
-            thisFrame.visualization = "ar";
+            thisFrame.visualization = 'ar';
 
             // set to false so it definitely gets re-added and re-rendered
             thisFrame.visible = false;
@@ -571,8 +610,8 @@ realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
 
             iframe.style.width = thisFrame.frameSizeX + 'px';
             iframe.style.height = thisFrame.frameSizeY + 'px';
-            iframe.style.left = ((globalStates.height - parseFloat(thisFrame.frameSizeX)) / 2) + "px";
-            iframe.style.top = ((globalStates.width - parseFloat(thisFrame.frameSizeY)) / 2) + "px";
+            iframe.style.left = (globalStates.height - parseFloat(thisFrame.frameSizeX)) / 2 + 'px';
+            iframe.style.top = (globalStates.width - parseFloat(thisFrame.frameSizeY)) / 2 + 'px';
 
             overlay.style.width = iframe.style.width;
             overlay.style.height = iframe.style.height;
@@ -590,15 +629,20 @@ realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
             var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
             // realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinateBasedOnTarget(thisFrame, touchPosition.x, touchPosition.y, false);
 
-            let xPos = touchPosition.x - window.innerWidth/2; // (0, 0) is the middle of the screen
-            let yPos = touchPosition.y - window.innerHeight/2;
+            let xPos = touchPosition.x - window.innerWidth / 2; // (0, 0) is the middle of the screen
+            let yPos = touchPosition.y - window.innerHeight / 2;
 
-            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(thisFrame, xPos, yPos, false);
+            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(
+                thisFrame,
+                xPos,
+                yPos,
+                false
+            );
 
             // set touch offset to center of tool's container (which is sized to fit the screen)
             realityEditor.device.editingState.touchOffset = {
-                x: window.innerWidth/2,
-                y: window.innerHeight/2
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
             };
 
             // realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(thisFrame, touchPosition.x, touchPosition.y, true);
@@ -610,7 +654,7 @@ realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
             // // 3. manually apply the touchOffset to the results so that it gets rendered in the correct place on the first pass
             // thisFrame.ar.x -= (convertedTouchOffsetX - parseFloat(thisFrame.width)/2 ) * thisFrame.ar.scale;
             // thisFrame.ar.y -= (convertedTouchOffsetY - parseFloat(thisFrame.height)/2 ) * thisFrame.ar.scale;
-            
+
             // TODO: this causes a bug now with the offset... figure out why it used to be necessary but doesn't help anymore
             // 4. set the actual touchOffset so that it stays in the correct offset as you drag around
             // realityEditor.device.editingState.touchOffset = {
@@ -621,22 +665,28 @@ realityEditor.gui.screenExtension.updateArFrameVisibility = function (){
             realityEditor.gui.ar.draw.showARFrame(activeKey);
 
             realityEditor.device.beginTouchEditing(thisFrame.objectId, activeKey);
-
         }
         console.log('updateArFrameVisibility', thisFrame.visualization);
         // realityEditor.gui.ar.draw.changeVisualization(thisFrame, thisFrame.visualization);
 
         realityEditor.gui.screenExtension.sendScreenObject();
-        
-        realityEditor.network.updateFrameVisualization(objects[thisFrame.objectId].ip, thisFrame.objectId, thisFrame.uuid, thisFrame.visualization, oldVisualizationPositionData);
 
-        this.callbackHandler.triggerCallbacks('updateArFrameVisibility', {objectKey: this.screenObject.object, frameKey: this.screenObject.frame, newVisualization: thisFrame.visualization});
+        realityEditor.network.updateFrameVisualization(
+            objects[thisFrame.objectId].ip,
+            thisFrame.objectId,
+            thisFrame.uuid,
+            thisFrame.visualization,
+            oldVisualizationPositionData
+        );
 
+        this.callbackHandler.triggerCallbacks('updateArFrameVisibility', {
+            objectKey: this.screenObject.object,
+            frameKey: this.screenObject.frame,
+            newVisualization: thisFrame.visualization,
+        });
     }
 };
 
-realityEditor.gui.screenExtension.areAnyScreensVisible = function() {
-
+realityEditor.gui.screenExtension.areAnyScreensVisible = function () {
     return Object.keys(this.visibleScreenObjects).length > 0;
-    
 };

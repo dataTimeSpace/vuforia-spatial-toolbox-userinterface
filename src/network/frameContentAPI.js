@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.network.frameContentAPI");
+createNameSpace('realityEditor.network.frameContentAPI');
 
 /**
  * @fileOverview realityEditor.network.frameContentAPI.js
@@ -6,8 +6,7 @@ createNameSpace("realityEditor.network.frameContentAPI");
  * @todo: finish moving other functionality here
  */
 
-(function(exports) {
-    
+(function (exports) {
     let lastSentMatrices = {};
 
     /**
@@ -16,7 +15,7 @@ createNameSpace("realityEditor.network.frameContentAPI");
     function initService() {
         realityEditor.device.keyboardEvents.registerCallback('keyUpHandler', keyUpHandler);
         realityEditor.device.keyboardEvents.registerCallback('keyboardHidden', onKeyboardHidden);
-        
+
         realityEditor.gui.pocket.registerCallback('frameAdded', onFrameAdded);
 
         realityEditor.device.registerCallback('vehicleDeleted', onVehicleDeleted);
@@ -30,12 +29,18 @@ createNameSpace("realityEditor.network.frameContentAPI");
     }
 
     function setupInternalPostMessageListeners() {
-        realityEditor.network.addPostMessageHandler('sendCoordinateSystems', (msgContent, fullMessage) => {
-            let frame = realityEditor.getFrame(fullMessage.object, fullMessage.frame);
-            if (!frame) return;
-            frame.sendCoordinateSystems = msgContent;
-            console.log('frame was told to send coordinate systems', frame.sendCoordinateSystems);
-        });
+        realityEditor.network.addPostMessageHandler(
+            'sendCoordinateSystems',
+            (msgContent, fullMessage) => {
+                let frame = realityEditor.getFrame(fullMessage.object, fullMessage.frame);
+                if (!frame) return;
+                frame.sendCoordinateSystems = msgContent;
+                console.log(
+                    'frame was told to send coordinate systems',
+                    frame.sendCoordinateSystems
+                );
+            }
+        );
     }
 
     function sendCoordinateSystemsToIFrame(objectKey, frameKey) {
@@ -56,54 +61,88 @@ createNameSpace("realityEditor.network.frameContentAPI");
             coordinateSystems.projectionMatrix = globalStates.realProjectionMatrix;
         }
         if (frame.sendCoordinateSystems.toolOrigin) {
-            coordinateSystems.toolOrigin = realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix;
+            coordinateSystems.toolOrigin =
+                realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix;
         }
         if (frame.sendCoordinateSystems.groundPlaneOrigin) {
-            coordinateSystems.groundPlaneOrigin = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
+            coordinateSystems.groundPlaneOrigin =
+                realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
         }
         if (frame.sendCoordinateSystems.worldOrigin) {
-            coordinateSystems.worldOrigin = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId()).worldMatrix;
+            coordinateSystems.worldOrigin = realityEditor.sceneGraph.getSceneNodeById(
+                realityEditor.sceneGraph.getWorldId()
+            ).worldMatrix;
         }
 
         // only calculate the more complex ones if the tool origin has also changed, otherwise skip the computation
         // because they can't have changed without the tool origin also changing
-        if (frame.sendCoordinateSystems.toolGroundPlaneShadow || frame.sendCoordinateSystems.toolSurfaceShadow) {
-            let toolOriginChecksum = matrixChecksum(realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix);
-            if (!lastSentMatrices[frameKey].toolOrigin || lastSentMatrices[frameKey].toolOrigin !== toolOriginChecksum) {
+        if (
+            frame.sendCoordinateSystems.toolGroundPlaneShadow ||
+            frame.sendCoordinateSystems.toolSurfaceShadow
+        ) {
+            let toolOriginChecksum = matrixChecksum(
+                realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix
+            );
+            if (
+                !lastSentMatrices[frameKey].toolOrigin ||
+                lastSentMatrices[frameKey].toolOrigin !== toolOriginChecksum
+            ) {
                 if (frame.sendCoordinateSystems.toolGroundPlaneShadow) {
-                    coordinateSystems.toolGroundPlaneShadow = realityEditor.gui.threejsScene.getToolGroundPlaneShadowMatrix(objectKey, frameKey);
+                    coordinateSystems.toolGroundPlaneShadow =
+                        realityEditor.gui.threejsScene.getToolGroundPlaneShadowMatrix(
+                            objectKey,
+                            frameKey
+                        );
                 }
                 if (frame.sendCoordinateSystems.toolSurfaceShadow) {
-                    coordinateSystems.toolSurfaceShadow = realityEditor.gui.threejsScene.getToolSurfaceShadowMatrix(objectKey, frameKey);
+                    coordinateSystems.toolSurfaceShadow =
+                        realityEditor.gui.threejsScene.getToolSurfaceShadowMatrix(
+                            objectKey,
+                            frameKey
+                        );
                 }
             }
         }
 
         let keysThatDidntChange = [];
-        Object.keys(coordinateSystems).forEach(coordSystem => {
+        Object.keys(coordinateSystems).forEach((coordSystem) => {
             let checksum = matrixChecksum(coordinateSystems[coordSystem]);
-            if (lastSentMatrices[frameKey][coordSystem] && lastSentMatrices[frameKey][coordSystem] === checksum) {
+            if (
+                lastSentMatrices[frameKey][coordSystem] &&
+                lastSentMatrices[frameKey][coordSystem] === checksum
+            ) {
                 keysThatDidntChange.push(coordSystem);
             }
         });
 
-        keysThatDidntChange.forEach(key => {
+        keysThatDidntChange.forEach((key) => {
             delete coordinateSystems[key];
         });
 
         if (Object.keys(coordinateSystems).length === 0) return;
 
-        globalDOMCache["iframe" + frameKey].contentWindow.postMessage(JSON.stringify({
-            coordinateSystems: coordinateSystems
-        }), '*');
+        globalDOMCache['iframe' + frameKey].contentWindow.postMessage(
+            JSON.stringify({
+                coordinateSystems: coordinateSystems,
+            }),
+            '*'
+        );
 
-        Object.keys(coordinateSystems).forEach(coordSystem => {
-            lastSentMatrices[frameKey][coordSystem] = matrixChecksum(coordinateSystems[coordSystem]);
+        Object.keys(coordinateSystems).forEach((coordSystem) => {
+            lastSentMatrices[frameKey][coordSystem] = matrixChecksum(
+                coordinateSystems[coordSystem]
+            );
         });
 
         // if using toolGroundPlaneShadow or toolSurfaceShadow, but not toolOrigin, store the tool origin checksum to help with the above shortcut
-        if ((frame.sendCoordinateSystems.toolSurfaceShadow || frame.sendCoordinateSystems.toolGroundPlaneShadow) && !frame.sendCoordinateSystems.toolOrigin) {
-            lastSentMatrices[frameKey].toolOrigin = matrixChecksum(realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix);
+        if (
+            (frame.sendCoordinateSystems.toolSurfaceShadow ||
+                frame.sendCoordinateSystems.toolGroundPlaneShadow) &&
+            !frame.sendCoordinateSystems.toolOrigin
+        ) {
+            lastSentMatrices[frameKey].toolOrigin = matrixChecksum(
+                realityEditor.sceneGraph.getSceneNodeById(frameKey).worldMatrix
+            );
         }
     }
 
@@ -123,8 +162,8 @@ createNameSpace("realityEditor.network.frameContentAPI");
             frameCreatedEvent: {
                 objectId: params.objectKey,
                 frameId: params.frameKey,
-                frameType: params.frameType
-            }
+                frameType: params.frameType,
+            },
         });
     }
 
@@ -133,13 +172,14 @@ createNameSpace("realityEditor.network.frameContentAPI");
      * @param {{objectKey: string, frameKey: string, additionalInfo: {frameType: string|undefined}}} params
      */
     function onVehicleDeleted(params) {
-        if (params.objectKey && params.frameKey && !params.nodeKey) { // only send message about frames, not nodes
+        if (params.objectKey && params.frameKey && !params.nodeKey) {
+            // only send message about frames, not nodes
             sendMessageToAllVisibleFrames({
                 frameDeletedEvent: {
                     objectId: params.objectKey,
                     frameId: params.frameKey,
-                    frameType: params.additionalInfo.frameType
-                }
+                    frameType: params.additionalInfo.frameType,
+                },
             });
         }
     }
@@ -153,8 +193,8 @@ createNameSpace("realityEditor.network.frameContentAPI");
         realityEditor.network.postMessageIntoFrame(params.frameKey, {
             fullScreenEjectedEvent: {
                 objectId: params.objectKey,
-                frameId: params.frameKey
-            }
+                frameId: params.frameKey,
+            },
         });
     }
 
@@ -174,7 +214,7 @@ createNameSpace("realityEditor.network.frameContentAPI");
      * @param {*} msgContent
      */
     function sendMessageToAllFramesOnObject(objectKey, msgContent) {
-        realityEditor.forEachFrameInObject(objectKey, function(objectKey, frameKey) {
+        realityEditor.forEachFrameInObject(objectKey, function (objectKey, frameKey) {
             realityEditor.network.postMessageIntoFrame(frameKey, msgContent);
         });
     }
@@ -185,11 +225,11 @@ createNameSpace("realityEditor.network.frameContentAPI");
      */
     function keyUpHandler(params) {
         var acyclicEventObject = getMutablePointerEventCopy(params.event); // can't stringify a cyclic object, which the event might be
-        sendMessageToAllVisibleFrames({keyboardUpEvent: acyclicEventObject});
+        sendMessageToAllVisibleFrames({ keyboardUpEvent: acyclicEventObject });
     }
 
     function onKeyboardHidden() {
-        sendMessageToAllVisibleFrames({keyboardHiddenEvent: true});
+        sendMessageToAllVisibleFrames({ keyboardHiddenEvent: true });
     }
 
     /**
@@ -215,7 +255,8 @@ createNameSpace("realityEditor.network.frameContentAPI");
     function copyObject(jsonObject, keysToExclude) {
         var newObject = {};
         for (var key in jsonObject) {
-            if (typeof keysToExclude === 'undefined' || keysToExclude.indexOf(key) === -1) { // copy over all the keys that don't match the excluded ones
+            if (typeof keysToExclude === 'undefined' || keysToExclude.indexOf(key) === -1) {
+                // copy over all the keys that don't match the excluded ones
                 newObject[key] = jsonObject[key];
             }
         }
@@ -231,13 +272,12 @@ createNameSpace("realityEditor.network.frameContentAPI");
         sendMessageToAllFramesOnObject(objectId, {
             updateWorldId: {
                 objectId: objectId,
-                worldId: worldId
-            }
+                worldId: worldId,
+            },
         });
     }
 
     exports.initService = initService;
     exports.getMutablePointerEventCopy = getMutablePointerEventCopy;
     exports.sendCoordinateSystemsToIFrame = sendCoordinateSystemsToIFrame;
-
 })(realityEditor.network.frameContentAPI);

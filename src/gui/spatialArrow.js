@@ -1,10 +1,9 @@
-createNameSpace("realityEditor.gui.spatialArrow");
+createNameSpace('realityEditor.gui.spatialArrow');
 
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import { remap } from "../utilities/MathUtils.js";
+import { remap } from '../utilities/MathUtils.js';
 
 (function (exports) {
-    
     let canvasContainer;
     let canvas;
     let ctx;
@@ -46,7 +45,7 @@ import { remap } from "../utilities/MathUtils.js";
         canvas.style.zIndex = '3001';
         canvasContainer.appendChild(canvas);
 
-        ctx = canvas.getContext("2d");
+        ctx = canvas.getContext('2d');
     }
 
     function resizeCanvas() {
@@ -59,7 +58,8 @@ import { remap } from "../utilities/MathUtils.js";
         }
     }
 
-    let translateX = 0, translateY = 0;
+    let translateX = 0,
+        translateY = 0;
 
     function translate(x, y) {
         translateX += x;
@@ -80,11 +80,18 @@ import { remap } from "../utilities/MathUtils.js";
     }
 
     // draw an arrow at (x, y) center
-    function drawArrow(x, y, rotation, scaleFactor, innerColor='rgb(0, 255, 255)', outerColor='rgb(255, 255, 255)') {
+    function drawArrow(
+        x,
+        y,
+        rotation,
+        scaleFactor,
+        innerColor = 'rgb(0, 255, 255)',
+        outerColor = 'rgb(255, 255, 255)'
+    ) {
         translate(x, y);
         scale(scaleFactor, scaleFactor);
         rotate(rotation);
-        
+
         // draw path
         let region = new Path2D();
         region.moveTo(0, -3);
@@ -96,9 +103,9 @@ import { remap } from "../utilities/MathUtils.js";
         ctx.fill(region, 'evenodd');
         // stroke path
         ctx.strokeStyle = outerColor;
-        ctx.lineWidth = .4;
+        ctx.lineWidth = 0.4;
         ctx.stroke(region);
-        
+
         rotate(-rotation);
         scale(1 / scaleFactor, 1 / scaleFactor);
         translate(-x, -y);
@@ -109,21 +116,23 @@ import { remap } from "../utilities/MathUtils.js";
         translate(screenW / 2, screenH / 2);
         clear();
     }
-    
+
     let indicators = [];
     function searchForIndicators() {
         // todo: auto detect the indicator names, instead of hard-coded 'cylinderIndicator'
         indicators = realityEditor.gui.threejsScene.getObjectsByName('cylinderIndicator');
     }
-    
+
     function drawArrowBasedOnWorldPosition(worldPos, color, colorLighter) {
-        let finalPosX = 0, finalPosY = 0;
+        let finalPosX = 0,
+            finalPosY = 0;
         let screenX, screenY;
         let screenBorderFactor = 0.97;
-        let desX = 0, desY = 0;
+        let desX = 0,
+            desY = 0;
         let angle = 0;
         let k;
-        
+
         if (worldPos === null) return; // if rendering my avatar laser beam, then doesn't need to draw the arrow, since the laser beam is always on screen
         // if the object is off screen, then reverse its original screen position, then add the indicator
         if (!realityEditor.gui.threejsScene.isPointOnScreen(worldPos)) {
@@ -132,8 +141,8 @@ import { remap } from "../utilities/MathUtils.js";
             screenX = screenXY.x;
             screenY = screenXY.y;
 
-            desX = remap(screenX, 0, screenW, -screenW/2, screenW/2);
-            desY = remap(screenY, 0, screenH, -screenH/2, screenH/2);
+            desX = remap(screenX, 0, screenW, -screenW / 2, screenW / 2);
+            desY = remap(screenY, 0, screenH, -screenH / 2, screenH / 2);
 
             angle = Math.atan2(desY, desX);
             angle += Math.PI / 2;
@@ -144,7 +153,7 @@ import { remap } from "../utilities/MathUtils.js";
                 if (Math.abs(k) < screenRatio) {
                     if (screenX < screenW / 2) {
                         // left side bottom half
-                        finalPosX = - screenW / 2;
+                        finalPosX = -screenW / 2;
                         finalPosY = finalPosX * k;
                     } else {
                         // right side top half
@@ -158,7 +167,7 @@ import { remap } from "../utilities/MathUtils.js";
                         finalPosX = finalPosY / k;
                     } else {
                         // top side right half
-                        finalPosY = - screenH / 2;
+                        finalPosY = -screenH / 2;
                         finalPosX = finalPosY / k;
                     }
                 }
@@ -166,7 +175,7 @@ import { remap } from "../utilities/MathUtils.js";
                 if (Math.abs(k) < screenRatio) {
                     if (screenX < screenW / 2) {
                         // left side top half
-                        finalPosX = - screenW / 2;
+                        finalPosX = -screenW / 2;
                         finalPosY = finalPosX * k;
                     } else {
                         // right side bottom half
@@ -176,7 +185,7 @@ import { remap } from "../utilities/MathUtils.js";
                 } else {
                     if (screenX < screenW / 2) {
                         // top side left half
-                        finalPosY = - screenH / 2;
+                        finalPosY = -screenH / 2;
                         finalPosX = finalPosY / k;
                     } else {
                         // bottom side right half
@@ -192,37 +201,44 @@ import { remap } from "../utilities/MathUtils.js";
             drawArrow(finalPosX, finalPosY, angle, 5, color, colorLighter);
         }
     }
-    
+
     function drawArrowsAtIndicatorScreenPositions() {
-        
         let worldPos = new THREE.Vector3();
-        
+
         indicators.forEach((indicator) => {
             indicator.getWorldPosition(worldPos);
-            
-            drawArrowBasedOnWorldPosition(worldPos, indicator.avatarColor, indicator.avatarColorLighter);
-        })
-        
+
+            drawArrowBasedOnWorldPosition(
+                worldPos,
+                indicator.avatarColor,
+                indicator.avatarColorLighter
+            );
+        });
+
         // displaying off screen arrows for laser beams
         for (let idx in laserBeamIndicators) {
             let laserBeam = laserBeamIndicators[idx];
-            drawArrowBasedOnWorldPosition(laserBeam.worldPos, laserBeam.color, laserBeam.colorLighter);
+            drawArrowBasedOnWorldPosition(
+                laserBeam.worldPos,
+                laserBeam.color,
+                laserBeam.colorLighter
+            );
         }
     }
-    
+
     let laserBeamIndicators = {};
     function addLaserBeamIndicator(id, worldPos, color, colorLighter) {
         laserBeamIndicators[id] = {
             worldPos,
             color,
-            colorLighter
+            colorLighter,
         };
     }
-    
+
     function deleteLaserBeamIndicator(id) {
         delete laserBeamIndicators[id];
     }
-    
+
     function drawIndicatorArrows() {
         searchForIndicators();
         drawArrowsAtIndicatorScreenPositions();
@@ -238,5 +254,4 @@ import { remap } from "../utilities/MathUtils.js";
     exports.drawArrowBasedOnWorldPosition = drawArrowBasedOnWorldPosition;
     exports.addLaserBeamIndicator = addLaserBeamIndicator;
     exports.deleteLaserBeamIndicator = deleteLaserBeamIndicator;
-
 })(realityEditor.gui.spatialArrow);

@@ -1,11 +1,16 @@
-import {getMeasurementTextLabel} from '../humanPose/spaghetti.js';
-import {JOINTS, HUMAN_TRACKING_FPS} from '../humanPose/constants.js';
-import {MIN_ACCELERATION, MAX_ACCELERATION} from '../humanPose/AccelerationLens.js';
-import {MIN_REBA_SCORE, MAX_REBA_SCORE} from '../humanPose/rebaScore.js';
-import {MIN_MURI_SCORE, MAX_MURI_SCORE, MURI_SCORES, MURI_CONFIG} from '../humanPose/MuriScore.js';
-import {ValueAddWasteTimeTypes} from './ValueAddWasteTimeManager.js';
-import {makeTextInput} from '../utilities/makeTextInput.js';
-import {getConvexHullOfPoses} from './getConvexHullOfPoses.js';
+import { getMeasurementTextLabel } from '../humanPose/spaghetti.js';
+import { JOINTS, HUMAN_TRACKING_FPS } from '../humanPose/constants.js';
+import { MIN_ACCELERATION, MAX_ACCELERATION } from '../humanPose/AccelerationLens.js';
+import { MIN_REBA_SCORE, MAX_REBA_SCORE } from '../humanPose/rebaScore.js';
+import {
+    MIN_MURI_SCORE,
+    MAX_MURI_SCORE,
+    MURI_SCORES,
+    MURI_CONFIG,
+} from '../humanPose/MuriScore.js';
+import { ValueAddWasteTimeTypes } from './ValueAddWasteTimeManager.js';
+import { makeTextInput } from '../utilities/makeTextInput.js';
+import { getConvexHullOfPoses } from './getConvexHullOfPoses.js';
 
 const cardWidth = 200;
 const rowHeight = 22;
@@ -105,30 +110,30 @@ export class RegionCard {
 
     onClickPin() {
         switch (this.state) {
-        case RegionCardState.Tooltip:
-            this.pin();
-            break;
-        case RegionCardState.Pinned:
-            this.unpin();
-            break;
+            case RegionCardState.Tooltip:
+                this.pin();
+                break;
+            case RegionCardState.Pinned:
+                this.unpin();
+                break;
         }
         event.stopPropagation();
     }
 
     onClickShow() {
         switch (this.state) {
-        case RegionCardState.Tooltip:
-            this.pin();
-            break;
-        case RegionCardState.Pinned:
-            if (this.displayActive) {
-                this.hide();
-            } else {
-                this.show();
-                realityEditor.motionStudy.showMatchingRegionCards(this);
-                // this.createPolygonSensor();
-            }
-            break;
+            case RegionCardState.Tooltip:
+                this.pin();
+                break;
+            case RegionCardState.Pinned:
+                if (this.displayActive) {
+                    this.hide();
+                } else {
+                    this.show();
+                    realityEditor.motionStudy.showMatchingRegionCards(this);
+                    // this.createPolygonSensor();
+                }
+                break;
         }
         this.updateDisplayActive();
     }
@@ -169,7 +174,6 @@ export class RegionCard {
         this.updateDisplayActive();
     }
 
-
     save() {
         let addedTool = realityEditor.spatialCursor.addToolAtScreenCenter('spatialAnalytics');
         const frameKey = addedTool.uuid;
@@ -179,7 +183,13 @@ export class RegionCard {
             summary: this.element.outerHTML,
         };
         const write = () => {
-            realityEditor.network.realtime.writePublicData(addedTool.objectId, frameKey, frameKey + 'storage', 'status', publicData);
+            realityEditor.network.realtime.writePublicData(
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'status',
+                publicData
+            );
         };
         setTimeout(write, 1000);
         setTimeout(write, 2000);
@@ -201,7 +211,8 @@ export class RegionCard {
     updatePinButtonText() {
         let pinButton = this.element.querySelector('#analytics-region-card-step');
         if (pinButton) {
-            pinButton.textContent = this.state === RegionCardState.Pinned ? 'Remove Step' : 'Mark Step';
+            pinButton.textContent =
+                this.state === RegionCardState.Pinned ? 'Remove Step' : 'Mark Step';
         }
         this.updateDisplayActive();
     }
@@ -239,21 +250,21 @@ export class RegionCard {
         );
 
         const colorDot = document.createElement('div');
-        colorDot.classList.add(
-            'analytics-region-card-dot'
-        );
+        colorDot.classList.add('analytics-region-card-dot');
 
         const motionSummary = document.createElement('div');
         motionSummary.classList.add(
             'analytics-region-card-subtitle',
             'analytics-region-card-motion-summary'
         );
-        
+
         this.valueAddWasteTimeSummary = document.createElement('div');
-        this.valueAddWasteTimeSummary.classList.add('analytics-region-card-value-add-waste-time-summary');
+        this.valueAddWasteTimeSummary.classList.add(
+            'analytics-region-card-value-add-waste-time-summary'
+        );
         this.valueAddWasteTimeSummary.setValues = (valuePercent, wastePercent) => {
             this.valueAddWasteTimeSummary.innerHTML = `Value Add: ${valuePercent}%, Waste Time: ${wastePercent}%`;
-        }
+        };
         this.valueAddWasteTimeSummary.setValues(0, 0);
 
         this.element.appendChild(dateTimeTitle);
@@ -332,7 +343,7 @@ export class RegionCard {
         });
         this.valueAddButton = valueAddButton;
         valueAddWasteTimeDiv.appendChild(valueAddButton);
-        
+
         this.updateDisplayActive();
     }
 
@@ -347,11 +358,11 @@ export class RegionCard {
             let filteredPoses = [];
             let lastTs = 0;
             for (let pose of this.poses) {
-              if (pose.timestamp - lastTs < 50) {
-                continue;
-              }
-              lastTs = pose.timestamp;
-              filteredPoses.push(pose);
+                if (pose.timestamp - lastTs < 50) {
+                    continue;
+                }
+                lastTs = pose.timestamp;
+                filteredPoses.push(pose);
             }
             this.poses = filteredPoses;
 
@@ -370,7 +381,7 @@ export class RegionCard {
             const dateTimeTitle = this.element.querySelector('.analytics-region-card-date-time');
             dateTimeTitle.textContent = this.dateTimeFormat.formatRange(
                 new Date(this.startTime),
-                new Date(this.endTime),
+                new Date(this.endTime)
             );
         } catch (_) {
             // formatRange failed for some time-related reason
@@ -422,14 +433,14 @@ export class RegionCard {
         let title = document.createElement('div');
         title.classList.add(
             'analytics-region-card-graph-section-title',
-            'analytics-region-card-graph-section-id-' + id,
+            'analytics-region-card-graph-section-id-' + id
         );
         title.textContent = titleText;
 
         let sparkLine = document.createElementNS(svgNS, 'svg');
         sparkLine.classList.add(
             'analytics-region-card-graph-section-sparkline',
-            'analytics-region-card-graph-section-id-' + id,
+            'analytics-region-card-graph-section-id-' + id
         );
         sparkLine.setAttribute('width', cardWidth / 3);
         sparkLine.setAttribute('height', rowHeight);
@@ -445,30 +456,24 @@ export class RegionCard {
         average.classList.add(
             'analytics-region-card-graph-section-value',
             'analytics-region-card-graph-section-average-' + id,
-            'analytics-region-card-graph-section-id-' + id,
+            'analytics-region-card-graph-section-id-' + id
         );
 
         let minimum = document.createElement('div');
         minimum.classList.add(
             'analytics-region-card-graph-section-value',
             'analytics-region-card-graph-section-minimum-' + id,
-            'analytics-region-card-graph-section-id-' + id,
+            'analytics-region-card-graph-section-id-' + id
         );
 
         let maximum = document.createElement('div');
         maximum.classList.add(
             'analytics-region-card-graph-section-value',
             'analytics-region-card-graph-section-maximum-' + id,
-            'analytics-region-card-graph-section-id-' + id,
+            'analytics-region-card-graph-section-id-' + id
         );
 
-        const elements = [
-            title,
-            sparkLine,
-            average,
-            minimum,
-            maximum
-        ];
+        const elements = [title, sparkLine, average, minimum, maximum];
         for (const elt of elements) {
             this.element.appendChild(elt);
         }
@@ -479,19 +484,27 @@ export class RegionCard {
         let summaryValues = this.getSummaryValues(poseValueFunction);
         this.graphSummaryValues[titleText] = summaryValues;
 
-        let path = this.element.querySelector('.analytics-region-card-graph-section-sparkline-path-' + id);
+        let path = this.element.querySelector(
+            '.analytics-region-card-graph-section-sparkline-path-' + id
+        );
         path.setAttribute('d', this.getSparkLinePath(poseValueFunction, summaryValues));
 
-        let average = this.element.querySelector('.analytics-region-card-graph-section-average-' + id);
+        let average = this.element.querySelector(
+            '.analytics-region-card-graph-section-average-' + id
+        );
         // average.innerHTML = '';
         average.textContent = 'Avg: ';
         average.appendChild(this.makeSummaryValue(summaryValues.average, minValue, maxValue));
 
-        let minimum = this.element.querySelector('.analytics-region-card-graph-section-minimum-' + id);
+        let minimum = this.element.querySelector(
+            '.analytics-region-card-graph-section-minimum-' + id
+        );
         minimum.textContent = 'Min: ';
         minimum.appendChild(this.makeSummaryValue(summaryValues.minimum, minValue, maxValue));
 
-        let maximum = this.element.querySelector('.analytics-region-card-graph-section-maximum-' + id);
+        let maximum = this.element.querySelector(
+            '.analytics-region-card-graph-section-maximum-' + id
+        );
         maximum.textContent = 'Max: ';
         maximum.appendChild(this.makeSummaryValue(summaryValues.maximum, minValue, maxValue));
     }
@@ -516,7 +529,7 @@ export class RegionCard {
         let sparkLine = document.createElementNS(svgNS, 'svg');
         sparkLine.classList.add(
             'analytics-region-card-windchill',
-            'analytics-region-card-graph-section-sparkline',
+            'analytics-region-card-graph-section-sparkline'
         );
         sparkLine.setAttribute('width', cardWidth / 3);
         sparkLine.setAttribute('height', rowHeight);
@@ -525,12 +538,12 @@ export class RegionCard {
         let actualRect = document.createElementNS(svgNS, 'rect');
         actualRect.classList.add(
             'analytics-region-card-windchill',
-            'analytics-region-card-graph-section-sparkline-actual-' + id,
+            'analytics-region-card-graph-section-sparkline-actual-' + id
         );
         let planRect = document.createElementNS(svgNS, 'rect');
         planRect.classList.add(
             'analytics-region-card-windchill',
-            'analytics-region-card-graph-section-sparkline-plan-' + id,
+            'analytics-region-card-graph-section-sparkline-plan-' + id
         );
 
         sparkLine.appendChild(actualRect);
@@ -590,8 +603,12 @@ export class RegionCard {
         let overage = 1 - (durationMs - plannedMs) / plannedMs;
         let overageColor = this.getValueColor(overage);
 
-        let actualRect = this.element.querySelector('.analytics-region-card-graph-section-sparkline-actual-' + id);
-        let planRect = this.element.querySelector('.analytics-region-card-graph-section-sparkline-plan-' + id);
+        let actualRect = this.element.querySelector(
+            '.analytics-region-card-graph-section-sparkline-actual-' + id
+        );
+        let planRect = this.element.querySelector(
+            '.analytics-region-card-graph-section-sparkline-plan-' + id
+        );
 
         let widthMs = Math.max(durationMs, plannedMs);
         let width = cardWidth / 3;
@@ -599,21 +616,26 @@ export class RegionCard {
         actualRect.setAttribute('x', 0);
         actualRect.setAttribute('y', rowHeight / 6);
         actualRect.setAttribute('height', rowHeight / 2);
-        actualRect.setAttribute('width', durationMs / widthMs * width);
+        actualRect.setAttribute('width', (durationMs / widthMs) * width);
         actualRect.style.fill = overageColor;
         actualRect.style.stroke = 'none';
 
         planRect.setAttribute('x', 0);
         planRect.setAttribute('y', rowHeight / 2 + rowHeight / 6);
         planRect.setAttribute('height', rowHeight / 6);
-        planRect.setAttribute('width', plannedMs / widthMs * width);
+        planRect.setAttribute('width', (plannedMs / widthMs) * width);
         planRect.style.fill = 'white';
         planRect.style.stroke = 'none';
 
-        let actualText = this.element.querySelector('.analytics-region-card-graph-section-actual-' + id);
-        let planText = this.element.querySelector('.analytics-region-card-graph-section-plan-' + id);
-        let diffText = this.element.querySelector('.analytics-region-card-graph-section-diff-' + id);
-
+        let actualText = this.element.querySelector(
+            '.analytics-region-card-graph-section-actual-' + id
+        );
+        let planText = this.element.querySelector(
+            '.analytics-region-card-graph-section-plan-' + id
+        );
+        let diffText = this.element.querySelector(
+            '.analytics-region-card-graph-section-diff-' + id
+        );
 
         let durationLabel = (durationMs / 1000).toFixed(1) + 's';
         let planLabel = (plannedMs / 1000).toFixed(1) + 's';
@@ -671,28 +693,49 @@ export class RegionCard {
             return;
         }
 
-        this.updateGraphSection('reba', 'REBA', pose => pose.getJoint(JOINTS.HEAD).overallRebaScore, MIN_REBA_SCORE, MAX_REBA_SCORE);
-        this.updateGraphSection('muri', 'MURI', pose => pose.metadata.overallMuriScore, MIN_MURI_SCORE, MAX_MURI_SCORE);
-        this.updateGraphSection('accel', 'Accel', pose => {
-            let maxAcceleration = 0;
-            pose.forEachJoint(joint => {
-                maxAcceleration = Math.max(maxAcceleration, joint.accelerationMagnitude || 0);
-            });
-            return maxAcceleration;
-        }, MIN_ACCELERATION, MAX_ACCELERATION);
+        this.updateGraphSection(
+            'reba',
+            'REBA',
+            (pose) => pose.getJoint(JOINTS.HEAD).overallRebaScore,
+            MIN_REBA_SCORE,
+            MAX_REBA_SCORE
+        );
+        this.updateGraphSection(
+            'muri',
+            'MURI',
+            (pose) => pose.metadata.overallMuriScore,
+            MIN_MURI_SCORE,
+            MAX_MURI_SCORE
+        );
+        this.updateGraphSection(
+            'accel',
+            'Accel',
+            (pose) => {
+                let maxAcceleration = 0;
+                pose.forEachJoint((joint) => {
+                    maxAcceleration = Math.max(maxAcceleration, joint.accelerationMagnitude || 0);
+                });
+                return maxAcceleration;
+            },
+            MIN_ACCELERATION,
+            MAX_ACCELERATION
+        );
 
         // add extra stats for all muri scores. They are not shown in UI.
-        
-        // derive histogram bins for individual score weights. We get histogram counts of all weights for every muri score, although all of them may not be used by a specific score. 
+
+        // derive histogram bins for individual score weights. We get histogram counts of all weights for every muri score, although all of them may not be used by a specific score.
         let valueLevelThresholds = MURI_CONFIG.scoreWeights.toSorted((a, b) => a - b);
         valueLevelThresholds.unshift(valueLevelThresholds[0] - 1); // start of first bin
         // add small eps if scoreWeights happen to be floats
         valueLevelThresholds.forEach((number, index, arr) => {
             arr[index] = number + 0.00001;
         });
-        Object.values(MURI_SCORES).forEach(scoreName => {
+        Object.values(MURI_SCORES).forEach((scoreName) => {
             let titleText = 'MURI ' + scoreName;
-            this.graphSummaryValues[titleText] = this.getSummaryValuesExtended(pose => pose.metadata.muriScores[scoreName], valueLevelThresholds);
+            this.graphSummaryValues[titleText] = this.getSummaryValuesExtended(
+                (pose) => pose.metadata.muriScores[scoreName],
+                valueLevelThresholds
+            );
         });
     }
 
@@ -738,8 +781,8 @@ export class RegionCard {
         for (let i = 0; i < this.poses.length; i++) {
             const pose = this.poses[i];
             const val = poseValueFunction(pose);
-            const x = Math.round((pose.timestamp - minX) / (maxX - minX) * width);
-            const y = Math.round((maxY - val) / (maxY - minY) * height);
+            const x = Math.round(((pose.timestamp - minX) / (maxX - minX)) * width);
+            const y = Math.round(((maxY - val) / (maxY - minY)) * height);
             path += x + ' ' + y;
             if (i < this.poses.length - 1) {
                 let nextPose = this.poses[i + 1];
@@ -773,7 +816,7 @@ export class RegionCard {
             minimum,
             maximum,
             sum,
-            count
+            count,
         };
     }
 
@@ -786,7 +829,7 @@ export class RegionCard {
         for (const pose of this.poses) {
             const val = poseValueFunction(pose);
             if (val == null) {
-                continue
+                continue;
             }
             sum += val;
             count++;
@@ -802,12 +845,15 @@ export class RegionCard {
         }
 
         // calculate time duration of individual levels of input values. Add a extra duration when the value is unknown.
-        // Note: this taking into account all cases why the value is unknown - no pose at all; body part has low confidence; value cannot be calculated  
+        // Note: this taking into account all cases why the value is unknown - no pose at all; body part has low confidence; value cannot be calculated
         // convert histogram counts to time durations within total step duration
-        const totalDuration = this.endTime - this.startTime;  // in ms
-        const singlePoseStandardTime =  1000 / HUMAN_TRACKING_FPS; // in ms
-        let levelDurations = levelCounts.map(val => val * singlePoseStandardTime);
-        let levelDurationSum = levelDurations.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+        const totalDuration = this.endTime - this.startTime; // in ms
+        const singlePoseStandardTime = 1000 / HUMAN_TRACKING_FPS; // in ms
+        let levelDurations = levelCounts.map((val) => val * singlePoseStandardTime);
+        let levelDurationSum = levelDurations.reduce(
+            (accumulator, currentValue) => accumulator + currentValue,
+            0
+        );
         let unknownDuration = 0;
         if (levelDurationSum > totalDuration) {
             // it is possible to go bit over 100% because of theoretic regular singlePoseStandardTime
@@ -815,14 +861,15 @@ export class RegionCard {
             levelDurations.forEach((duration, index, arr) => {
                 arr[index] = (duration / levelDurationSum) * totalDuration;
             });
-        }
-        else {
+        } else {
             unknownDuration = totalDuration - levelDurationSum;
         }
-        levelDurations.push(unknownDuration); 
+        levelDurations.push(unknownDuration);
 
         // calculate % of time for individual levels of input values in the total step duration.  Add a extra % for time when the value is unknown.
-        let levelDurationPercentages = levelDurations.map(duration => (duration/totalDuration) * 100);
+        let levelDurationPercentages = levelDurations.map(
+            (duration) => (duration / totalDuration) * 100
+        );
 
         let average = 0;
         if (count > 0) {
@@ -836,7 +883,7 @@ export class RegionCard {
             count,
             levelCounts,
             levelDurations,
-            levelDurationPercentages
+            levelDurationPercentages,
         };
     }
 
@@ -890,11 +937,14 @@ export class RegionCard {
      * @return {{valuePercent: number, wastePercent: number, valueTimeMs: number, wasteTimeMs: number}?}
      */
     getValueAddWasteTimeSummary() {
-        const subset = this.motionStudy.valueAddWasteTimeManager.subset(this.startTime, this.endTime);
+        const subset = this.motionStudy.valueAddWasteTimeManager.subset(
+            this.startTime,
+            this.endTime
+        );
         let totalValueAdd = 0;
         let totalWasteTime = 0;
         const totalTime = this.endTime - this.startTime;
-        subset.regions.forEach(region => {
+        subset.regions.forEach((region) => {
             if (region.value === ValueAddWasteTimeTypes.VALUE_ADD) {
                 totalValueAdd += region.duration;
             } else if (region.value === ValueAddWasteTimeTypes.WASTE_TIME) {
@@ -905,8 +955,8 @@ export class RegionCard {
             console.warn('Region Card has 0 duration, cannot set Value Add/Waste Time ui');
             return;
         }
-        const valuePercent = Math.round(totalValueAdd / totalTime * 100);
-        const wastePercent = Math.round(totalWasteTime / totalTime * 100);
+        const valuePercent = Math.round((totalValueAdd / totalTime) * 100);
+        const wastePercent = Math.round((totalWasteTime / totalTime) * 100);
 
         return {
             valuePercent,
@@ -917,7 +967,10 @@ export class RegionCard {
     }
 
     updateValueAddWasteTimeUi() {
-        const regionValue = this.motionStudy.valueAddWasteTimeManager.getValueForRegion(this.startTime, this.endTime);
+        const regionValue = this.motionStudy.valueAddWasteTimeManager.getValueForRegion(
+            this.startTime,
+            this.endTime
+        );
 
         if (regionValue === ValueAddWasteTimeTypes.WASTE_TIME) {
             this.wasteTimeButton.classList.add('selected');
@@ -934,7 +987,7 @@ export class RegionCard {
         if (!percents) {
             return;
         }
-        const {valuePercent, wastePercent} = percents;
+        const { valuePercent, wastePercent } = percents;
         this.valueAddWasteTimeSummary.setValues(valuePercent, wastePercent);
     }
 
@@ -967,21 +1020,33 @@ export class RegionCard {
         const frameKey = addedTool.uuid;
         const write = () => {
             realityEditor.network.realtime.writePublicData(
-                addedTool.objectId, frameKey, frameKey + 'storage',
-                'points', points
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'points',
+                points
             );
             realityEditor.network.realtime.writePublicData(
-                addedTool.objectId, frameKey, frameKey + 'storage',
-                'pose', targetPose
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'pose',
+                targetPose
             );
             realityEditor.network.realtime.writePublicData(
-                addedTool.objectId, frameKey, frameKey + 'storage',
-                'color', this.accentColor
+                addedTool.objectId,
+                frameKey,
+                frameKey + 'storage',
+                'color',
+                this.accentColor
             );
             if (this.step) {
                 realityEditor.network.realtime.writePublicData(
-                    addedTool.objectId, frameKey, frameKey + 'storage',
-                    'step', this.step
+                    addedTool.objectId,
+                    frameKey,
+                    frameKey + 'storage',
+                    'step',
+                    this.step
                 );
             }
         };
@@ -1002,7 +1067,9 @@ export class RegionCard {
      * @return {boolean}
      */
     equalTimes(otherRegionCard, toleranceMs = 500) {
-        return (Math.abs(otherRegionCard.startTime - this.startTime) < toleranceMs) &&
-           (Math.abs(otherRegionCard.endTime - this.endTime) < toleranceMs);
+        return (
+            Math.abs(otherRegionCard.startTime - this.startTime) < toleranceMs &&
+            Math.abs(otherRegionCard.endTime - this.endTime) < toleranceMs
+        );
     }
 }

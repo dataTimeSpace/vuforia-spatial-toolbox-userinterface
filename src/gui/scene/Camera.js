@@ -1,5 +1,5 @@
-import * as THREE from "../../../thirdPartyCode/three/three.module.js"
-import {setMatrixFromArray} from "./utils.js"
+import * as THREE from '../../../thirdPartyCode/three/three.module.js';
+import { setMatrixFromArray } from './utils.js';
 
 /**
  * @typedef {{x: number, y: number}} Coordinate
@@ -7,8 +7,8 @@ import {setMatrixFromArray} from "./utils.js"
 
 class LayerConfig {
     static LAYER_DEFAULT = 0;
-    static LAYER_LEFT_EYE = 1; 
-    static LAYER_RIGHT_EYE = 2; 
+    static LAYER_LEFT_EYE = 1;
+    static LAYER_RIGHT_EYE = 2;
     static LAYER_SCAN = 3;
     static LAYER_BACKGROUND = 4;
 
@@ -28,7 +28,7 @@ class LayerConfig {
             camera.cameras[0].layers.mask = this.#left.mask;
             camera.cameras[1].layers.mask = this.#right.mask;
         }
-    } 
+    }
 
     static createFromCamera(camera) {
         const global = new THREE.Layers();
@@ -71,20 +71,20 @@ class Camera {
     }
 
     /**
-     * 
-     * @param {MatrixAsArray} _ 
+     *
+     * @param {MatrixAsArray} _
      */
     setProjectionMatrixFromArray(_) {}
 
     /**
-     * 
-     * @param {MatrixAsArray} _ 
+     *
+     * @param {MatrixAsArray} _
      */
     setCameraMatrixFromArray(_) {}
 
     /**
      *
-     * @param {THREE.Object3D} object 
+     * @param {THREE.Object3D} object
      */
     attach(object) {
         this._camera.attach(object);
@@ -92,7 +92,7 @@ class Camera {
 
     /**
      *
-     * @param {THREE.Object3D} object 
+     * @param {THREE.Object3D} object
      */
     add(object) {
         this._camera.add(object);
@@ -103,13 +103,16 @@ class Camera {
      * @override
      * @param {THREE.Vector3} meshPosition
      * @returns {Coordinate}
-     */ 
+     */
     getScreenXY(meshPosition) {
         let pos = meshPosition.clone();
         let projScreenMat = new THREE.Matrix4();
-        projScreenMat.multiplyMatrices(this._camera.projectionMatrix, this._camera.matrixWorldInverse);
+        projScreenMat.multiplyMatrices(
+            this._camera.projectionMatrix,
+            this._camera.matrixWorldInverse
+        );
         pos.applyMatrix4(projScreenMat);
-        
+
         // check if the position is behind the camera, if so, manually flip the screen position, b/c the screen position somehow is inverted when behind the camera
         let meshPosWrtCamera = meshPosition.clone();
         meshPosWrtCamera.applyMatrix4(this._camera.matrixWorldInverse);
@@ -118,8 +121,8 @@ class Camera {
         }
 
         return {
-            x: ( pos.x + 1 ) * window.innerWidth / 2,
-            y: ( -pos.y + 1) * window.innerHeight / 2
+            x: ((pos.x + 1) * window.innerWidth) / 2,
+            y: ((-pos.y + 1) * window.innerHeight) / 2,
         };
     }
 
@@ -128,7 +131,7 @@ class Camera {
      * @override
      * @param {THREE.Vector3} pointPosition
      * @returns {boolean}
-     */ 
+     */
     isPointOnScreen(pointPosition) {
         let frustum = new THREE.Frustum();
         let matrix = new THREE.Matrix4();
@@ -174,7 +177,7 @@ class Camera {
     }
 
     /**
-     * 
+     *
      * @returns {LayerConfig}
      */
     getLayerConfig() {
@@ -182,8 +185,8 @@ class Camera {
     }
 
     /**
-     * 
-     * @param {LayerConfig} layerConfig 
+     *
+     * @param {LayerConfig} layerConfig
      */
     setLayerConfig(layerConfig) {
         layerConfig.configurCamera(this._camera);
@@ -201,15 +204,14 @@ class Camera {
  * Default camera class
  */
 class DefaultCamera extends Camera {
-
     /**
-     * 
-     * @param {string} name 
-     * @param {number} aspectRatio 
+     *
+     * @param {string} name
+     * @param {number} aspectRatio
      */
     constructor(name, aspectRatio) {
-        // setup an initial configuration fro the camera, both camera matrix and projection matrix will be calculated externaly and applied to this camera 
-        const camera = new THREE.PerspectiveCamera(70, aspectRatio, 1, 1000); 
+        // setup an initial configuration fro the camera, both camera matrix and projection matrix will be calculated externaly and applied to this camera
+        const camera = new THREE.PerspectiveCamera(70, aspectRatio, 1, 1000);
         // do not recalculate matrices, we will set them our selves
         camera.matrixAutoUpdate = false;
         camera.name = name;
@@ -220,7 +222,7 @@ class DefaultCamera extends Camera {
 
     /**
      * @override
-     * @param {MatrixAsArray} matrix 
+     * @param {MatrixAsArray} matrix
      */
     setProjectionMatrixFromArray(matrix) {
         setMatrixFromArray(this._camera.projectionMatrix, matrix);
@@ -229,7 +231,7 @@ class DefaultCamera extends Camera {
 
     /**
      * @override
-     * @param {MatrixAsArray} matrix 
+     * @param {MatrixAsArray} matrix
      */
     setCameraMatrixFromArray(matrix) {
         setMatrixFromArray(this._camera.matrix, matrix);
@@ -238,11 +240,10 @@ class DefaultCamera extends Camera {
 }
 
 class WebXRCamera extends Camera {
-
     /**
-     * 
-     * @param {string} name 
-     * @param {import('./Renderer.js').Renderer} renderer 
+     *
+     * @param {string} name
+     * @param {import('./Renderer.js').Renderer} renderer
      */
     constructor(name, renderer) {
         /** @type {THREE.ArrayCamera} */
@@ -258,4 +259,4 @@ class WebXRCamera extends Camera {
     }
 }
 
-export {Camera, DefaultCamera, WebXRCamera, LayerConfig};
+export { Camera, DefaultCamera, WebXRCamera, LayerConfig };

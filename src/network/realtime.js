@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.network.realtime");
+createNameSpace('realityEditor.network.realtime');
 /* global updateFramerate */
 
 // TODO we have to check that this method only connects to the objects currently visible. Otherwise it will not scale.
@@ -8,7 +8,7 @@ createNameSpace("realityEditor.network.realtime");
  * Maintains the socket connections to other editors and provides APIs for sending and receiving data.
  */
 
-(function(exports) {
+(function (exports) {
     const DEBUG = false;
 
     const BATCHED_UPDATE_FRAMERATE = updateFramerate;
@@ -30,15 +30,29 @@ createNameSpace("realityEditor.network.realtime");
         // TODO Is this redundant code? It seems to generate the error that pops up
 
         // realtime is necessary for some environments to work
-        if (realityEditor.device.environment.shouldCreateDesktopSocket() || realityEditor.device.environment.variables.alwaysEnableRealtime) {
+        if (
+            realityEditor.device.environment.shouldCreateDesktopSocket() ||
+            realityEditor.device.environment.variables.alwaysEnableRealtime
+        ) {
             realityEditor.gui.settings.toggleStates.realtimeEnabled = true;
         }
         if (DEBUG) {
-            console.log('realityEditor.network.realtime.initService()', hasBeenInitialized, realityEditor.gui.settings.toggleStates.realtimeEnabled);
+            console.log(
+                'realityEditor.network.realtime.initService()',
+                hasBeenInitialized,
+                realityEditor.gui.settings.toggleStates.realtimeEnabled
+            );
         }
 
         // don't initialize multiple times or if this feature is specifically turned off
-        if (hasBeenInitialized || !(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) return;
+        if (
+            hasBeenInitialized ||
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        )
+            return;
 
         if (DEBUG) {
             console.log('actually initializing realtime services');
@@ -50,13 +64,13 @@ createNameSpace("realityEditor.network.realtime");
         setupServerSockets();
 
         // add server sockets for each already discovered object
-        Object.keys(objects).forEach(function(objectKey) {
+        Object.keys(objects).forEach(function (objectKey) {
             var object = realityEditor.getObject(objectKey);
             addServerForObjectIfNeeded(object, objectKey);
         });
 
         // when a new object is detected, check if we need to create a socket connection with its server
-        realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
+        realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
             addServerForObjectIfNeeded(object, objectKey);
         });
 
@@ -80,8 +94,11 @@ createNameSpace("realityEditor.network.realtime");
                 }, 1000);
                 return;
             }
-            desktopSocket.emit(realityEditor.network.getIoTitle(identifier, '/subscribe/realityEditorUpdates'), JSON.stringify({editorId: globalStates.tempUuid}));
-        }
+            desktopSocket.emit(
+                realityEditor.network.getIoTitle(identifier, '/subscribe/realityEditorUpdates'),
+                JSON.stringify({ editorId: globalStates.tempUuid })
+            );
+        };
         subscribe();
     }
 
@@ -111,22 +128,34 @@ createNameSpace("realityEditor.network.realtime");
      * @param {string} objectKey
      */
     function addServerForObjectIfNeeded(object, _objectKey) {
-
         // if (object.ip === '127.0.0.1') { return; } // ignore localhost, no need for realtime because only one client
         // Note that we still create a localhost socket even though we don't
         // subscribe to it since it will be used to send messages to the local
         // server
 
-        var serverAddress = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), null);
+        var serverAddress = realityEditor.network.getURL(
+            object.ip,
+            realityEditor.network.getPort(object),
+            null
+        );
         var socketsIps = realityEditor.network.realtime.getSocketIPsForSet('realityServers');
         if (socketsIps.indexOf(serverAddress) < 0) {
             // if we haven't already created a socket connection to that IP, create a new one,
             //   and register update listeners, and emit a /subscribe message so it can connect back to us
-            realityEditor.network.realtime.createSocketInSet('realityServers', serverAddress, function(_socket) {
-                sockets['realityServers'][serverAddress].emit(realityEditor.network.getIoTitle(object.port, '/subscribe/realityEditorUpdates'), JSON.stringify({editorId: globalStates.tempUuid}));
-                addServerUpdateListener(serverAddress);
-            });
-
+            realityEditor.network.realtime.createSocketInSet(
+                'realityServers',
+                serverAddress,
+                function (_socket) {
+                    sockets['realityServers'][serverAddress].emit(
+                        realityEditor.network.getIoTitle(
+                            object.port,
+                            '/subscribe/realityEditorUpdates'
+                        ),
+                        JSON.stringify({ editorId: globalStates.tempUuid })
+                    );
+                    addServerUpdateListener(serverAddress);
+                }
+            );
         }
     }
 
@@ -146,12 +175,22 @@ createNameSpace("realityEditor.network.realtime");
      * @param {UpdateMessage} msgContent
      */
     function updateObject(msgContent) {
-
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
 
         var object = realityEditor.getObject(msgContent.objectKey);
-        if (!object) { return; }
-        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) { return; }
+        if (!object) {
+            return;
+        }
+        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) {
+            return;
+        }
 
         setObjectValueAtPath(object, msgContent.propertyPath, msgContent.newValue);
         // console.log('set object (' + msgContent.objectKey + ').' + msgContent.propertyPath + ' to ' + msgContent.newValue);
@@ -168,12 +207,22 @@ createNameSpace("realityEditor.network.realtime");
      * @param {UpdateMessage} msgContent
      */
     function updateFrame(msgContent) {
-
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
 
         var frame = realityEditor.getFrame(msgContent.objectKey, msgContent.frameKey);
-        if (!frame) { return; }
-        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) { return; }
+        if (!frame) {
+            return;
+        }
+        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) {
+            return;
+        }
 
         setObjectValueAtPath(frame, msgContent.propertyPath, msgContent.newValue);
         // console.log('set frame (' + msgContent.frameKey + ').' + msgContent.propertyPath + ' to ' + msgContent.newValue);
@@ -191,8 +240,11 @@ createNameSpace("realityEditor.network.realtime");
 
         // trigger secondary effects for certain properties
         if (msgContent.propertyPath === 'publicData') {
-            if (globalDOMCache["iframe" + msgContent.frameKey]) {
-                globalDOMCache["iframe" + msgContent.frameKey].contentWindow.postMessage(JSON.stringify({reloadPublicData: true}), "*");
+            if (globalDOMCache['iframe' + msgContent.frameKey]) {
+                globalDOMCache['iframe' + msgContent.frameKey].contentWindow.postMessage(
+                    JSON.stringify({ reloadPublicData: true }),
+                    '*'
+                );
             }
         }
     }
@@ -202,16 +254,37 @@ createNameSpace("realityEditor.network.realtime");
      * @param {UpdateMessage} msgContent
      */
     function updateNode(msgContent) {
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
 
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
-
-        var node = realityEditor.getNode(msgContent.objectKey, msgContent.frameKey, msgContent.nodeKey);
-        if (!node) { return; }
-        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) { return; }
+        var node = realityEditor.getNode(
+            msgContent.objectKey,
+            msgContent.frameKey,
+            msgContent.nodeKey
+        );
+        if (!node) {
+            return;
+        }
+        if (!msgContent.hasOwnProperty('propertyPath') || !msgContent.hasOwnProperty('newValue')) {
+            return;
+        }
 
         setObjectValueAtPath(node, msgContent.propertyPath, msgContent.newValue);
         if (DEBUG) {
-            console.log('set node (' + msgContent.nodeKey + ').' + msgContent.propertyPath + ' to ' + msgContent.newValue);
+            console.log(
+                'set node (' +
+                    msgContent.nodeKey +
+                    ').' +
+                    msgContent.propertyPath +
+                    ' to ' +
+                    msgContent.newValue
+            );
         }
 
         if (msgContent.propertyPath === 'matrix') {
@@ -232,15 +305,29 @@ createNameSpace("realityEditor.network.realtime");
      */
     function setupServerSockets() {
         var ipList = [];
-        realityEditor.forEachObject(function(object, _objectKey) {
+        realityEditor.forEachObject(function (object, _objectKey) {
             if (ipList.indexOf(object.ip) === -1) {
-                var serverAddress = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), null);
-                var socketsIps = realityEditor.network.realtime.getSocketIPsForSet('realityServers');
+                var serverAddress = realityEditor.network.getURL(
+                    object.ip,
+                    realityEditor.network.getPort(object),
+                    null
+                );
+                var socketsIps =
+                    realityEditor.network.realtime.getSocketIPsForSet('realityServers');
                 if (socketsIps.indexOf(serverAddress) < 0) {
                     // if we haven't already created a socket connection to that IP, create a new one,
                     //   and register update listeners, and emit a /subscribe message so it can connect back to us
-                    realityEditor.network.realtime.createSocketInSet('realityServers', serverAddress);
-                    sockets['realityServers'][serverAddress].emit(realityEditor.network.getIoTitle(object.port, '/subscribe/realityEditorUpdates'), JSON.stringify({editorId: globalStates.tempUuid}));
+                    realityEditor.network.realtime.createSocketInSet(
+                        'realityServers',
+                        serverAddress
+                    );
+                    sockets['realityServers'][serverAddress].emit(
+                        realityEditor.network.getIoTitle(
+                            object.port,
+                            '/subscribe/realityEditorUpdates'
+                        ),
+                        JSON.stringify({ editorId: globalStates.tempUuid })
+                    );
                     addServerUpdateListener(serverAddress);
                 }
             }
@@ -253,12 +340,13 @@ createNameSpace("realityEditor.network.realtime");
      * @param {string} serverAddress
      */
     function addServerUpdateListener(serverAddress) {
-
         let hasCloudProxySocket = realityEditor.cloud.socket;
 
         if (!hasCloudProxySocket) {
             if (DEBUG) {
-                console.log('No cloud socket – add /udp/beat and /udp/action listeners to existing realtime socket');
+                console.log(
+                    'No cloud socket – add /udp/beat and /udp/action listeners to existing realtime socket'
+                );
             }
             // this allows the app to receive heartbeats when not on a Wi-Fi network that supports UDP
             addServerSocketMessageListener(serverAddress, '/udp/beat', (msg) => {
@@ -273,11 +361,13 @@ createNameSpace("realityEditor.network.realtime");
             });
         }
 
-        addServerSocketMessageListener(serverAddress, '/batchedUpdate', function(msg) {
+        addServerSocketMessageListener(serverAddress, '/batchedUpdate', function (msg) {
             var msgContent = typeof msg === 'string' ? JSON.parse(msg) : msg;
-            if (typeof msgContent.batchedUpdates === 'undefined') { return; }
+            if (typeof msgContent.batchedUpdates === 'undefined') {
+                return;
+            }
 
-            msgContent.batchedUpdates.forEach(function(update) {
+            msgContent.batchedUpdates.forEach(function (update) {
                 var objectKey;
                 var frameKey;
                 var nodeKey;
@@ -319,14 +409,21 @@ createNameSpace("realityEditor.network.realtime");
             if (realityEditor.device.environment.shouldCreateDesktopSocket()) {
                 createDesktopSocket();
             } else {
-                console.error('addDesktopSocketMessageListener called without desktopSocket', messageName);
+                console.error(
+                    'addDesktopSocketMessageListener called without desktopSocket',
+                    messageName
+                );
                 return;
             }
         }
 
-        desktopSocket.on(messageName, function() {
+        desktopSocket.on(messageName, function () {
             if (DEBUG) {
-                console.log('addDesktopSocketMessageListener received', messageName, Array.from(arguments));
+                console.log(
+                    'addDesktopSocketMessageListener received',
+                    messageName,
+                    Array.from(arguments)
+                );
             }
             callback.apply(this, arguments);
         });
@@ -339,32 +436,43 @@ createNameSpace("realityEditor.network.realtime");
      * @param {function} callback
      */
     function addServerSocketMessageListener(serverAddress, messageName, callback) {
-        sockets['realityServers'][serverAddress].on(messageName, function() {
+        sockets['realityServers'][serverAddress].on(messageName, function () {
             if (DEBUG) {
-                console.log('addServerSocketMessageListener received', messageName, Array.from(arguments));
+                console.log(
+                    'addServerSocketMessageListener received',
+                    messageName,
+                    Array.from(arguments)
+                );
             }
             callback.apply(this, arguments);
         });
     }
 
     function sendBatchedUpdates() {
-        if (Object.keys(batchedUpdates).length === 0) { return; }
+        if (Object.keys(batchedUpdates).length === 0) {
+            return;
+        }
 
         for (let objectKey in batchedUpdates) {
             if (!objects[objectKey]) continue;
             let serverSocket = getServerSocketForObject(objectKey);
-            if (!serverSocket) { continue; }
+            if (!serverSocket) {
+                continue;
+            }
 
             let objectUpdates = batchedUpdates[objectKey];
             let messageBody = {
-                batchedUpdates: []
+                batchedUpdates: [],
             };
 
-            objectUpdates.forEach(function(update) {
+            objectUpdates.forEach(function (update) {
                 messageBody.batchedUpdates.push(update.getMessageBody());
             });
 
-            serverSocket.emit(realityEditor.network.getIoTitle(objects[objectKey].port,'/batchedUpdate'), JSON.stringify(messageBody));
+            serverSocket.emit(
+                realityEditor.network.getIoTitle(objects[objectKey].port, '/batchedUpdate'),
+                JSON.stringify(messageBody)
+            );
         }
     }
 
@@ -378,13 +486,16 @@ createNameSpace("realityEditor.network.realtime");
             return;
         }
         let messageBody = {
-            editorId: globalStates.tempUuid
+            editorId: globalStates.tempUuid,
         };
 
         if (DEBUG) {
             console.log('someone cares about subscribeToCameraMatrices', objectKey, object);
         }
-        serverSocket.emit(realityEditor.network.getIoTitle(object.port, '/subscribe/cameraMatrix'), JSON.stringify(messageBody));
+        serverSocket.emit(
+            realityEditor.network.getIoTitle(object.port, '/subscribe/cameraMatrix'),
+            JSON.stringify(messageBody)
+        );
         serverSocket.emit('/subscribe/cameraMatrix', JSON.stringify(messageBody));
         serverSocket.on(realityEditor.network.getIoTitle(object.port, '/cameraMatrix'), callback);
         serverSocket.on('/cameraMatrix', callback); // TODO(hobinjk): figure out why this is called instead of the iotitle one
@@ -407,16 +518,23 @@ createNameSpace("realityEditor.network.realtime");
         lastCamera = cameraMatStr;
         lastCameraSend = Date.now();
         let object = realityEditor.getObject(objectKey);
-        if (!object) { return; }
+        if (!object) {
+            return;
+        }
         let serverSocket = getServerSocketForObject(objectKey);
-        if (!serverSocket) { return; }
+        if (!serverSocket) {
+            return;
+        }
         let messageBody = {
             cameraMatrix: cameraMatrix,
-            editorId: globalStates.tempUuid
-        }
+            editorId: globalStates.tempUuid,
+        };
 
         // console.log('sending camera matrix to', object, serverSocket);
-        serverSocket.emit(realityEditor.network.getIoTitle(object.port, '/cameraMatrix'), JSON.stringify(messageBody));
+        serverSocket.emit(
+            realityEditor.network.getIoTitle(object.port, '/cameraMatrix'),
+            JSON.stringify(messageBody)
+        );
     }
 
     class Update {
@@ -435,11 +553,11 @@ createNameSpace("realityEditor.network.realtime");
                 nodeKey: this.nodeKey,
                 propertyPath: this.propertyPath,
                 newValue: this.newValue,
-                editorId: this.editorId
-            }
+                editorId: this.editorId,
+            };
         }
         getUpdateHash() {
-            return (this.objectKey + this.frameKey + this.nodeKey + this.propertyPath);
+            return this.objectKey + this.frameKey + this.nodeKey + this.propertyPath;
         }
     }
 
@@ -453,20 +571,35 @@ createNameSpace("realityEditor.network.realtime");
      * @param {*} newValue
      */
     function broadcastUpdate(objectKey, frameKey, nodeKey, propertyPath, newValue) {
-
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
 
         if (typeof batchedUpdates[objectKey] === 'undefined') {
             batchedUpdates[objectKey] = [];
         }
 
-        let newUpdate = new Update(objectKey, frameKey, nodeKey, propertyPath, newValue, globalStates.tempUuid);
+        let newUpdate = new Update(
+            objectKey,
+            frameKey,
+            nodeKey,
+            propertyPath,
+            newValue,
+            globalStates.tempUuid
+        );
         let newHash = newUpdate.getUpdateHash();
 
         // remove older update if something is trying to modify the same property path on the same
-        let index = batchedUpdates[objectKey].map(function(update) {
-            return update.getUpdateHash();
-        }).indexOf(newHash);
+        let index = batchedUpdates[objectKey]
+            .map(function (update) {
+                return update.getUpdateHash();
+            })
+            .indexOf(newHash);
         if (index > -1) {
             batchedUpdates[objectKey].splice(index, 1);
         }
@@ -484,10 +617,16 @@ createNameSpace("realityEditor.network.realtime");
             return;
         }
         const serverSocket = getServerSocketForObject(worldObject.objectId);
-        const subscribeTitle = realityEditor.network.getIoTitle(worldObject.port, '/subscribe/interfaceSettings');
-        const responseTitle = realityEditor.network.getIoTitle(worldObject.port, 'interfaceSettings');
-        serverSocket.emit(subscribeTitle, JSON.stringify({interfaceName}));
-        serverSocket.on(responseTitle, msg => {
+        const subscribeTitle = realityEditor.network.getIoTitle(
+            worldObject.port,
+            '/subscribe/interfaceSettings'
+        );
+        const responseTitle = realityEditor.network.getIoTitle(
+            worldObject.port,
+            'interfaceSettings'
+        );
+        serverSocket.emit(subscribeTitle, JSON.stringify({ interfaceName }));
+        serverSocket.on(responseTitle, (msg) => {
             const msgData = JSON.parse(msg);
             if (msgData.interfaceName === interfaceName) {
                 callback(msgData.currentSettings);
@@ -517,11 +656,17 @@ createNameSpace("realityEditor.network.realtime");
         }
 
         // first, send a /subscribe message to the server to tell it that this client should be notified of publicData updates
-        let subscribeTitle = realityEditor.network.getIoTitle(objects[objectKey].port, '/subscribe/realityEditorPublicData');
-        serverSocket.emit(subscribeTitle, JSON.stringify({
-            object: objectKey,
-            frame: frameKey
-        }));
+        let subscribeTitle = realityEditor.network.getIoTitle(
+            objects[objectKey].port,
+            '/subscribe/realityEditorPublicData'
+        );
+        serverSocket.emit(
+            subscribeTitle,
+            JSON.stringify({
+                object: objectKey,
+                frame: frameKey,
+            })
+        );
 
         // then, add the provided callback to the correct object/frame/node/publicDataKey address
         if (typeof publicDataCallbacks[objectKey] === 'undefined') {
@@ -536,7 +681,9 @@ createNameSpace("realityEditor.network.realtime");
             publicDataCallbacks[objectKey][frameKey][nodeKey] = {};
             cachedPublicData[objectKey][frameKey][nodeKey] = {};
         }
-        if (typeof publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] === 'undefined') {
+        if (
+            typeof publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] === 'undefined'
+        ) {
             publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] = [];
             cachedPublicData[objectKey][frameKey][nodeKey][publicDataKey] = null;
         }
@@ -555,33 +702,49 @@ createNameSpace("realityEditor.network.realtime");
      */
     function setupPublicDataSubscriptionOnServerIfNeeded(objectId, serverSocket) {
         if (!serverSocket || !objectId) {
-            console.warn('skipping setupPublicDataSubscriptionOnServerIfNeeded (invalid args)', objectId, serverSocket);
+            console.warn(
+                'skipping setupPublicDataSubscriptionOnServerIfNeeded (invalid args)',
+                objectId,
+                serverSocket
+            );
             return;
         }
 
         let object = realityEditor.getObject(objectId);
         if (!object) {
-            console.warn('skipping setupPublicDataSubscriptionOnServerIfNeeded (no object)', objectId);
+            console.warn(
+                'skipping setupPublicDataSubscriptionOnServerIfNeeded (no object)',
+                objectId
+            );
             return;
         }
 
-        // only need to subscribe to this one time, because we are setting single listener per port which handles 
+        // only need to subscribe to this one time, because we are setting single listener per port which handles
         // public data of all nodes across all objects (as long as we set up the right callbacks by multiple calls of the code above)
         if (!didSubscribeToPublicDataOnServer[object.ip]) {
             didSubscribeToPublicDataOnServer[object.ip] = true;
-            let publicDataTitle = realityEditor.network.getIoTitle(objects[object.objectId].port, 'object/publicData');
+            let publicDataTitle = realityEditor.network.getIoTitle(
+                objects[object.objectId].port,
+                'object/publicData'
+            );
             const listener = (msg) => {
                 let msgData = JSON.parse(msg);
                 let node = realityEditor.getNode(msgData.object, msgData.frame, msgData.node);
 
                 // when the listener triggers, attempt triggering callbacks for all keys in the node's publicData...
                 // those that haven't changed, or don't have any registered callbacks, will be ignored
-                Object.keys(msgData.publicData).forEach(publicDataKey => {
-                    let callbacks = publicDataCallbacks[msgData.object][msgData.frame][msgData.node][publicDataKey];
+                Object.keys(msgData.publicData).forEach((publicDataKey) => {
+                    let callbacks =
+                        publicDataCallbacks[msgData.object][msgData.frame][msgData.node][
+                            publicDataKey
+                        ];
                     if (!callbacks) return;
 
                     // skip messages originating from yourself
-                    if (typeof msgData.sessionUuid !== 'undefined' && msgData.sessionUuid === globalStates.tempUuid) {
+                    if (
+                        typeof msgData.sessionUuid !== 'undefined' &&
+                        msgData.sessionUuid === globalStates.tempUuid
+                    ) {
                         return;
                     }
 
@@ -590,7 +753,10 @@ createNameSpace("realityEditor.network.realtime");
                     //      you have changed your publicData value locally without also updating cachedPublicData,
                     //      causing the system to incorrectly consider the new messages "duplicates" and ignore them
                     let stringifiedData = JSON.stringify(msgData.publicData[publicDataKey]);
-                    if (stringifiedData === cachedPublicData[msgData.object][msgData.frame][msgData.node][publicDataKey]) {
+                    if (
+                        stringifiedData ===
+                        cachedPublicData[msgData.object][msgData.frame][msgData.node][publicDataKey]
+                    ) {
                         return;
                     }
 
@@ -598,13 +764,14 @@ createNameSpace("realityEditor.network.realtime");
                         node.publicData[publicDataKey] = msgData.publicData[publicDataKey]; // update the local value
                     }
 
-                    callbacks.forEach(cb => {
+                    callbacks.forEach((cb) => {
                         cb(msg); // actually triggers the callbacks registered by subscribeToPublicData
                     });
 
                     // cache the new publicData value, so we can skip duplicate messages in the future. you should also
                     // do this manually anywhere where you change the publicData value locally (e.g. writePublicData)
-                    cachedPublicData[msgData.object][msgData.frame][msgData.node][publicDataKey] = stringifiedData;
+                    cachedPublicData[msgData.object][msgData.frame][msgData.node][publicDataKey] =
+                        stringifiedData;
                 });
             };
 
@@ -625,18 +792,23 @@ createNameSpace("realityEditor.network.realtime");
      */
     function writePublicData(objectKey, frameKey, nodeKey, publicDataKey, publicDataValue) {
         let node = realityEditor.getNode(objectKey, frameKey, nodeKey);
-        if (!node) { return; }
+        if (!node) {
+            return;
+        }
         // first, update the local value
         node.publicData[publicDataKey] = publicDataValue;
 
         // next, broadcast to other clients
-        let ioTitle = realityEditor.network.getIoTitle(objects[objectKey].port, 'object/publicData');
+        let ioTitle = realityEditor.network.getIoTitle(
+            objects[objectKey].port,
+            'object/publicData'
+        );
         let messageBody = {
             object: objectKey,
             frame: frameKey,
             node: nodeKey,
             publicData: node.publicData,
-            sessionUuid: globalStates.tempUuid // prevents the server from sending me messages originating from myself
+            sessionUuid: globalStates.tempUuid, // prevents the server from sending me messages originating from myself
         };
         let serverSocket = getServerSocketForObject(objectKey);
         serverSocket.emit(ioTitle, JSON.stringify(messageBody));
@@ -654,11 +826,15 @@ createNameSpace("realityEditor.network.realtime");
             publicDataCallbacks[objectKey][frameKey][nodeKey] = {};
             cachedPublicData[objectKey][frameKey][nodeKey] = {};
         }
-        if (typeof publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] === 'undefined') {
+        if (
+            typeof publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] === 'undefined'
+        ) {
             publicDataCallbacks[objectKey][frameKey][nodeKey][publicDataKey] = [];
             cachedPublicData[objectKey][frameKey][nodeKey][publicDataKey] = null;
         }
-        cachedPublicData[objectKey][frameKey][nodeKey][publicDataKey] = JSON.stringify(node.publicData[publicDataKey]); // stringify it for comparison
+        cachedPublicData[objectKey][frameKey][nodeKey][publicDataKey] = JSON.stringify(
+            node.publicData[publicDataKey]
+        ); // stringify it for comparison
 
         // TODO: this publicDataCache is deprecated, the cachedPublicData is what we use now - remove this at some point
         if (!publicDataCache.hasOwnProperty(frameKey)) {
@@ -669,13 +845,20 @@ createNameSpace("realityEditor.network.realtime");
 
     // trigger this before doing window.location.reload() to ensure avatar is deleted (required if world is on local server)
     function sendDisconnectMessage(worldId) {
-        if (!worldId || !objects[worldId]) { return; }
+        if (!worldId || !objects[worldId]) {
+            return;
+        }
         let ioTitle = realityEditor.network.getIoTitle(objects[worldId].port, '/disconnectEditor');
         let serverSocket = getServerSocketForObject(worldId);
-        if (!serverSocket) { return; }
-        serverSocket.emit(ioTitle, JSON.stringify({
-            editorId: globalStates.tempUuid
-        }));
+        if (!serverSocket) {
+            return;
+        }
+        serverSocket.emit(
+            ioTitle,
+            JSON.stringify({
+                editorId: globalStates.tempUuid,
+            })
+        );
     }
 
     /**
@@ -685,8 +868,17 @@ createNameSpace("realityEditor.network.realtime");
      * @param {string} worldId
      */
     function broadcastUpdateObjectMatrix(objectKey, matrix, worldId) {
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
-        if (matrix.length !== 16) { return; } // don't delete previous value by sending an empty matrix to the server
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
+        if (matrix.length !== 16) {
+            return;
+        } // don't delete previous value by sending an empty matrix to the server
 
         // get the server responsible for this vehicle and send it an update message. it will then message all connected clients
         var serverSocket = getServerSocketForObject(objectKey);
@@ -695,22 +887,44 @@ createNameSpace("realityEditor.network.realtime");
                 objectKey: objectKey,
                 matrix: matrix,
                 worldId: worldId,
-                editorId: globalStates.tempUuid
+                editorId: globalStates.tempUuid,
             };
-            serverSocket.emit(realityEditor.network.getIoTitle(objects[objectKey].port, '/update/object/matrix'), JSON.stringify(messageBody));
+            serverSocket.emit(
+                realityEditor.network.getIoTitle(objects[objectKey].port, '/update/object/matrix'),
+                JSON.stringify(messageBody)
+            );
         }
     }
 
     function subscribeToObjectMatrices(objectKey, callback) {
-        if (!(realityEditor.gui.settings.toggleStates.realtimeEnabled || realityEditor.device.environment.variables.alwaysEnableRealtime)) { return; }
+        if (
+            !(
+                realityEditor.gui.settings.toggleStates.realtimeEnabled ||
+                realityEditor.device.environment.variables.alwaysEnableRealtime
+            )
+        ) {
+            return;
+        }
         // get the server responsible for this vehicle and send it an update message. it will then message all connected clients
         var serverSocket = getServerSocketForObject(objectKey);
         if (serverSocket) {
             // todo this is some hack to get it working
-            if(realityEditor.network.state.proxyNetwork) {
-                serverSocket.emit(realityEditor.network.getIoTitle(objects[objectKey].port, '/subscribe/realityEditorUpdates'), JSON.stringify({editorId: globalStates.tempUuid}));
+            if (realityEditor.network.state.proxyNetwork) {
+                serverSocket.emit(
+                    realityEditor.network.getIoTitle(
+                        objects[objectKey].port,
+                        '/subscribe/realityEditorUpdates'
+                    ),
+                    JSON.stringify({ editorId: globalStates.tempUuid })
+                );
             }
-            serverSocket.emit(realityEditor.network.getIoTitle(objects[objectKey].port, '/subscribe/objectUpdates'), JSON.stringify({editorId: globalStates.tempUuid}));
+            serverSocket.emit(
+                realityEditor.network.getIoTitle(
+                    objects[objectKey].port,
+                    '/subscribe/objectUpdates'
+                ),
+                JSON.stringify({ editorId: globalStates.tempUuid })
+            );
             serverSocket.on('/update/object/matrix', callback);
         }
     }
@@ -723,7 +937,6 @@ createNameSpace("realityEditor.network.realtime");
      * @return {null}
      */
     function getServerSocketForObject(objectKey) {
-
         if (typeof objectSocketCache[objectKey] === 'undefined') {
             var object = realityEditor.getObject(objectKey);
             var serverIP = object.ip;
@@ -732,13 +945,19 @@ createNameSpace("realityEditor.network.realtime");
             // }
             var possibleSocketIPs = getSocketIPsForSet('realityServers');
             var foundSocket = null;
-            possibleSocketIPs.forEach(function(socketIP) { // TODO: speedup by cache-ing a map from serverIP -> socketIP
-                if (socketIP.indexOf(serverIP) > -1 || (object.network && socketIP.includes(object.network))) {
+            possibleSocketIPs.forEach(function (socketIP) {
+                // TODO: speedup by cache-ing a map from serverIP -> socketIP
+                if (
+                    socketIP.indexOf(serverIP) > -1 ||
+                    (object.network && socketIP.includes(object.network))
+                ) {
                     foundSocket = socketIP;
                 }
             });
 
-            objectSocketCache[objectKey] = (foundSocket) ? (sockets['realityServers'][foundSocket]) : undefined;
+            objectSocketCache[objectKey] = foundSocket
+                ? sockets['realityServers'][foundSocket]
+                : undefined;
         }
 
         return objectSocketCache[objectKey]; // don't need to recalculate each time
@@ -787,11 +1006,11 @@ createNameSpace("realityEditor.network.realtime");
             console.log('createSocketInSet', setName, socketIP, socket);
         }
         createSocketSet(setName);
-        if(!sockets[setName]) sockets[setName] = {};
+        if (!sockets[setName]) sockets[setName] = {};
         sockets[setName][socketIP] = socket;
 
         if (onConnect) {
-            socket.on('connect', function() {
+            socket.on('connect', function () {
                 if (DEBUG) {
                     console.log('createSocketInSet connected', setName, socketIP);
                 }
@@ -808,11 +1027,10 @@ createNameSpace("realityEditor.network.realtime");
      */
     function sendMessageToSocketSet(setName, eventName, messageBody) {
         var socketIPs = getSocketIPsForSet(setName);
-        socketIPs.forEach(function(socketIP) {
+        socketIPs.forEach(function (socketIP) {
             var ioObject = sockets[setName][socketIP];
             ioObject.emit(eventName, JSON.stringify(messageBody));
         });
-
     }
 
     /**
@@ -827,9 +1045,9 @@ createNameSpace("realityEditor.network.realtime");
      */
     function setObjectValueAtPath(obj, propertyPath, newValue) {
         if (typeof propertyPath === 'string') {
-            return setObjectValueAtPath(obj, propertyPath. split('.'), newValue);
+            return setObjectValueAtPath(obj, propertyPath.split('.'), newValue);
         } else if (propertyPath.length === 1 && newValue !== undefined) {
-            return obj[propertyPath[0]] = newValue;
+            return (obj[propertyPath[0]] = newValue);
         } else if (propertyPath.length === 0) {
             return obj;
         } else {
@@ -865,5 +1083,4 @@ createNameSpace("realityEditor.network.realtime");
     exports.sendDisconnectMessage = sendDisconnectMessage;
     exports.getDesktopSocket = getDesktopSocket;
     exports.getServerSocketForObject = getServerSocketForObject;
-
-}(realityEditor.network.realtime));
+})(realityEditor.network.realtime);

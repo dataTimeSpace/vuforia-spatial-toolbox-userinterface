@@ -56,7 +56,7 @@
 var httpPort = 8080;
 var defaultHttpPort = 8080;
 var timeForContentLoaded = 100; // temporary set to 10000 with the UI Recording mode for video recording
-var timeCorrection = {delta: 0, now: 0, then: 0};
+var timeCorrection = { delta: 0, now: 0, then: 0 };
 var boundListeners = {};
 let updateFramerate = 10; // fps
 var TEMP_DISABLE_MEMORIES = false;
@@ -71,13 +71,13 @@ var globalStates = {
         whereIs: {},
         howFarIs: {},
         whereWas: {},
-        velocityOf: {}
+        velocityOf: {},
     },
     craftingMoveDelay: 400,
-    tempUuid: "0000",
+    tempUuid: '0000',
     debug: false,
     debugSpeechConsole: false,
-    device: "",
+    device: '',
     // drawWithLines
     ballDistance: 14,
     ballSize: 6,
@@ -86,7 +86,7 @@ var globalStates = {
 
     width: window.innerHeight,
     height: window.innerWidth,
-    guiState: "ui", // possible values: "ui"=(frames visible), "node"=(nodes visible), "logic"=(crafting board)
+    guiState: 'ui', // possible values: "ui"=(frames visible), "node"=(nodes visible), "logic"=(crafting board)
     UIOffMode: false,
     settingsButtonState: false,
     currentLogic: null,
@@ -98,72 +98,52 @@ var globalStates = {
     lockingMode: false,
     //authenticatedUser: null,
     lockPassword: null,
-    
+
     // setting this to FALSE speeds up rendering while in node view by NOT also rendering the frames (semi-transparently)
     renderFrameGhostsInNodeViewEnabled: true,
-    
+
     pocketButtonState: false,
 
     deviceOrientationRight: null,
-    
+
     freezeButtonState: false,
     logButtonState: false,
     editingMode: false,
     tempEditingMode: false,
     editingNode: false,
     editingFrame: false,
-    guiURL: "",
-    newURLText: "",
+    guiURL: '',
+    newURLText: '',
     platform: navigator.platform,
     lastLoop: 0,
-    notLoading: "",
+    notLoading: '',
     drawDotLine: false,
     drawDotLineX: 0,
     drawDotLineY: 0,
     pointerPosition: [0, 0],
-    projectionMatrix: [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ],
-    realProjectionMatrix: [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ],
-    unflippedRealProjectionMatrix: [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ],
-    webglProjectionMatrix: [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ],
-    acceleration:{
-        x : 0,
-        y : 0,
-        z : 0,
+    projectionMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    realProjectionMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    unflippedRealProjectionMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    webglProjectionMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    acceleration: {
+        x: 0,
+        y: 0,
+        z: 0,
         alpha: 0,
         beta: 0,
         gamma: 0,
-        motion:0
+        motion: 0,
     },
-    sendAcceleration : false,
+    sendAcceleration: false,
     angX: 0,
     angY: 0,
     angZ: 0,
     unconstrainedPositioning: false,
     distanceEditingMode: false,
 
-    thisAndthat : {
+    thisAndthat: {
         interval: undefined,
-        timeout: undefined
+        timeout: undefined,
     },
     // constants for screen extension
     framePullThreshold: 20, // 2cm
@@ -173,20 +153,20 @@ var globalStates = {
 
     // retail
     reality: false,
-    interface: "gui",
+    interface: 'gui',
 
     useGroundPlane: false,
     defaultFullscreenFrameZ: -10,
-    defaultFullscreenFull2DFrameZ: 100
+    defaultFullscreenFull2DFrameZ: 100,
 };
 
 var globalCanvas = {};
 
 var publicDataCache = {};
 
-var pocketItem  = {"pocket" : new Objects()};
-pocketItem["pocket"].frames["pocket"] = new Frame();
-var pocketItemId = "";
+var pocketItem = { pocket: new Objects() };
+pocketItem['pocket'].frames['pocket'] = new Frame();
+var pocketItemId = '';
 
 var globalFrameScaleAdjustment = 0.5;
 var globalNodeScaleAdjustment = 0.5;
@@ -210,7 +190,7 @@ var pocketFrame = {
     vehicle: null,
     closestObjectKey: null,
     positionOnLoad: null,
-    waitingToRender: false
+    waitingToRender: false,
 };
 
 /**
@@ -223,7 +203,7 @@ var pocketNode = {
     positionOnLoad: null,
     closestObjectKey: null,
     closestFrameKey: null,
-    waitingToRender: false
+    waitingToRender: false,
 };
 
 var globalDOMCache = {};
@@ -233,44 +213,36 @@ var globalProgram = {
     objectA: false,
     frameA: false,
     nodeA: false,
-    logicA:false,
+    logicA: false,
     objectB: false,
     frameB: false,
     nodeB: false,
-    logicB:false,
-    logicSelector:4
+    logicB: false,
+    logicSelector: 4,
 };
 
-var rotateX = [
-    1, 0, 0, 0,
-    0, -1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1
-];
+var rotateX = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
-var makeRotationX =  function ( theta ) {
+var makeRotationX = function (theta) {
+    var c = Math.cos(theta),
+        s = Math.sin(theta);
 
-    var c = Math.cos( theta ), s = Math.sin( theta );
-
-    return [  1, 0, 0, 0,
-        0, c, - s, 0,
-        0, s, c, 0,
-        0, 0, 0, 1];
+    return [1, 0, 0, 0, 0, c, -s, 0, 0, s, c, 0, 0, 0, 0, 1];
 };
 
-var rotationXMatrix =  makeRotationX(-(Math.PI/2));
+var rotationXMatrix = makeRotationX(-(Math.PI / 2));
 
-var editingAnimationsMatrix = [
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1
-];
+var editingAnimationsMatrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 var pocketDropAnimation = null;
 
 // pocketBegin is a hard-coded value that places a new frame in a nice spot relative to the camera when it spawns
-var pocketBegin = [1138.6973538592133,13.991065713633931,0.06988535562447923,0.06993400512601616,-16.11745909667903,1136.2485938902328,0.08978962416316712,0.08976110615564072,138.96584170397102,73.32506513216471,-2.5095775949204446,-2.505473059727466,34327.448087541634,-2445.6806878581046,428.02424166124865,430.5078316680102];
+var pocketBegin = [
+    1138.6973538592133, 13.991065713633931, 0.06988535562447923, 0.06993400512601616,
+    -16.11745909667903, 1136.2485938902328, 0.08978962416316712, 0.08976110615564072,
+    138.96584170397102, 73.32506513216471, -2.5095775949204446, -2.505473059727466,
+    34327.448087541634, -2445.6806878581046, 428.02424166124865, 430.5078316680102,
+];
 // old value: [1137.549909421903,12.017532798048029,-0.03482891256371417,-0.03475932439627283,-11.812648290367441,1137.738228161505,0.005875104883220343,0.005863366423640215,-22.38728737682625,11.161969977619812, -2.003692935114902, -1.9996895566225437, -9437.22693164777, 6368.974843939889, 793.5453413849068, 795.955841789644]
 
 var visibleObjectTapInterval = null;

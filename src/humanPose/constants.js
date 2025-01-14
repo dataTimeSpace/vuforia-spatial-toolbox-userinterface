@@ -55,7 +55,7 @@ export const JOINTS_V2 = {
     RIGHT_PINKY: 'right_pinky',
     LEFT_INDEX: 'left_index',
     RIGHT_INDEX: 'right_index',
-    LEFT_THUMB: 'left_thumb', 
+    LEFT_THUMB: 'left_thumb',
     RIGHT_THUMB: 'right_thumb',
     HEAD: 'head', // synthetic
     NECK: 'neck', // synthetic
@@ -66,9 +66,9 @@ export const JOINTS_V2 = {
 
 export const JOINTS_V2_COUNT = Object.keys(JOINTS_V2).length;
 
-/** Current joint scheme with detailed hands. 
+/** Current joint scheme with detailed hands.
  *  Medical naming for hand joints (https://en.wikipedia.org/wiki/Interphalangeal_joints_of_the_hand).
- *  Finger: Wrist -> MetaCarpoPhalangeal (MCP) ->  Proximal InterPhalangeal (PIP) -> Distal InterPhalangeal (DIP) -> Tip of finger 
+ *  Finger: Wrist -> MetaCarpoPhalangeal (MCP) ->  Proximal InterPhalangeal (PIP) -> Distal InterPhalangeal (DIP) -> Tip of finger
  *  Thumb:  Wrist -> CarpoMetaCarpal (CMC) -> MetaCarpoPhalangeal (MCP) -> InterPhalangeal (IP) -> Tip of thumb
  */
 export const JOINTS = {
@@ -142,7 +142,7 @@ export const JOINTS = {
 
 export const JOINT_CONNECTIONS = {
     // connections between body joints
-    elbowWristLeft: [JOINTS.LEFT_WRIST, JOINTS.LEFT_ELBOW],  // 0
+    elbowWristLeft: [JOINTS.LEFT_WRIST, JOINTS.LEFT_ELBOW], // 0
     shoulderElbowLeft: [JOINTS.LEFT_ELBOW, JOINTS.LEFT_SHOULDER],
     shoulderSpan: [JOINTS.LEFT_SHOULDER, JOINTS.RIGHT_SHOULDER],
     shoulderElbowRight: [JOINTS.RIGHT_ELBOW, JOINTS.RIGHT_SHOULDER],
@@ -203,12 +203,12 @@ export const JOINT_CONNECTIONS = {
     handSpan2Right: [JOINTS.RIGHT_MIDDLE_FINGER_MCP, JOINTS.RIGHT_RING_FINGER_MCP],
     handSpan3Right: [JOINTS.RIGHT_RING_FINGER_MCP, JOINTS.RIGHT_PINKY_MCP],
     // connections between synthetic joints
-    headNeck: [JOINTS.HEAD, JOINTS.NECK],   // 58
+    headNeck: [JOINTS.HEAD, JOINTS.NECK], // 58
     neckChest: [JOINTS.NECK, JOINTS.CHEST],
     chestNavel: [JOINTS.CHEST, JOINTS.NAVEL],
     navelPelvis: [JOINTS.NAVEL, JOINTS.PELVIS],
-    face: [JOINTS.HEAD, JOINTS.NOSE]
-}
+    face: [JOINTS.HEAD, JOINTS.NOSE],
+};
 
 export const JOINTS_PER_POSE = Object.keys(JOINTS).length;
 export const BONES_PER_POSE = Object.keys(JOINT_CONNECTIONS).length;
@@ -221,7 +221,7 @@ export const DISPLAY_INVALID_ELEMENTS = false;
 export const TRACK_HANDS = true;
 
 // Option to hide joints/bones which are for example considered poorly tracked in general or redundant for a use case
-// This affects visualisation of all poses the same way. 
+// This affects visualisation of all poses the same way.
 // Currently, defined according to debug switch TRACK_HANDS
 export const DISPLAY_HIDDEN_ELEMENTS = TRACK_HANDS;
 export const LEFT_HAND_JOINTS = [
@@ -244,7 +244,7 @@ export const LEFT_HAND_JOINTS = [
     JOINTS.LEFT_PINKY_MCP,
     JOINTS.LEFT_PINKY_PIP,
     JOINTS.LEFT_PINKY_DIP,
-    JOINTS.LEFT_PINKY_TIP
+    JOINTS.LEFT_PINKY_TIP,
 ];
 export const RIGHT_HAND_JOINTS = [
     JOINTS.RIGHT_THUMB_CMC,
@@ -266,7 +266,7 @@ export const RIGHT_HAND_JOINTS = [
     JOINTS.RIGHT_PINKY_MCP,
     JOINTS.RIGHT_PINKY_PIP,
     JOINTS.RIGHT_PINKY_DIP,
-    JOINTS.RIGHT_PINKY_TIP
+    JOINTS.RIGHT_PINKY_TIP,
 ];
 export const HIDDEN_JOINTS = [...LEFT_HAND_JOINTS, ...RIGHT_HAND_JOINTS];
 
@@ -312,7 +312,7 @@ export const HIDDEN_BONES = [
     getBoneName(JOINT_CONNECTIONS.pinky4Right),
     getBoneName(JOINT_CONNECTIONS.handSpan1Right),
     getBoneName(JOINT_CONNECTIONS.handSpan2Right),
-    getBoneName(JOINT_CONNECTIONS.handSpan3Right)
+    getBoneName(JOINT_CONNECTIONS.handSpan3Right),
 ];
 
 export const COLOR_BASE = new THREE.Color(0, 0.5, 1);
@@ -365,23 +365,23 @@ export const SMALL_JOINT_FLAGS = [
 
 export const SMALL_JOINT_FLAGS = [
     /* body joints */
-    true, // NOSE 
-    true,  // LEFT_EYE 
-    true,  // RIGHT_EYE 
-    true,  // LEFT_EAR 
-    true,  // RIGHT_EAR 
-    false, // LEFT_SHOULDER 
-    false, // RIGHT_SHOULDER 
-    false, // LEFT_ELBOW 
-    false, // RIGHT_ELBOW 
-    false, // LEFT_WRIST 
-    false, // RIGHT_WRIST 
-    false, // LEFT_HIP 
-    false, // RIGHT_HIP 
-    false, // LEFT_KNEE 
-    false, // RIGHT_KNEE 
-    false, // LEFT_ANKLE 
-    false, // RIGHT_ANKLE 
+    true, // NOSE
+    true, // LEFT_EYE
+    true, // RIGHT_EYE
+    true, // LEFT_EAR
+    true, // RIGHT_EAR
+    false, // LEFT_SHOULDER
+    false, // RIGHT_SHOULDER
+    false, // LEFT_ELBOW
+    false, // RIGHT_ELBOW
+    false, // LEFT_WRIST
+    false, // RIGHT_WRIST
+    false, // LEFT_HIP
+    false, // RIGHT_HIP
+    false, // LEFT_KNEE
+    false, // RIGHT_KNEE
+    false, // LEFT_ANKLE
+    false, // RIGHT_ANKLE
     /* left hand joints */
     true, // LEFT_THUMB_CMC
     true, // LEFT_THUMB_MCP
@@ -423,13 +423,13 @@ export const SMALL_JOINT_FLAGS = [
     true, // RIGHT_PINKY_MCP
     true, // RIGHT_PINKY_PIP
     true, // RIGHT_PINKY_DIP
-    true, // RIGHT_PINKY_TIP   
-     /* synthetic spine joints */
-    false, // HEAD 
-    false, // NECK 
-    false, // CHEST 
-    false, // NAVEL 
-    false  // PELVIS 
+    true, // RIGHT_PINKY_TIP
+    /* synthetic spine joints */
+    false, // HEAD
+    false, // NECK
+    false, // CHEST
+    false, // NAVEL
+    false, // PELVIS
 ];
 
 export const THIN_BONE_FLAGS = [
@@ -500,7 +500,7 @@ export const THIN_BONE_FLAGS = [
     false, // neckChest
     false, // chestNavel
     false, // navelPelvis
-    false // face
+    false, // face
 ];
 
 export const SMALL_JOINT_SCALE_VEC = new THREE.Vector3(0.5, 0.5, 0.5);
@@ -518,7 +518,7 @@ export const MAX_POSE_INSTANCES_MOBILE = 8;
 export const JOINT_CONFIDENCE_THRESHOLD = 0.25;
 
 export function getBoneName(bone) {
-    return Object.keys(JOINT_CONNECTIONS).find(boneName => JOINT_CONNECTIONS[boneName] === bone);
+    return Object.keys(JOINT_CONNECTIONS).find((boneName) => JOINT_CONNECTIONS[boneName] === bone);
 }
 
 /** Angle types/names in ErgonomicsData. */
@@ -550,15 +550,15 @@ export const ERGO_ANGLES = {
     LEFT_HAND_FRONT_BEND: 'left_hand_front_bend_angle',
     LEFT_HAND_SIDE_BEND: 'left_hand_side_bend_angle',
     RIGHT_HAND_FRONT_BEND: 'right_hand_front_bend_angle',
-    RIGHT_HAND_SIDE_BEND: 'right_hand_side_bend_angle' 
+    RIGHT_HAND_SIDE_BEND: 'right_hand_side_bend_angle',
 };
 
 /** 3D offset types/names in ErgonomicsData. */
 export const ERGO_OFFSETS = {
     PELVIS_TO_LEFT_WRIST: 'pelvis_to_left_wrist_offset',
     PELVIS_TO_RIGHT_WRIST: 'pelvis_to_right_wrist_offset',
-    LEFT_TO_RIGHT_FOOT: 'left_to_right_foot_offset'
+    LEFT_TO_RIGHT_FOOT: 'left_to_right_foot_offset',
 };
 
 /** This is given by the method and settings in mobile app. */
-export const HUMAN_TRACKING_FPS = 10;  // fps  
+export const HUMAN_TRACKING_FPS = 10; // fps

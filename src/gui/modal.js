@@ -1,7 +1,6 @@
-createNameSpace("realityEditor.gui.modal");
+createNameSpace('realityEditor.gui.modal');
 
-(function(exports) {
-
+(function (exports) {
     /**
      * Creates and presents a minimal modal with cancel and submit buttons styled like the Reality Server frontend.
      * @param {string} cancelButtonText - Can comfortably fit 8 "m" characters (or around 11 average characters) @todo auto-resize font to fit
@@ -9,7 +8,12 @@ createNameSpace("realityEditor.gui.modal");
      * @param {function} onCancelCallback
      * @param {function} onSubmitCallback
      */
-    function openRealityModal(cancelButtonText, submitButtonText, onCancelCallback, onSubmitCallback) {
+    function openRealityModal(
+        cancelButtonText,
+        submitButtonText,
+        onCancelCallback,
+        onSubmitCallback
+    ) {
         // create the instance of the modal
         // instantiate / modify the DOM elements
         var domElements = createRealityModalDOM();
@@ -17,21 +21,21 @@ createNameSpace("realityEditor.gui.modal");
         domElements.submitButton.innerHTML = submitButtonText || 'Submit';
 
         // attach callbacks to button pointer events + delete/hide when done
-        domElements.cancelButton.addEventListener('pointerup', function(event) {
+        domElements.cancelButton.addEventListener('pointerup', function (event) {
             hideModal(domElements);
             onCancelCallback(event);
         });
-        domElements.submitButton.addEventListener('pointerup', function(event) {
+        domElements.submitButton.addEventListener('pointerup', function (event) {
             hideModal(domElements);
             onSubmitCallback(event);
         });
 
         // disable touch actions elsewhere on the screen
         // todo does this happen automatically from the fade element?
-        domElements.fade.addEventListener('pointerevent', function(event) {
+        domElements.fade.addEventListener('pointerevent', function (event) {
             event.stopPropagation();
         });
-        
+
         // present on the DOM
         document.body.appendChild(domElements.fade);
         document.body.appendChild(domElements.container);
@@ -48,8 +52,8 @@ createNameSpace("realityEditor.gui.modal");
         // fade out darkened background
         domElements.fade.classList.remove('modalVisibleFadeIn');
         domElements.fade.classList.add('modalInvisibleFadeOut');
-        
-        setTimeout(function() {
+
+        setTimeout(function () {
             removeElements([domElements.fade]);
         }, 250);
     }
@@ -59,7 +63,7 @@ createNameSpace("realityEditor.gui.modal");
      * @param {Array.<HTMLElement>} domElementsToRemove
      */
     function removeElements(domElementsToRemove) {
-        domElementsToRemove.forEach(function(domElement) {
+        domElementsToRemove.forEach(function (domElement) {
             domElement.parentElement.removeChild(domElement);
         });
     }
@@ -74,7 +78,15 @@ createNameSpace("realityEditor.gui.modal");
      * @param {function} onSubmitCallback
      * @param {boolean} useSmallerVersion
      */
-    function openClassicModal(headerText, descriptionText, cancelButtonText, submitButtonText, onCancelCallback, onSubmitCallback, useSmallerVersion) {
+    function openClassicModal(
+        headerText,
+        descriptionText,
+        cancelButtonText,
+        submitButtonText,
+        onCancelCallback,
+        onSubmitCallback,
+        useSmallerVersion
+    ) {
         // create the instance of the modal
         // instantiate / modify the DOM elements
         var domElements = createClassicModalDOM(useSmallerVersion);
@@ -84,27 +96,35 @@ createNameSpace("realityEditor.gui.modal");
         domElements.submitButton.innerHTML = submitButtonText || 'Submit';
 
         // attach callbacks to button pointer events + delete/hide when done
-        domElements.cancelButton.addEventListener('pointerup', function(event) {
+        domElements.cancelButton.addEventListener('pointerup', function (event) {
             onCancelCallback(event);
             hideModal(domElements);
         });
-        domElements.submitButton.addEventListener('pointerup', function(event) {
+        domElements.submitButton.addEventListener('pointerup', function (event) {
             onSubmitCallback(event);
             hideModal(domElements);
         });
 
         // disable touch actions elsewhere on the screen
         // todo does this happen automatically from the fade element?
-        domElements.fade.addEventListener('pointerevent', function(event) {
+        domElements.fade.addEventListener('pointerevent', function (event) {
             event.stopPropagation();
         });
-        
+
         // present on the DOM
         document.body.appendChild(domElements.fade);
         document.body.appendChild(domElements.container);
     }
 
-    function openInputModal({ headerText, descriptionText, inputPlaceholderText, cancelButtonText, submitButtonText, onCancelCallback, onSubmitCallback }) {
+    function openInputModal({
+        headerText,
+        descriptionText,
+        inputPlaceholderText,
+        cancelButtonText,
+        submitButtonText,
+        onCancelCallback,
+        onSubmitCallback,
+    }) {
         // Add a blurry background that can be tapped on to cancel the modal
         let fade = document.createElement('div'); // darkens/blurs the background
         fade.id = 'modalFadeClassic';
@@ -163,8 +183,8 @@ createNameSpace("realityEditor.gui.modal");
         };
 
         // attach callbacks to button pointer events + delete/hide when done
-        [cancelButton, fade].forEach(elt => {
-            elt.addEventListener('pointerup', function(event) {
+        [cancelButton, fade].forEach((elt) => {
+            elt.addEventListener('pointerup', function (event) {
                 hideModal();
                 if (onCancelCallback) {
                     onCancelCallback(event);
@@ -172,14 +192,14 @@ createNameSpace("realityEditor.gui.modal");
             });
         });
         // tapping on the submitButton button sends the text input to the callback function
-        submitButton.addEventListener('pointerup', function(event) {
+        submitButton.addEventListener('pointerup', function (event) {
             hideModal();
             if (onSubmitCallback) {
                 onSubmitCallback(event, inputField.value);
             }
         });
     }
-    
+
     /**
      * Constructs the DOM and returns references to its elements
      * @return {{fade: HTMLDivElement, container: HTMLDivElement, cancelButton: HTMLDivElement, submitButton: HTMLDivElement}}
@@ -197,7 +217,7 @@ createNameSpace("realityEditor.gui.modal");
 
         cancelButton.classList.add('modalButton', 'buttonWhite');
         submitButton.classList.add('modalButton', 'buttonRed');
-        
+
         fade.classList.add('modalVisibleFadeIn');
 
         container.appendChild(cancelButton);
@@ -207,8 +227,8 @@ createNameSpace("realityEditor.gui.modal");
             fade: fade,
             container: container,
             cancelButton: cancelButton,
-            submitButton: submitButton
-        }
+            submitButton: submitButton,
+        };
     }
 
     /**
@@ -222,14 +242,16 @@ createNameSpace("realityEditor.gui.modal");
         var description = document.createElement('div');
         var cancelButton = document.createElement('div');
         var submitButton = document.createElement('div');
-        
+
         fade.id = 'modalFadeClassic';
-        container.id = useSmallerCenteredVersion ? 'modalContainerClassicCentered' : 'modalContainerClassic';
+        container.id = useSmallerCenteredVersion
+            ? 'modalContainerClassicCentered'
+            : 'modalContainerClassic';
         header.id = 'modalHeaderClassic';
         description.id = 'modalDescriptionClassic';
         cancelButton.id = 'modalCancelClassic';
         submitButton.id = 'modalSubmitClassic';
-        
+
         cancelButton.classList.add('modalButtonClassic');
         submitButton.classList.add('modalButtonClassic');
 
@@ -237,44 +259,52 @@ createNameSpace("realityEditor.gui.modal");
         container.appendChild(description);
         container.appendChild(cancelButton);
         container.appendChild(submitButton);
-        
+
         return {
             fade: fade,
             container: container,
             header: header,
             description: description,
             cancelButton: cancelButton,
-            submitButton: submitButton
-        }
+            submitButton: submitButton,
+        };
     }
-    
-      //Creates notification container for toast and other messages triggered by in-app events (errors, network
-      // updates, device tracking, etc)
-    function createNotificationContainer() {
 
+    //Creates notification container for toast and other messages triggered by in-app events (errors, network
+    // updates, device tracking, etc)
+    function createNotificationContainer() {
         let notificationContainer = document.createElement('div');
         notificationContainer.id = 'interfaceNotificationContainer';
         notificationContainer.classList.add('statusBarContainer');
-        
+
         document.body.appendChild(notificationContainer);
     }
-    
+
     function Notification(headerText, descriptionText, onCloseCallback, isPortraitLayout) {
         this.headerText = headerText;
         this.descriptionText = descriptionText;
         this.onCloseCallback = onCloseCallback;
         this.domElements = createNotificationDOM(true, isPortraitLayout);
     }
-    
-    Notification.prototype.dismiss = function() {
+
+    Notification.prototype.dismiss = function () {
         hideModal(this.domElements);
         this.onCloseCallback();
     };
-    
-    function showSimpleNotification(headerText, descriptionText, onCloseCallback, isPortraitLayout) {
-        
-        let notification = new Notification(headerText, descriptionText, onCloseCallback, isPortraitLayout);
-        
+
+    function showSimpleNotification(
+        headerText,
+        descriptionText,
+        onCloseCallback,
+        isPortraitLayout
+    ) {
+        let notification = new Notification(
+            headerText,
+            descriptionText,
+            onCloseCallback,
+            isPortraitLayout
+        );
+
         // create the instance of the modal
         // instantiate / modify the DOM elements
         let domElements = notification.domElements;
@@ -290,17 +320,17 @@ createNameSpace("realityEditor.gui.modal");
 
         // disable touch actions elsewhere on the screen
         // todo does this happen automatically from the fade element?
-        domElements.fade.addEventListener('pointerevent', function(event) {
+        domElements.fade.addEventListener('pointerevent', function (event) {
             event.stopPropagation();
         });
 
         // present on the DOM
         document.body.appendChild(domElements.fade);
         document.body.appendChild(domElements.container);
-        
+
         return notification;
     }
-    
+
     function createNotificationDOM(includeLoader, isPortraitLayout) {
         var fade = document.createElement('div'); // darkens/blurs the background
         var container = document.createElement('div'); // panel holding all the modal elements
@@ -321,7 +351,7 @@ createNameSpace("realityEditor.gui.modal");
         }
 
         // cancelButton.classList.add('modalButtonNotification');
-        
+
         fade.classList.add('modalBlurOut');
 
         container.appendChild(header);
@@ -337,7 +367,7 @@ createNameSpace("realityEditor.gui.modal");
                 container.classList.add('loaderContainerPortrait');
             }
         }
-        
+
         container.appendChild(description);
         // container.appendChild(cancelButton);
 
@@ -347,16 +377,15 @@ createNameSpace("realityEditor.gui.modal");
             header: header,
             description: description,
             // cancelButton: cancelButton,
-            loader: loader
-        }
+            loader: loader,
+        };
     }
 
     //Whenever this function is used, make sure to append the returned element to the dom/document. This is done so
     // additional event listeners can be added if needed.
     function showBannerNotification(message, uiId, textId, timeMs = 3000) {
-
         let notificationContainer = document.getElementById('interfaceNotificationContainer');
-        
+
         let notificationUI = document.createElement('div');
         notificationUI.classList.add('statusBar');
         notificationUI.id = uiId;
@@ -384,5 +413,4 @@ createNameSpace("realityEditor.gui.modal");
     exports.createNotificationContainer = createNotificationContainer;
     exports.showSimpleNotification = showSimpleNotification;
     exports.showBannerNotification = showBannerNotification;
-    
 })(realityEditor.gui.modal);

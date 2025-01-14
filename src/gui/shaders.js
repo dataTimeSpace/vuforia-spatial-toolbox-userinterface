@@ -1,9 +1,9 @@
-import {ShaderChunk} from "../../thirdPartyCode/three/three.module.js";
-import {mathUtilShader} from "../utilities/MathUtils.js";
+import { ShaderChunk } from '../../thirdPartyCode/three/three.module.js';
+import { mathUtilShader } from '../utilities/MathUtils.js';
 
-createNameSpace("realityEditor.gui.shaders");
+createNameSpace('realityEditor.gui.shaders');
 
-(function(exports) {
+(function (exports) {
     const commonShader = `
         vec3 HSLToRGB(float h, float s, float l) {
             s /= 100.0;
@@ -36,34 +36,48 @@ createNameSpace("realityEditor.gui.shaders");
         //     }
         // `;
         return ShaderChunk.meshphysical_vert
-            .replace('#include <common>', `#include <common>
+            .replace(
+                '#include <common>',
+                `#include <common>
                 varying vec3 vPosition;
                 varying vec3 vNormal2;
-            `)
-            .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+            `
+            )
+            .replace(
+                '#include <worldpos_vertex>',
+                `#include <worldpos_vertex>
                 vPosition = position.xyz; // makes position accessible in the fragment shader
                 vNormal2 = normal.xyz;
-            `);
+            `
+            );
     }
-    
+
     function gradientMapVertexShader() {
         return ShaderChunk.meshphysical_vert
-            .replace('#include <common>', `#include <common>
+            .replace(
+                '#include <common>',
+                `#include <common>
                 attribute vec4 tangent;
                 varying vec4 vTangent;
                 varying vec3 vPosition;
                 varying vec3 vNormal2;
-            `)
-            .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+            `
+            )
+            .replace(
+                '#include <worldpos_vertex>',
+                `#include <worldpos_vertex>
                 vTangent = tangent.xyzw;
                 vPosition = position.xyz;
                 vNormal2 = normal.xyz;
-            `)
+            `
+            );
     }
-    
+
     function gradientMapFragmentShader() {
         return ShaderChunk.meshphysical_frag
-            .replace('#include <common>', `#include <common>
+            .replace(
+                '#include <common>',
+                `#include <common>
                 #define heightMap_blur 0.01
                 
                 varying vec4 vTangent;
@@ -75,8 +89,11 @@ createNameSpace("realityEditor.gui.shaders");
                 uniform bool gradientMap_outOfRangeAreaOriginalColor;
                 
                 ${commonShader}
-            `)
-            .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+            `
+            )
+            .replace(
+                '#include <dithering_fragment>',
+                `#include <dithering_fragment>
                 if (true) {
                     vec3 col = vec3(0.);               
                     
@@ -118,12 +135,15 @@ createNameSpace("realityEditor.gui.shaders");
                     
                     // gl_FragColor = vec4(0., steepness, 0., 1.);
                 }
-            `);
+            `
+            );
     }
 
     function heightMapFragmentShader() {
         return ShaderChunk.meshphysical_frag
-            .replace('#include <common>', `#include <common>
+            .replace(
+                '#include <common>',
+                `#include <common>
                 #define heightMap_blur 0.01
                 
                 varying vec3 vPosition; // --- vPosition.y approximately [-1.05, 1.5] for office new, [-2.4, 1.6] for harpak ulma machine
@@ -133,8 +153,11 @@ createNameSpace("realityEditor.gui.shaders");
                 uniform float heightMap_minY;
                 
                 ${commonShader}
-            `)
-            .replace('#include <dithering_fragment>', `
+            `
+            )
+            .replace(
+                '#include <dithering_fragment>',
+                `
                 #include <dithering_fragment>
 
                 if (true) {
@@ -162,12 +185,13 @@ createNameSpace("realityEditor.gui.shaders");
                     gl_FragColor.rgb *= 0.5; // attenuate original mesh texture color with a fraction
                     gl_FragColor += vec4(col, 1.);
                 }
-            `);
+            `
+            );
     }
-    
+
     exports.heightMapVertexShader = heightMapVertexShader;
     exports.heightMapFragmentShader = heightMapFragmentShader;
-    
+
     exports.gradientMapVertexShader = gradientMapVertexShader;
     exports.gradientMapFragmentShader = gradientMapFragmentShader;
 })(realityEditor.gui.shaders);

@@ -31,5 +31,5 @@ export const MotionStudyColors = {
     highlight: (color) => {
         const h = color.getHSL({}).h;
         return new THREE.Color().setHSL(h, 1, 0.6);
-    }
+    },
 };

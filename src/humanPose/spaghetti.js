@@ -1,10 +1,7 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import { MeshPath } from "../gui/ar/meshPath.js";
-import {
-    setAnimationMode,
-    AnimationMode,
-} from './draw.js';
-import {MotionStudyColors} from "./MotionStudyColors.js";
+import { MeshPath } from '../gui/ar/meshPath.js';
+import { setAnimationMode, AnimationMode } from './draw.js';
+import { MotionStudyColors } from './MotionStudyColors.js';
 
 const spaghettiListsByMotionStudyFrame = {};
 const activeSpaghettiByMotionStudyFrame = {};
@@ -44,13 +41,16 @@ class MeasurementLabel {
         this.visibilityRequests[pathId] = wantsVisible;
 
         // go through all visibility requests, and hide the label if nothing needs it
-        let anythingWantsVisible = Object.values(this.visibilityRequests).reduce((a, b) => a || b, false);
+        let anythingWantsVisible = Object.values(this.visibilityRequests).reduce(
+            (a, b) => a || b,
+            false
+        );
         this.container.style.display = anythingWantsVisible ? 'inline' : 'none';
     }
 
     goToPointer(pageX, pageY) {
         this.container.style.left = pageX + 'px'; // position it centered on the pointer sphere
-        this.container.style.top = (pageY - 10) + 'px'; // slightly offset in y
+        this.container.style.top = pageY - 10 + 'px'; // slightly offset in y
     }
 
     updateTextLabel(distanceMm, timeMs) {
@@ -62,7 +62,8 @@ class MeasurementLabel {
         labelContainer.classList.add('avatarBeamLabel');
         labelContainer.style.width = width + 'px';
         labelContainer.style.fontSize = fontSize + 'px';
-        labelContainer.style.transform = 'translateX(-50%) translateY(-135%) translateZ(3000px) scale(' + scale + ')';
+        labelContainer.style.transform =
+            'translateX(-50%) translateY(-135%) translateZ(3000px) scale(' + scale + ')';
         document.body.appendChild(labelContainer);
 
         let label = document.createElement('div');
@@ -89,21 +90,29 @@ const SpaghettiSelectionState = {
                 // and the deselection happens first
                 return;
             }
-            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             const index = spaghetti.getValidPointFromIntersects(intersects);
             if (index === -1) {
                 spaghetti.highlightRegion = {
                     startIndex: -1,
                     endIndex: -1,
-                    regionExists: false
-                }
+                    regionExists: false,
+                };
                 spaghetti.updateColors();
                 return;
             }
             SpaghettiSelectionState.SINGLE.transition(spaghetti, index);
         },
         onPointerMove: (spaghetti, e) => {
-            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             spaghetti.cursorIndex = spaghetti.getValidPointFromIntersects(intersects);
             if (spaghetti.cursorIndex === -1) {
                 // Note: Cannot set motionStudy cursor time to -1 here because other spaghettis may be hovering, handled by HPA
@@ -111,7 +120,10 @@ const SpaghettiSelectionState = {
             }
             setAnimationMode(AnimationMode.cursor);
             if (spaghetti.motionStudy) {
-                spaghetti.motionStudy.setCursorTime(spaghetti.points[spaghetti.cursorIndex].timestamp, true);
+                spaghetti.motionStudy.setCursorTime(
+                    spaghetti.points[spaghetti.cursorIndex].timestamp,
+                    true
+                );
             }
         },
         colorPoints: (spaghetti) => {
@@ -139,8 +151,8 @@ const SpaghettiSelectionState = {
             spaghetti.highlightRegion = {
                 startIndex: -1,
                 endIndex: -1,
-                regionExists: false
-            }
+                regionExists: false,
+            };
             spaghetti.selectionState = SpaghettiSelectionState.NONE;
 
             spaghetti.getMeasurementLabel().requestVisible(false, spaghetti.pathId);
@@ -149,16 +161,20 @@ const SpaghettiSelectionState = {
                 activeSpaghettiByMotionStudyFrame[spaghetti.frame] = null;
                 updateAllSpaghettiColorsByMotionStudyFrame(spaghetti.frame);
             }
-            
+
             if (spaghetti.motionStudy) {
                 spaghetti.motionStudy.setHighlightRegion(null, true);
                 spaghetti.motionStudy.setCursorTime(-1, true);
             }
-        }
+        },
     },
     SINGLE: {
         onPointerDown: (spaghetti, e) => {
-            let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             const index = spaghetti.getValidPointFromIntersects(intersects);
             if (index === -1) {
                 SpaghettiSelectionState.NONE.transition(spaghetti);
@@ -175,23 +191,33 @@ const SpaghettiSelectionState = {
             }
         },
         onPointerMove: (spaghetti, e) => {
-            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             spaghetti.cursorIndex = spaghetti.getValidPointFromIntersects(intersects);
             if (spaghetti.cursorIndex === -1) {
                 // Note: Cannot set cursor time to -1 here because other spaghettis may be hovering, handled by HPA
                 return;
             }
 
-            const initialSelectionIndex = spaghetti.highlightRegion.startIndex
+            const initialSelectionIndex = spaghetti.highlightRegion.startIndex;
             const minIndex = Math.min(spaghetti.cursorIndex, initialSelectionIndex);
             const maxIndex = Math.max(spaghetti.cursorIndex, initialSelectionIndex);
 
             if (spaghetti.motionStudy) {
-                spaghetti.motionStudy.setCursorTime(spaghetti.points[spaghetti.cursorIndex].timestamp, true);
-                spaghetti.motionStudy.setHighlightRegion({
-                    startTime: spaghetti.points[minIndex].timestamp,
-                    endTime: spaghetti.points[maxIndex].timestamp
-                }, true);
+                spaghetti.motionStudy.setCursorTime(
+                    spaghetti.points[spaghetti.cursorIndex].timestamp,
+                    true
+                );
+                spaghetti.motionStudy.setHighlightRegion(
+                    {
+                        startTime: spaghetti.points[minIndex].timestamp,
+                        endTime: spaghetti.points[maxIndex].timestamp,
+                    },
+                    true
+                );
             }
             setAnimationMode(AnimationMode.regionAll);
 
@@ -204,17 +230,29 @@ const SpaghettiSelectionState = {
         },
         colorPoints: (spaghetti) => {
             spaghetti.points.forEach((point, index) => {
-                if (index === spaghetti.cursorIndex || index === spaghetti.highlightRegion.startIndex) {
+                if (
+                    index === spaghetti.cursorIndex ||
+                    index === spaghetti.highlightRegion.startIndex
+                ) {
                     // Highlight handles (cursor point and selected point)
                     point.color = [...point.cursorColor];
                 } else {
-                    if (spaghetti.cursorIndex === -1 || spaghetti.cursorIndex === spaghetti.highlightRegion.startIndex) {
+                    if (
+                        spaghetti.cursorIndex === -1 ||
+                        spaghetti.cursorIndex === spaghetti.highlightRegion.startIndex
+                    ) {
                         // If no cursor, or cursor still on selection point, show faded color everywhere
                         point.color = [...point.selectableOutOfRangeColor];
                     } else {
                         // If cursor, show original color for points within handles, faded color for points outside
-                        const minIndex = Math.min(spaghetti.cursorIndex, spaghetti.highlightRegion.startIndex);
-                        const maxIndex = Math.max(spaghetti.cursorIndex, spaghetti.highlightRegion.startIndex);
+                        const minIndex = Math.min(
+                            spaghetti.cursorIndex,
+                            spaghetti.highlightRegion.startIndex
+                        );
+                        const maxIndex = Math.max(
+                            spaghetti.cursorIndex,
+                            spaghetti.highlightRegion.startIndex
+                        );
                         if (index >= minIndex && index <= maxIndex) {
                             point.color = [...point.originalColor];
                         } else {
@@ -231,21 +269,25 @@ const SpaghettiSelectionState = {
             spaghetti.highlightRegion = {
                 startIndex: index,
                 endIndex: index,
-                regionExists: true
-            }
+                regionExists: true,
+            };
             spaghetti.selectionState = SpaghettiSelectionState.SINGLE;
 
             spaghetti.getMeasurementLabel().requestVisible(false, spaghetti.pathId);
-            
+
             if (activeSpaghettiByMotionStudyFrame[spaghetti.frame] !== spaghetti) {
                 activeSpaghettiByMotionStudyFrame[spaghetti.frame] = spaghetti;
                 updateAllSpaghettiColorsByMotionStudyFrame(spaghetti.frame);
             }
-        }
+        },
     },
     RANGE: {
         onPointerDown: (spaghetti, e) => {
-            let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            let intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             const index = spaghetti.getValidPointFromIntersects(intersects);
             if (index === -1) {
                 SpaghettiSelectionState.NONE.transition(spaghetti);
@@ -256,7 +298,11 @@ const SpaghettiSelectionState = {
             SpaghettiSelectionState.SINGLE.transition(spaghetti, index);
         },
         onPointerMove: (spaghetti, e) => {
-            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(e.pageX, e.pageY, spaghetti.meshPaths);
+            const intersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                e.pageX,
+                e.pageY,
+                spaghetti.meshPaths
+            );
             const index = spaghetti.getValidPointFromIntersects(intersects); // Ensures if index is returned, it is within the selection range
             if (index === -1) {
                 spaghetti.cursorIndex = -1;
@@ -266,19 +312,32 @@ const SpaghettiSelectionState = {
             spaghetti.cursorIndex = index;
             setAnimationMode(AnimationMode.cursor);
             if (spaghetti.motionStudy) {
-                spaghetti.motionStudy.setCursorTime(spaghetti.points[spaghetti.cursorIndex].timestamp, true);
+                spaghetti.motionStudy.setCursorTime(
+                    spaghetti.points[spaghetti.cursorIndex].timestamp,
+                    true
+                );
             }
         },
         colorPoints: (spaghetti) => {
             spaghetti.points.forEach((point, index) => {
-                if (index === spaghetti.highlightRegion.startIndex || index === spaghetti.highlightRegion.endIndex) {
+                if (
+                    index === spaghetti.highlightRegion.startIndex ||
+                    index === spaghetti.highlightRegion.endIndex
+                ) {
                     // Highlight handles (selected points)
                     point.color = [...point.cursorColor];
-                } else if (index === spaghetti.cursorIndex && spaghetti.cursorIndex >= spaghetti.highlightRegion.startIndex && spaghetti.cursorIndex <= spaghetti.highlightRegion.endIndex) {
+                } else if (
+                    index === spaghetti.cursorIndex &&
+                    spaghetti.cursorIndex >= spaghetti.highlightRegion.startIndex &&
+                    spaghetti.cursorIndex <= spaghetti.highlightRegion.endIndex
+                ) {
                     // Highlight cursor point as well if it is within the selection range
                     point.color = [...point.cursorColor];
                 } else {
-                    if (index >= spaghetti.highlightRegion.startIndex && index <= spaghetti.highlightRegion.endIndex) {
+                    if (
+                        index >= spaghetti.highlightRegion.startIndex &&
+                        index <= spaghetti.highlightRegion.endIndex
+                    ) {
                         point.color = [...point.originalColor];
                     } else {
                         point.color = [...point.unselectableColor];
@@ -287,24 +346,34 @@ const SpaghettiSelectionState = {
             });
         },
         isIndexSelectable: (spaghetti, index) => {
-            return spaghetti.isActive() && index >= spaghetti.highlightRegion.startIndex && index <= spaghetti.highlightRegion.endIndex;
+            return (
+                spaghetti.isActive() &&
+                index >= spaghetti.highlightRegion.startIndex &&
+                index <= spaghetti.highlightRegion.endIndex
+            );
         },
         transition: (spaghetti, startIndex, endIndex) => {
             spaghetti.highlightRegion = {
                 startIndex: startIndex,
                 endIndex: endIndex,
-                regionExists: true
-            }
+                regionExists: true,
+            };
             spaghetti.selectionState = SpaghettiSelectionState.RANGE;
 
             spaghetti.getMeasurementLabel().requestVisible(false, spaghetti.pathId);
 
             if (spaghetti.motionStudy) {
-                spaghetti.motionStudy.setCursorTime(spaghetti.points[spaghetti.highlightRegion.startIndex].timestamp, true);
-                spaghetti.motionStudy.setHighlightRegion({
-                    startTime: spaghetti.points[startIndex].timestamp,
-                    endTime: spaghetti.points[endIndex].timestamp
-                }, true);
+                spaghetti.motionStudy.setCursorTime(
+                    spaghetti.points[spaghetti.highlightRegion.startIndex].timestamp,
+                    true
+                );
+                spaghetti.motionStudy.setHighlightRegion(
+                    {
+                        startTime: spaghetti.points[startIndex].timestamp,
+                        endTime: spaghetti.points[endIndex].timestamp,
+                    },
+                    true
+                );
             }
             setAnimationMode(AnimationMode.region);
 
@@ -312,9 +381,9 @@ const SpaghettiSelectionState = {
                 activeSpaghettiByMotionStudyFrame[spaghetti.frame] = spaghetti;
                 updateAllSpaghettiColorsByMotionStudyFrame(spaghetti.frame);
             }
-        }
-    }
-}
+        },
+    },
+};
 
 /**
  * A spaghetti object handles the rendering of multiple paths and the touch events for selecting on those paths
@@ -323,7 +392,7 @@ export class Spaghetti extends THREE.Group {
     constructor(points, motionStudy, name, params) {
         super();
         this.points = [];
-        this.motionStudy = motionStudy; // Null when used outside of pose motionStudy, e.g. camera spaghetti lines 
+        this.motionStudy = motionStudy; // Null when used outside of pose motionStudy, e.g. camera spaghetti lines
         this.name = name;
         this.meshPathParams = params; // Used for mesh path creation
         this.meshPaths = [];
@@ -333,32 +402,32 @@ export class Spaghetti extends THREE.Group {
         this.highlightRegion = {
             startIndex: -1,
             endIndex: -1,
-            regionExists: false // Used to determine the difference between no region and a region that has no overlap with the spaghetti
-        }
+            regionExists: false, // Used to determine the difference between no region and a region that has no overlap with the spaghetti
+        };
         this._cursorIndex = -1;
 
         this.setupPointerEvents();
         this.addPoints(points);
-        
+
         if (!spaghettiListsByMotionStudyFrame[this.frame]) {
             spaghettiListsByMotionStudyFrame[this.frame] = [];
         }
         spaghettiListsByMotionStudyFrame[this.frame].push(this);
     }
-    
+
     get selectionState() {
         return this._selectionState;
     }
-    
+
     set selectionState(state) {
         this._selectionState = state;
         this.updateColors();
     }
-    
+
     get cursorIndex() {
         return this._cursorIndex;
     }
-    
+
     set cursorIndex(index) {
         if (index === this._cursorIndex) {
             return;
@@ -366,7 +435,7 @@ export class Spaghetti extends THREE.Group {
         this._cursorIndex = index;
         this.updateColors();
     }
-    
+
     get frame() {
         if (this.motionStudy) {
             return this.motionStudy.frame;
@@ -387,16 +456,40 @@ export class Spaghetti extends THREE.Group {
         points.forEach((point) => {
             // [0-255, 0-255, 0-255] format
             if (!point.color.isColor) {
-                point.color = new THREE.Color(point.color[0] / 255, point.color[1] / 255, point.color[2] / 255);
+                point.color = new THREE.Color(
+                    point.color[0] / 255,
+                    point.color[1] / 255,
+                    point.color[2] / 255
+                );
             }
-            point.originalColor = [point.color.r * 255, point.color.g * 255, point.color.b * 255, 255];
+            point.originalColor = [
+                point.color.r * 255,
+                point.color.g * 255,
+                point.color.b * 255,
+                255,
+            ];
             const fadeColor = MotionStudyColors.fade(point.color, 0.2);
-            point.selectableOutOfRangeColor = [fadeColor.r * 255, fadeColor.g * 255, fadeColor.b * 255, 0.5 * 255];
-            point.unselectableColor = [fadeColor.r * 255, fadeColor.g * 255, fadeColor.b * 255, 0.3 * 255];
+            point.selectableOutOfRangeColor = [
+                fadeColor.r * 255,
+                fadeColor.g * 255,
+                fadeColor.b * 255,
+                0.5 * 255,
+            ];
+            point.unselectableColor = [
+                fadeColor.r * 255,
+                fadeColor.g * 255,
+                fadeColor.b * 255,
+                0.3 * 255,
+            ];
             point.inactiveColor = [fadeColor.r * 255, fadeColor.g * 255, fadeColor.b * 255, 0];
             const cursorColor = MotionStudyColors.highlight(point.color);
-            point.cursorColor = [cursorColor.r * 255, cursorColor.g * 255, cursorColor.b * 255, 255];
-            
+            point.cursorColor = [
+                cursorColor.r * 255,
+                cursorColor.g * 255,
+                cursorColor.b * 255,
+                255,
+            ];
+
             if (this.points.length === 0) {
                 // Create a new mesh path for the first point of the spaghetti line
                 const initialMeshPath = new MeshPath([point], this.meshPathParams);
@@ -407,9 +500,10 @@ export class Spaghetti extends THREE.Group {
             }
 
             // Get the most recent point on the spaghetti line including the points we plan to add
-            const lastPoint = pointsToAdd.length > 0 ?
-                pointsToAdd[pointsToAdd.length - 1] :
-                this.points[this.points.length - 1];
+            const lastPoint =
+                pointsToAdd.length > 0
+                    ? pointsToAdd[pointsToAdd.length - 1]
+                    : this.points[this.points.length - 1];
             const lastPointVector = new THREE.Vector3(lastPoint.x, lastPoint.y, lastPoint.z);
             const currentPointVector = new THREE.Vector3(point.x, point.y, point.z);
 
@@ -440,12 +534,12 @@ export class Spaghetti extends THREE.Group {
 
         this.updateColors();
     }
-    
+
     setPoints(points) {
         this.reset();
         this.addPoints(points);
     }
-    
+
     transferStateTo(otherSpaghetti) {
         if (activeSpaghettiByMotionStudyFrame[this.frame] === this) {
             activeSpaghettiByMotionStudyFrame[this.frame] = otherSpaghetti;
@@ -454,16 +548,16 @@ export class Spaghetti extends THREE.Group {
         otherSpaghetti.highlightRegion = {
             startIndex: this.highlightRegion.startIndex,
             endIndex: this.highlightRegion.endIndex,
-            regionExists: this.highlightRegion.regionExists
-        }
+            regionExists: this.highlightRegion.regionExists,
+        };
         otherSpaghetti.cursorIndex = this.cursorIndex;
         otherSpaghetti.updateColors();
         this.selectionState = SpaghettiSelectionState.NONE;
         this.highlightRegion = {
             startIndex: -1,
             endIndex: -1,
-            regionExists: false
-        }
+            regionExists: false,
+        };
         this.cursorIndex = -1;
         this.updateColors();
     }
@@ -498,7 +592,9 @@ export class Spaghetti extends THREE.Group {
      */
     isActive() {
         const activeSpaghetti = activeSpaghettiByMotionStudyFrame[this.frame];
-        return activeSpaghetti === this || activeSpaghetti === null || activeSpaghetti === undefined;
+        return (
+            activeSpaghetti === this || activeSpaghetti === null || activeSpaghetti === undefined
+        );
     }
 
     isVisible() {
@@ -523,7 +619,10 @@ export class Spaghetti extends THREE.Group {
                 this.getMeasurementLabel().requestVisible(false, this.pathId);
                 return;
             }
-            if (this.motionStudy && realityEditor.motionStudy.getActiveMotionStudy() !== this.motionStudy) {
+            if (
+                this.motionStudy &&
+                realityEditor.motionStudy.getActiveMotionStudy() !== this.motionStudy
+            ) {
                 return;
             }
             if (!this.isVisible()) {
@@ -536,7 +635,10 @@ export class Spaghetti extends THREE.Group {
                 return;
             }
             if (realityEditor.device.isMouseEventCameraControl(e)) return;
-            if (this.motionStudy && realityEditor.motionStudy.getActiveMotionStudy() !== this.motionStudy) {
+            if (
+                this.motionStudy &&
+                realityEditor.motionStudy.getActiveMotionStudy() !== this.motionStudy
+            ) {
                 return;
             }
             if (!this.isVisible()) {
@@ -599,7 +701,7 @@ export class Spaghetti extends THREE.Group {
             this.highlightRegion = {
                 startIndex: -1,
                 endIndex: -1,
-                regionExists: true
+                regionExists: true,
             };
             this.updateColors();
             return;
@@ -610,8 +712,8 @@ export class Spaghetti extends THREE.Group {
         this.highlightRegion = {
             startIndex,
             endIndex,
-            regionExists: true
-        }
+            regionExists: true,
+        };
         this.selectionState = SpaghettiSelectionState.RANGE;
     }
 
@@ -646,7 +748,7 @@ export class Spaghetti extends THREE.Group {
 
         this.setPoints(this.points.slice(firstIndex, secondIndex + 1));
     }
-    
+
     getDistanceAlongPath(index1, index2) {
         const minIndex = Math.min(index1, index2);
         const maxIndex = Math.max(index1, index2);
@@ -654,11 +756,24 @@ export class Spaghetti extends THREE.Group {
         let meshPath = this.getMeshPathFromIndex(minIndex);
         let finalMeshPath = this.getMeshPathFromIndex(maxIndex);
         if (meshPath === finalMeshPath) {
-            return meshPath.getDistanceAlongPath(this.getIndexWithinPath(minIndex), this.getIndexWithinPath(maxIndex));
+            return meshPath.getDistanceAlongPath(
+                this.getIndexWithinPath(minIndex),
+                this.getIndexWithinPath(maxIndex)
+            );
         }
-        distance += meshPath.getDistanceAlongPath(this.getIndexWithinPath(minIndex), meshPath.currentPoints.length - 1);
-        for (let i = this.meshPaths.indexOf(meshPath) + 1; i < this.meshPaths.indexOf(finalMeshPath); i++) {
-            distance += this.meshPaths[i].getDistanceAlongPath(0, this.meshPaths[i].currentPoints.length - 1);
+        distance += meshPath.getDistanceAlongPath(
+            this.getIndexWithinPath(minIndex),
+            meshPath.currentPoints.length - 1
+        );
+        for (
+            let i = this.meshPaths.indexOf(meshPath) + 1;
+            i < this.meshPaths.indexOf(finalMeshPath);
+            i++
+        ) {
+            distance += this.meshPaths[i].getDistanceAlongPath(
+                0,
+                this.meshPaths[i].currentPoints.length - 1
+            );
         }
         distance += finalMeshPath.getDistanceAlongPath(0, this.getIndexWithinPath(maxIndex));
         return distance;
@@ -680,12 +795,12 @@ export class Spaghetti extends THREE.Group {
     }
 
     updateColors() {
-        this.selectionState.colorPoints(this)
+        this.selectionState.colorPoints(this);
         this.meshPaths.forEach((meshPath) => {
             meshPath.updateColors(meshPath.currentPoints.map((pt, index) => index));
         });
     }
-    
+
     getMeshPathFromIndex(index) {
         if (index < 0) {
             return this.meshPaths[0];
@@ -702,7 +817,7 @@ export class Spaghetti extends THREE.Group {
         }
         return meshPath;
     }
-    
+
     getIndexWithinPath(index) {
         if (index < 0) {
             return 0;
@@ -735,12 +850,14 @@ export class Spaghetti extends THREE.Group {
         }
         return -1;
     }
-    
+
     getPointFromIntersect(intersect) {
         const meshPath = intersect.object.parent;
         const indexWithinMeshPath = meshPath.getPointFromIntersect(intersect);
         const meshPathIndex = this.meshPaths.indexOf(meshPath);
-        const priorMeshPathPointCount = this.meshPaths.slice(0, meshPathIndex).reduce((sum, meshPath) => sum + meshPath.currentPoints.length, 0);
+        const priorMeshPathPointCount = this.meshPaths
+            .slice(0, meshPathIndex)
+            .reduce((sum, meshPath) => sum + meshPath.currentPoints.length, 0);
         return priorMeshPathPointCount + indexWithinMeshPath;
     }
 

@@ -59,8 +59,8 @@
 * {
     -webkit-transform-style: preserve-3d;
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-   -webkit-user-select: none;
-    -webkit-touch-callout:none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     -webkit-user-drag: none;
 }
 
@@ -78,7 +78,7 @@ body {
     /* -webkit-user-select: none;  Disable selection/Copy of UIWebView */
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     color: #ffffff;
     /*background-color: black;*/
 }
@@ -94,7 +94,7 @@ body {
     /*-webkit-user-select: none;    Disable selection/Copy of UIWebView */
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-    /* Trick to enable anti-aliasing of iframes (see: https://stackoverflow.com/questions/6492027/css-transform-jagged-edges-in-chrome) */ 
+    /* Trick to enable anti-aliasing of iframes (see: https://stackoverflow.com/questions/6492027/css-transform-jagged-edges-in-chrome) */
     padding: 1px;
     background-clip: content-box;
     -webkit-background-clip: content-box;
@@ -112,7 +112,6 @@ body {
     width: 100%;
     height: 100%;
 }
-
 
 .mainEditing {
     -webkit-transform-style: preserve-3d;
@@ -136,8 +135,8 @@ body {
     /*border: 10px dashed green;*/
     z-index: 2;
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 2, 1);
-    pointer-events:none; /*stops canvas from capturing touches so they propogate to elements behind it*/
-    
+    pointer-events: none; /*stops canvas from capturing touches so they propogate to elements behind it*/
+
     display: none;
 
     /* Trick to enable anti-aliasing of iframes (see: https://stackoverflow.com/questions/6492027/css-transform-jagged-edges-in-chrome) */
@@ -163,24 +162,25 @@ body {
     padding: 0;
     border-width: 0px;
     /*background-color: rgba(0, 0, 0, 0.2);*/
-    background:repeating-linear-gradient(-45deg, transparent, transparent 22px, rgba(255, 1, 1, 0.5) 22px, rgba(255, 1, 1, 0.5) 44px);
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 22px,
+        rgba(255, 1, 1, 0.5) 22px,
+        rgba(255, 1, 1, 0.5) 44px
+    );
     -webkit-filter: contrast(200%);
     /*border: 10px dashed green;*/
     z-index: 2;
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-
 }
-
-
-
 
 .iframe {
     -webkit-transform-style: preserve-3d;
     position: fixed;
     /*  -webkit-user-select: none;  Disable selection/Copy of UIWebView */
-  /*  background-color: rgba(0, 0, 0, 0.5);*/
+    /*  background-color: rgba(0, 0, 0, 0.5);*/
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-
 }
 
 .frameHistoryGhost {
@@ -202,7 +202,7 @@ body {
 }
 
 .markerPlaneElement {
-    background-color: rgba(0,255,255,0.5);
+    background-color: rgba(0, 255, 255, 0.5);
     position: absolute;
     opacity: 0.9;
 }
@@ -237,7 +237,7 @@ body {
         background-color: rgba(0, 255, 255, 0.3);
     }
     100% {
-        background-color: rgba(0, 255, 255, 0.0);
+        background-color: rgba(0, 255, 255, 0);
     }
 }
 
@@ -300,8 +300,8 @@ body {
     padding: 0;
     /*background-color: rgba(20,20,20,0.5);*/
     /*background-color: transparent;*/
-    background-color: rgba(0,0,0,0.3); /* just barely not transparent... tints the background */
-    
+    background-color: rgba(0, 0, 0, 0.3); /* just barely not transparent... tints the background */
+
     /*-webkit-backdrop-filter: blur(30px);*/
 
     /*background-color: #969696;*/
@@ -335,7 +335,6 @@ body {
 }
 
 .craftingBoardBlur {
-
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
 
@@ -343,7 +342,6 @@ body {
     animation-duration: 100ms;
     -webkit-animation-fill-mode: forwards; /* Chrome, Safari, Opera */
     -webkit-animation-timing-function: ease-out;
-
 }
 
 .craftingBoardClear {
@@ -357,29 +355,31 @@ body {
 }
 
 .centerVerticallyAndHorizontally {
-    position:absolute; /*it can be fixed too*/
-    left:0; right:0;
-    top:0; bottom:0;
-    margin:auto;
+    position: absolute; /*it can be fixed too*/
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
 
     /*this to solve "the content will not be cut when the window is smaller than the content": */
-    max-width:100%;
-    max-height:100%;
-    overflow:auto;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
 }
 
 .centerVertically {
-    position:absolute; /*it can be fixed too*/
+    position: absolute; /*it can be fixed too*/
     /*left:0; right:0;*/
-    top:0; bottom:0;
-    margin:auto;
+    top: 0;
+    bottom: 0;
+    margin: auto;
 
     /*this to solve "the content will not be cut when the window is smaller than the content": */
-    max-width:100%;
-    max-height:100%;
-    overflow:auto;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
 }
-
 
 .Interfaces {
     -webkit-transform-style: preserve-3d;
@@ -478,7 +478,7 @@ body {
 
 #content31 {
     height: 55px;
-    right:0px;
+    right: 0px;
     padding: 5px;
     padding-left: 0px;
 
@@ -565,12 +565,16 @@ body {
 }
 */
 
-.memoryContainer, #overlay.overlayMemory, .memory, .element-template {      /* #overlay.overlayLogicNode */
+.memoryContainer,
+#overlay.overlayMemory,
+.memory,
+.element-template {
+    /* #overlay.overlayLogicNode */
     display: inline-block;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    border: 3px solid #00FFFF;
+    border: 3px solid #00ffff;
     width: calc(18vw - 18px);
     height: calc(18vw - 18px);
     overflow: hidden;
@@ -579,17 +583,17 @@ body {
 .memoryContainer {
     height: calc(10vh + 10px);
     border: none;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .memoryContainer.availableContainer {
     border: 3px solid cyan;
-    background-color: rgba(0,127,127,0.3);
+    background-color: rgba(0, 127, 127, 0.3);
 }
 
 .memoryContainer.selectedContainer {
     border: 3px solid cyan;
-    background-color: rgba(0,255,255,0.5);
+    background-color: rgba(0, 255, 255, 0.5);
 }
 
 .nodeMemoryContainer {
@@ -607,7 +611,7 @@ body {
     margin-left: -50px;
     margin-top: -50px;
     border-radius: 0px;
-    background-image: url("../svg/logicNode.svg");
+    background-image: url('../svg/logicNode.svg');
 }
 
 .element-template {
@@ -615,12 +619,12 @@ body {
     border: none;
     margin: 3px;
     overflow: hidden;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .memoryContainer.memoryPointer {
     box-sizing: border-box;
-    border: 3px solid #00FFFF;
+    border: 3px solid #00ffff;
     width: 120px;
     height: 120px;
     position: absolute;
@@ -634,7 +638,7 @@ body {
     height: 180px;
     margin-left: -90px;
     margin-top: -90px;
-    transition: all 1.0s;
+    transition: all 1s;
 }
 
 .memoryContainer {
@@ -652,7 +656,8 @@ body {
     background-repeat: no-repeat;
 }
 
-#overlay.overlayMemory, .memoryWeb > .memoryContainer {
+#overlay.overlayMemory,
+.memoryWeb > .memoryContainer {
     border-radius: 0;
     position: absolute;
     margin-left: calc(-0.5 * (20vw - 18px));
@@ -667,7 +672,7 @@ body {
     padding: 0;
     z-index: 4;
     -webkit-transform-style: preserve-3d;
-    -webkit-transform: translate3d(0px,0px,2px);
+    -webkit-transform: translate3d(0px, 0px, 2px);
 }
 
 .memoryPointerContainer {
@@ -732,19 +737,19 @@ body {
 }
 
 #overlay.overlayScreenFrame {
-    border-color: #3AF431;
+    border-color: #3af431;
 }
 
 #overlay.overlayPositive {
-  border-color: #3AF431;
+    border-color: #3af431;
 }
 
 #overlay.overlayNegative {
-  border-color: #FF019F;
+    border-color: #ff019f;
 }
 
 #overlay.overlayAction {
-  border-color: #F9F90A;
+    border-color: #f9f90a;
 }
 
 .objectEntry {
@@ -788,7 +793,6 @@ body {
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 5, 1);
     pointer-events: none;
 }
-
 
 #p5jsCanvas {
     visibility: visible;
@@ -905,7 +909,7 @@ body {
     transform-origin: center;
     border-radius: 50%;
     border: 2px solid white;
-    background-color: rgba(0,255,255,0.1);
+    background-color: rgba(0, 255, 255, 0.1);
     visibility: visible;
     /*transform: rotateX(90deg);*/
     position: absolute;
@@ -964,7 +968,7 @@ Logic Interface CSS
         opacity: 0;
     }
     100% {
-        -webkit-transform: scale(1.0);
+        -webkit-transform: scale(1);
         visibility: visible;
         opacity: 1;
     }
@@ -972,7 +976,7 @@ Logic Interface CSS
 
 @keyframes scaleOut {
     0% {
-        -webkit-transform: scale(1.0);
+        -webkit-transform: scale(1);
         visibility: visible;
         opacity: 1;
     }
@@ -1006,9 +1010,9 @@ Logic Interface CSS
 }
 
 #blockPlaceholdersContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .blockPlaceholderRow {
@@ -1021,13 +1025,12 @@ Logic Interface CSS
     }
     100% {
         opacity: 1;
-
     }
 }
 
 @keyframes fadeOut {
     0% {
-        opacity:1;
+        opacity: 1;
     }
     100% {
         opacity: 0;
@@ -1044,7 +1047,7 @@ Logic Interface CSS
 }
 
 .invisibleFadeOut {
-    opacity:1;
+    opacity: 1;
 
     animation-name: fadeOut;
     animation-duration: 100ms;
@@ -1054,21 +1057,21 @@ Logic Interface CSS
 
 .blockPlaceholder {
     width: 92px;
-    height:100%;
+    height: 100%;
     margin-right: 46px;
     display: inline-block;
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    box-sizing: border-box;         /* Opera/IE 8+ */
-    background-color: rgba(0,0,0,0.3);
+    box-sizing: border-box; /* Opera/IE 8+ */
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .blockPlaceholderLastCol {
     width: 92px;
-    height:100%;
+    height: 100%;
     display: inline-block;
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    box-sizing: border-box;         /* Opera/IE 8+ */
-    background-color: rgba(0,0,0,0.3);
+    box-sizing: border-box; /* Opera/IE 8+ */
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .blockPlaceholderLabel {
@@ -1077,25 +1080,25 @@ Logic Interface CSS
     display: -webkit-box;
     -webkit-box-pack: center;
     -webkit-box-align: center;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 18px;
 }
 
 .columnHighlight {
     width: 92px;
-    height:100%;
+    height: 100%;
     margin-right: 46px;
     display: inline-block;
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    box-sizing: border-box;         /* Opera/IE 8+ */
+    box-sizing: border-box; /* Opera/IE 8+ */
 }
 
 .columnHighlightLastCol {
     width: 92px;
-    height:100%;
+    height: 100%;
     display: inline-block;
     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    box-sizing: border-box;         /* Opera/IE 8+ */
+    box-sizing: border-box; /* Opera/IE 8+ */
 }
 
 #datacraftingCanvas {
@@ -1105,65 +1108,65 @@ Logic Interface CSS
 }
 
 #datacraftingEventDiv {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .blockDivPlaced {
-  box-sizing: border-box;
-  position: absolute;
-  color: white;
-  user-select:none;
-  -webkit-user-select:none;
-  display:-webkit-box;
-  -webkit-box-pack:center;
-  -webkit-box-align:center;
-  background-color: rgba(0,0,0,0.7);
-  border: 2px solid rgba(0,255,255,0.5);
-  font-family: "Open Sans", sans-serif;
+    box-sizing: border-box;
+    position: absolute;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    font-family: 'Open Sans', sans-serif;
 }
 
 .blockDivHighlighted {
-  box-sizing: border-box;
-  position: absolute;
-  color: white;
-  user-select:none;
-  -webkit-user-select:none;
-  display:-webkit-box;
-  -webkit-box-pack:center;
-  -webkit-box-align:center;
-  background-color: rgba(0,0,0,0.7);
-  border: 2px solid rgba(0,255,255,0.5);
-  font-family: "Open Sans", sans-serif;
+    box-sizing: border-box;
+    position: absolute;
+    color: white;
+    user-select: none;
+    -webkit-user-select: none;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    font-family: 'Open Sans', sans-serif;
 }
 
 /* block settings */
 
 .settingsContainer {
-  background-color: transparent;
-  position: absolute;
-  left: 100px;
-  top: 0;
-  width: calc(100vw - 62px);
-  height: 320px;
-  border: none;
+    background-color: transparent;
+    position: absolute;
+    left: 100px;
+    top: 0;
+    width: calc(100vw - 62px);
+    height: 320px;
+    border: none;
 }
 
 /* block menu */
 
 #menuContainer {
-  position: absolute;
+    position: absolute;
 }
 
 #menuBlockContainer {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 400px;
-  height: 320px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 400px;
+    height: 320px;
 }
 
 .menuBlockRow {
@@ -1171,50 +1174,55 @@ Logic Interface CSS
 }
 
 #menuSideContainer {
-  position: absolute;
-  left: 398px;
-  top: 0;
-  width: 106px;
-  height: 320px;
+    position: absolute;
+    left: 398px;
+    top: 0;
+    width: 106px;
+    height: 320px;
 }
 
 .menuBlock {
-  width: 92px;
-  height: 46px;
-  display: inline-block;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  margin: 3.5px;
-  margin-bottom: 18px;
+    width: 92px;
+    height: 46px;
+    display: inline-block;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 3.5px;
+    margin-bottom: 18px;
 }
 
 .menuBlockContents {
-  width: 100%;
-  height: 100%;
-  display:-webkit-box;
-  -webkit-box-pack:center;
-  -webkit-box-align:center;
-  -webkit-box-orient:vertical;
-  user-select:none;
-  -webkit-user-select:none;
-  color: white;
-  font-family: "Open Sans", sans-serif;
-  font-size: 14px;
-  position: absolute;
-  overflow: hidden; /* crop the icon to the size of the container */
+    width: 100%;
+    height: 100%;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    -webkit-box-orient: vertical;
+    user-select: none;
+    -webkit-user-select: none;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    position: absolute;
+    overflow: hidden; /* crop the icon to the size of the container */
 }
 
 .blockIcon {
     position: absolute;
-  text-align: center;
+    text-align: center;
     height: 100%;
     overflow: hidden;
-  user-select:none;
-  -webkit-user-select:none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .blockIconTinted {
-    background-color: rgba(0,0,0,0.25); /* add a slight background in case the icon didn't have one */
+    background-color: rgba(
+        0,
+        0,
+        0,
+        0.25
+    ); /* add a slight background in case the icon didn't have one */
 }
 
 .blockIconPlaced {
@@ -1227,11 +1235,11 @@ Logic Interface CSS
 }
 
 .blockTitle {
-  text-align: center;
-  width: 100%;
-  bottom: -22px;
-  position: absolute;
-  color: rgb(247, 209, 71);
+    text-align: center;
+    width: 100%;
+    bottom: -22px;
+    position: absolute;
+    color: rgb(247, 209, 71);
 }
 
 .blockMoveDiv {
@@ -1243,47 +1251,47 @@ Logic Interface CSS
 }
 
 .menuTab {
-  width: 106px;
-  height: 59.5px;
-  margin-top: 3.5px;
-  margin-bottom: 3.5px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  display:-webkit-box;
-  -webkit-box-pack:center;
-  -webkit-box-align:center;
+    width: 106px;
+    height: 59.5px;
+    margin-top: 3.5px;
+    margin-bottom: 3.5px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
 }
 
 .menuTabSelected {
-  width: 106px;
-  height: 59.5px;
-  margin-top: 3.5px;
-  margin-bottom: 3.5px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  display:-webkit-box;
-  -webkit-box-pack:center;
-  -webkit-box-align:center;
+    width: 106px;
+    height: 59.5px;
+    margin-top: 3.5px;
+    margin-bottom: 3.5px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
 }
 
 .menuTabIcon {
-  height: 100%;
+    height: 100%;
 }
 
 .blockDivMovingAbleBorder {
-    border: 2px solid rgb(0,255,0) !important;
+    border: 2px solid rgb(0, 255, 0) !important;
 }
 
 .blockDivMovingUnableBorder {
-    border: 2px solid rgb(255,0,124) !important;
+    border: 2px solid rgb(255, 0, 124) !important;
 }
 
 .blockDivMovingSaveOrDeletableBorder {
-    border: 2px solid rgb(255,255,0) !important;
+    border: 2px solid rgb(255, 255, 0) !important;
 }
 
 .blockDivMovingAble {
@@ -1325,7 +1333,7 @@ Logic Interface CSS
     -webkit-transform-style: preserve-3d;
     -webkit-transform: translateZ(3000px); /* Above web interfaces, below side buttons */
     /*background-color: rgba(17, 55, 55, 0.7);*/
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(0, 0, 0, 0.1);
     -webkit-backdrop-filter: blur(10px);
     display: none;
 }
@@ -1398,11 +1406,11 @@ Logic Interface CSS
     height: calc(100vh - 30px);
     left: 0;
     top: 15px;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .pocketScrollBarSegmentTouched {
-    background-color: rgba(0,255,255,0.3);
+    background-color: rgba(0, 255, 255, 0.3);
 }
 
 /* The inside piece of a scrollbar that is currently selected */
@@ -1413,7 +1421,7 @@ Logic Interface CSS
     border-radius: 5px;
     width: calc(100% - 20px);
     height: calc(100% - 20px);
-    background-color: rgba(0,255,255,0.6);
+    background-color: rgba(0, 255, 255, 0.6);
 }
 
 #pocketTargetObjectLabel {
@@ -1425,8 +1433,8 @@ Logic Interface CSS
     line-height: 50px;
     text-align: center;
     vertical-align: middle;
-    background-color: rgba(0,0,0,0.5);
-    color: rgb(0,255,255);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: rgb(0, 255, 255);
 }
 
 .snappableFrame {
@@ -1448,26 +1456,26 @@ Logic Interface CSS
     height: 100vh;
     top: 0;
     left: 0;
-    position:absolute;
+    position: absolute;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 }
 
 .groupLassoFadeOut {
-    opacity:1;
+    opacity: 1;
 
     animation-name: fadeOut;
     animation-duration: 300ms;
     -webkit-animation-fill-mode: forwards;
     -webkit-animation-timing-function: ease-out;
     -webkit-user-select: none;
-    -webkit-touch-callout:none;
+    -webkit-touch-callout: none;
 }
 
 @keyframes delayedFadeOut {
     0% {
-        opacity:1;
+        opacity: 1;
     }
     50% {
         opacity: 1;
@@ -1478,14 +1486,14 @@ Logic Interface CSS
 }
 
 .groupOutlineFadeOut {
-    opacity:1;
+    opacity: 1;
 
     animation-name: delayedFadeOut;
     animation-duration: 1500ms;
     -webkit-animation-fill-mode: forwards;
     -webkit-animation-timing-function: ease-out;
     -webkit-user-select: none;
-    -webkit-touch-callout:none;
+    -webkit-touch-callout: none;
 }
 
 .corners {
@@ -1493,7 +1501,8 @@ Logic Interface CSS
     width: 100px; /* for demo purposes */
 }
 
-.cornersTop, .cornersBottom {
+.cornersTop,
+.cornersBottom {
     position: absolute;
     width: 10px;
     height: 10px;
@@ -1554,18 +1563,18 @@ Logic Interface CSS
 }
 
 .hoverPocketElement {
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0, 0, 0, 0.7);
     /*border: 1px solid cyan;*/
     /*padding: -1px;*/
 }
 
 .highlightedPocketElement {
-    background-color: rgba(0,255,255,0.5);
+    background-color: rgba(0, 255, 255, 0.5);
     border: 5px solid cyan;
 }
 
 .highlightedPocketElement:hover {
-    background-color: rgba(0,255,255,0.4);
+    background-color: rgba(0, 255, 255, 0.4);
     border: 5px solid cyan;
 }
 
@@ -1587,7 +1596,7 @@ Logic Interface CSS
 .temp-anim-div {
     display: inline-block;
     position: absolute;
-    background-color: rgb(255,255,255);
+    background-color: rgb(255, 255, 255);
     pointer-events: none;
     opacity: 0.2;
     visibility: visible;
@@ -1644,7 +1653,7 @@ Logic Interface CSS
 .anchorTextField {
     position: absolute;
     color: white;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     text-align: center;
     vertical-align: bottom;
     right: 1%;
@@ -1667,7 +1676,8 @@ Logic Interface CSS
     pointer-events: none;
 }
 
-.groundPlaneVisualizer, .groundPlaneOrigin {
+.groundPlaneVisualizer,
+.groundPlaneOrigin {
     width: 100px;
     height: 100px;
     position: relative;
@@ -1691,7 +1701,7 @@ Logic Interface CSS
     justify-content: center;
     width: 100%;
     margin: auto auto 10px auto;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     text-align: center;
     line-height: 30px;
     box-sizing: border-box;
@@ -1699,15 +1709,19 @@ Logic Interface CSS
 }
 
 @keyframes dropIn {
-    0% { opacity: 0 }
-    100% { opacity: 1 }
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .statusBarText {
     padding: 10px 16px;
     font-size: 14px;
     color: white;
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0, 0, 0, 0.7);
     margin: auto;
     width: max-content;
     max-width: 50%;
@@ -1744,10 +1758,11 @@ Logic Interface CSS
     visibility: hidden;
 }
 
-.avatarBeamLabel, .timelineBoardLabel {
+.avatarBeamLabel,
+.timelineBoardLabel {
     position: absolute;
     color: white;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 24px;
     background-color: rgba(0, 0, 0, 0.3);
     z-index: 3000;
@@ -1790,13 +1805,12 @@ Logic Interface CSS
     transform: translateZ(3000px);
 }
 
-
 #avatarIconContainer {
     position: absolute;
     top: 60px;
     left: 50vw;
     transform: translate3d(-50%, 0, 1000px);
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     height: 50px;
     border-radius: 25px;
     z-index: 1000;
@@ -1808,7 +1822,7 @@ Logic Interface CSS
     transform: translateX(-50%) translateZ(1000px);
     text-align: center;
     bottom: 15px;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     padding: 8px 16px;
     border-radius: 15px;
     z-index: 1000;
@@ -1885,7 +1899,7 @@ Logic Interface CSS
     transform: translateX(-50%);
     top: 100%;
     margin-top: 20px;
-    background-color: rgba(0,0,0,0.9);
+    background-color: rgba(0, 0, 0, 0.9);
     border-radius: 5px;
     &.hiddenDropdown {
         display: none;
@@ -1902,7 +1916,7 @@ Logic Interface CSS
     padding-left: 10px;
     padding-top: 10px;
     &:hover {
-        background-color: rgba(55,55,55,0.9);
+        background-color: rgba(55, 55, 55, 0.9);
     }
     border-radius: 5px;
 }
@@ -1941,7 +1955,9 @@ Logic Interface CSS
     display: none;
 }
 
-#analytics-step-label-container > .analytics-region-card.analytics-region-card-no-windchill > .analytics-region-card-windchill {
+#analytics-step-label-container
+    > .analytics-region-card.analytics-region-card-no-windchill
+    > .analytics-region-card-windchill {
     display: none;
 }
 
@@ -1949,7 +1965,8 @@ Logic Interface CSS
     display: block;
 }
 
-#analytics-step-file, .analytics-button-input {
+#analytics-step-file,
+.analytics-button-input {
     pointer-events: none;
     opacity: 0;
     width: 1px;
@@ -1981,9 +1998,10 @@ Logic Interface CSS
     cursor: pointer;
 }
 
-.analytics-region-card, .analytics-button-container {
+.analytics-region-card,
+.analytics-button-container {
     font-size: 14px;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     line-height: 22px;
     width: 15rem;
 
@@ -2025,7 +2043,12 @@ Logic Interface CSS
     padding: 13px;
 }
 
-.analytics-region-card.minimized:not(.pinned) > *:not(.analytics-region-card-title, .analytics-region-card-subtitle, .analytics-region-card-button-container) {
+.analytics-region-card.minimized:not(.pinned)
+    > *:not(
+        .analytics-region-card-title,
+        .analytics-region-card-subtitle,
+        .analytics-region-card-button-container
+    ) {
     display: none;
 }
 
@@ -2035,7 +2058,9 @@ Logic Interface CSS
 }
 
 .analytics-region-card.pinAnimation {
-    transition: top 0.7s, left 0.7s;
+    transition:
+        top 0.7s,
+        left 0.7s;
     transform: translateZ(3000px);
 }
 
@@ -2071,12 +2096,12 @@ Logic Interface CSS
     }
 }
 
-
 .analytics-pinned-region-cards-container.analytics-has-video {
     bottom: calc(320px + 91px); /* guess at video top */
 }
 
-.analytics-video, .analytics-video-background {
+.analytics-video,
+.analytics-video-background {
     position: absolute;
     left: 35px;
     bottom: calc(320px - 66px - 66px + 14px);
@@ -2109,7 +2134,6 @@ Logic Interface CSS
     cursor: pointer;
 
     pointer-events: all;
-
 }
 
 .analytics-export-link-container {
@@ -2217,7 +2241,8 @@ Logic Interface CSS
     width: fit-content;
 }
 
-.analytics-waste-time-item, .analytics-value-add-item {
+.analytics-waste-time-item,
+.analytics-value-add-item {
     cursor: pointer;
     text-align: center;
     display: inline-block;
@@ -2243,7 +2268,7 @@ Logic Interface CSS
 
 .analytics-value-add-item {
     border-left: 1px solid white;
-    border-radius:  0 4px 4px 0;
+    border-radius: 0 4px 4px 0;
 }
 
 .analytics-value-add-item.selected {
@@ -2257,7 +2282,6 @@ Logic Interface CSS
 .analytics-value-add-item.selected:hover {
     background-color: rgb(0, 180, 0);
 }
-
 
 #blurredEnvelopeBackground {
     background-color: #67676760;
@@ -2332,30 +2356,47 @@ Logic Interface CSS
     border: 16px solid white;
     width: 300px;
     height: 300px;
-    left: calc(100vw/2 - 300px/2 - 16px);
-    top: calc(100vh/2 - 300px/2 - 16px);
+    left: calc(100vw / 2 - 300px / 2 - 16px);
+    top: calc(100vh / 2 - 300px / 2 - 16px);
     pointer-events: auto;
     opacity: 0.7;
 }
 
 .tool-color-gradient {
     /*animation: tool-color-gradient-anim 0.3s infinite alternate;*/
-    background: linear-gradient(90deg, #000000,#000000, #00ffff, #ee7752, #e73c7e, #23a6d5, #23d5ab,#000000, #000000);
+    background: linear-gradient(
+        90deg,
+        #000000,
+        #000000,
+        #00ffff,
+        #ee7752,
+        #e73c7e,
+        #23a6d5,
+        #23d5ab,
+        #000000,
+        #000000
+    );
     background-size: 2000% 200%;
     animation: gradient 10s infinite;
     border-radius: 50px;
 }
 
 @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .minimizedEnvelopeIcon:hover {
     border: 24px solid white;
-    left: calc(100vw/2 - 300px/2 - 24px);
-    top: calc(100vh/2 - 300px/2 - 24px);
+    left: calc(100vw / 2 - 300px / 2 - 24px);
+    top: calc(100vh / 2 - 300px / 2 - 24px);
     background: black;
 }
 
@@ -2420,11 +2461,11 @@ Logic Interface CSS
     transform: translateY(-50%) translateX(-50%);
     background-color: rgb(242, 242, 242);
     border-radius: 6px;
-    box-shadow: rgba(0,0,0,0.15) 0 4px 10px 6px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0 4px 10px 6px;
     box-sizing: border-box;
     color: rgb(56, 56, 56);
     display: block;
-    font-family: "Open Sans", "sans-serif";
+    font-family: 'Open Sans', 'sans-serif';
     font-size: 26px;
     line-height: 45px;
     pointer-events: auto;
@@ -2500,7 +2541,7 @@ Logic Interface CSS
         top: unset;
         bottom: 160px;
     }
-    
+
     .statusBar {
         width: 100%;
         margin: 10px auto auto auto;

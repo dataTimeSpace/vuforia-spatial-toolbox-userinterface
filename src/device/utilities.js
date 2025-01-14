@@ -51,7 +51,7 @@
  * Created by heun on 12/27/16.
  */
 
-createNameSpace("realityEditor.device.utilities");
+createNameSpace('realityEditor.device.utilities');
 
 /**
  * @fileOverview realityEditor.device.utilities.js
@@ -62,21 +62,25 @@ createNameSpace("realityEditor.device.utilities");
  * @desc function to print to console based on debug mode set to true
  **/
 window.cout = function cout() {
-	if (globalStates.debug) {
-		console.log.apply(this, arguments);
-	}
-}
+    if (globalStates.debug) {
+        console.log.apply(this, arguments);
+    }
+};
 
 /**
  * Generates a random 12 character unique identifier using uppercase, lowercase, and numbers (e.g. "OXezc4urfwja")
  * @return {string}
  */
 realityEditor.device.utilities.uuidTime = function () {
-	var dateUuidTime = new Date();
-	var abcUuidTime = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	var stampUuidTime = parseInt(Math.floor((Math.random() * 199) + 1) + "" + dateUuidTime.getTime()).toString(36);
-	while (stampUuidTime.length < 12) stampUuidTime = abcUuidTime.charAt(Math.floor(Math.random() * abcUuidTime.length)) + stampUuidTime;
-	return stampUuidTime;
+    var dateUuidTime = new Date();
+    var abcUuidTime = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var stampUuidTime = parseInt(
+        Math.floor(Math.random() * 199 + 1) + '' + dateUuidTime.getTime()
+    ).toString(36);
+    while (stampUuidTime.length < 12)
+        stampUuidTime =
+            abcUuidTime.charAt(Math.floor(Math.random() * abcUuidTime.length)) + stampUuidTime;
+    return stampUuidTime;
 };
 
 /**
@@ -84,11 +88,19 @@ realityEditor.device.utilities.uuidTime = function () {
  * @return {string}
  */
 realityEditor.device.utilities.uuidTimeShort = function () {
-	var dateUuidTime = new Date();
-	var abcUuidTime = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	var stampUuidTime = parseInt("" + dateUuidTime.getMilliseconds() + dateUuidTime.getMinutes() + dateUuidTime.getHours() + dateUuidTime.getDay()).toString(36);
-	while (stampUuidTime.length < 8) stampUuidTime = abcUuidTime.charAt(Math.floor(Math.random() * abcUuidTime.length)) + stampUuidTime;
-	return stampUuidTime;
+    var dateUuidTime = new Date();
+    var abcUuidTime = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var stampUuidTime = parseInt(
+        '' +
+            dateUuidTime.getMilliseconds() +
+            dateUuidTime.getMinutes() +
+            dateUuidTime.getHours() +
+            dateUuidTime.getDay()
+    ).toString(36);
+    while (stampUuidTime.length < 8)
+        stampUuidTime =
+            abcUuidTime.charAt(Math.floor(Math.random() * abcUuidTime.length)) + stampUuidTime;
+    return stampUuidTime;
 };
 
 /**
@@ -98,8 +110,8 @@ realityEditor.device.utilities.uuidTimeShort = function () {
  * @param {number} max
  * @return {number}
  */
-realityEditor.device.utilities.randomIntInc = function(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
+realityEditor.device.utilities.randomIntInc = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
 // ----- Utilities for adding and removing events in a stable way ----- //
@@ -111,12 +123,14 @@ realityEditor.device.utilities.randomIntInc = function(min, max) {
  * Source: http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
  * @return {number}
  */
-String.prototype.hashCode = function() {
-    var hash = 0, i, chr;
+String.prototype.hashCode = function () {
+    var hash = 0,
+        i,
+        chr;
     if (this.length === 0) return hash;
     for (i = 0; i < this.length; i++) {
-        chr   = this.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
+        chr = this.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
         hash |= 0; // Convert to 32bit integer
     }
     return hash;
@@ -128,13 +142,18 @@ String.prototype.hashCode = function() {
  * https://stackoverflow.com/questions/11565471/removing-event-listener-which-was-added-with-bind
  *
  * @example this.addBoundListener(div, 'pointerdown', realityEditor.gui.crafting.eventHandlers.onPointerDown, realityEditor.gui.crafting.eventHandlers);
- * 
+ *
  * @param {HTMLElement} element - the element to add the eventListener to
  * @param {string} eventType - the type of the event, e.g. 'pointerdown'
  * @param {Function} functionReference - the function to trigger
  * @param {object} bindTarget - the argument to go within functionReference.bind(___)
  */
-realityEditor.device.utilities.addBoundListener = function(element, eventType, functionReference, bindTarget) {
+realityEditor.device.utilities.addBoundListener = function (
+    element,
+    eventType,
+    functionReference,
+    bindTarget
+) {
     var boundFunctionReference = functionReference.bind(bindTarget);
     var functionUUID = this.getEventUUID(element, eventType, functionReference);
     if (boundListeners.hasOwnProperty(functionUUID)) {
@@ -151,7 +170,7 @@ realityEditor.device.utilities.addBoundListener = function(element, eventType, f
  * @param {Function} functionReference
  * @return {string} - e.g. myDiv_pointerdown_1424385949
  */
-realityEditor.device.utilities.getEventUUID = function(element, eventType, functionReference) {
+realityEditor.device.utilities.getEventUUID = function (element, eventType, functionReference) {
     return element.id + '_' + eventType + '_' + functionReference.toString().hashCode();
 };
 
@@ -166,7 +185,11 @@ realityEditor.device.utilities.getEventUUID = function(element, eventType, funct
  * @param eventType
  * @param functionReference
  */
-realityEditor.device.utilities.removeBoundListener = function(element, eventType, functionReference) {
+realityEditor.device.utilities.removeBoundListener = function (
+    element,
+    eventType,
+    functionReference
+) {
     var functionUUID = this.getEventUUID(element, eventType, functionReference);
     var boundFunctionReference = boundListeners[functionUUID];
     if (boundFunctionReference) {
@@ -181,8 +204,8 @@ realityEditor.device.utilities.removeBoundListener = function(element, eventType
  * @param {number} y
  * @return {Array.<HTMLElement>}
  */
-realityEditor.device.utilities.getAllDivsUnderCoordinate = function(x, y) {
-    return document.elementsFromPoint(x,y).filter(elt => {
+realityEditor.device.utilities.getAllDivsUnderCoordinate = function (x, y) {
+    return document.elementsFromPoint(x, y).filter((elt) => {
         return elt.tagName !== 'BODY' && elt.tagName !== 'HTML';
     });
 };
@@ -193,11 +216,10 @@ realityEditor.device.utilities.getAllDivsUnderCoordinate = function(x, y) {
  * @param {string} base64String - a Base64 encoded string representation of a jpg image
  * @return {string}
  */
-realityEditor.device.utilities.decodeBase64JpgToBlobUrl = function(base64String) {
+realityEditor.device.utilities.decodeBase64JpgToBlobUrl = function (base64String) {
     var blob = this.b64toBlob(base64String, 'image/jpeg');
     var blobUrl = URL.createObjectURL(blob);
     return blobUrl;
-
 };
 
 /**
@@ -207,7 +229,7 @@ realityEditor.device.utilities.decodeBase64JpgToBlobUrl = function(base64String)
  * @param {number|undefined} sliceSize - number of bytes to process at a time (default 512). Affects performance.
  * @return {Blob}
  */
-realityEditor.device.utilities.b64toBlob = function(b64Data, contentType, sliceSize) {
+realityEditor.device.utilities.b64toBlob = function (b64Data, contentType, sliceSize) {
     contentType = contentType || '';
     sliceSize = sliceSize || 512;
 
@@ -227,7 +249,7 @@ realityEditor.device.utilities.b64toBlob = function(b64Data, contentType, sliceS
         byteArrays.push(byteArray);
     }
 
-    return new Blob(byteArrays, {type: contentType});
+    return new Blob(byteArrays, { type: contentType });
 };
 
 /**
@@ -237,20 +259,20 @@ realityEditor.device.utilities.b64toBlob = function(b64Data, contentType, sliceS
  * @param {Array} newArray
  * @return {{additions: Array, subtractions: Array, isEqual: boolean}}
  */
-realityEditor.device.utilities.diffArrays = function(oldArray, newArray) {
+realityEditor.device.utilities.diffArrays = function (oldArray, newArray) {
     var additions = [];
     var subtractions = [];
     var isEqual = true;
 
     if (oldArray && newArray) {
-        oldArray.forEach(function(elt) {
+        oldArray.forEach(function (elt) {
             if (newArray.indexOf(elt) === -1) {
                 subtractions.push(elt);
                 isEqual = false;
             }
         });
 
-        newArray.forEach(function(elt) {
+        newArray.forEach(function (elt) {
             if (oldArray.indexOf(elt) === -1) {
                 additions.push(elt);
                 isEqual = false;
@@ -267,12 +289,12 @@ realityEditor.device.utilities.diffArrays = function(oldArray, newArray) {
             isEqual = false;
         }
     }
-    
+
     return {
         additions: additions,
         subtractions: subtractions,
-        isEqual: isEqual
-    }
+        isEqual: isEqual,
+    };
 };
 
 /**
@@ -280,11 +302,16 @@ realityEditor.device.utilities.diffArrays = function(oldArray, newArray) {
  * @param {PointerEvent} event
  * @return {boolean}
  */
-realityEditor.device.utilities.isEventHittingBackground = function(event) {
+realityEditor.device.utilities.isEventHittingBackground = function (event) {
     let activeVehicle = realityEditor.device.getEditingVehicle();
-    return (event.target.tagName === 'BODY' || event.target.id === 'mainThreejsCanvas' ||
-        event.target.id === 'canvas' || event.target.id === 'groupSVG' ||
-        event.target.className === 'memoryBackground') && !activeVehicle;
+    return (
+        (event.target.tagName === 'BODY' ||
+            event.target.id === 'mainThreejsCanvas' ||
+            event.target.id === 'canvas' ||
+            event.target.id === 'groupSVG' ||
+            event.target.className === 'memoryBackground') &&
+        !activeVehicle
+    );
 };
 
 /**
@@ -294,8 +321,8 @@ realityEditor.device.utilities.isEventHittingBackground = function(event) {
  * @param {string} targetId
  * @return {string}
  */
-realityEditor.device.utilities.getVehicleIdFromTargetId = function(targetId) {
-    targetId = targetId.replace(/^(svg)/,'');
-    targetId = targetId.replace(/(corners)$/,'');
+realityEditor.device.utilities.getVehicleIdFromTargetId = function (targetId) {
+    targetId = targetId.replace(/^(svg)/, '');
+    targetId = targetId.replace(/(corners)$/, '');
     return targetId;
 };

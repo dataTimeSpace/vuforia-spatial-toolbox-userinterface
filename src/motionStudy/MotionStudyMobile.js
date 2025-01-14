@@ -1,4 +1,4 @@
-import {MotionStudy} from './motionStudy.js';
+import { MotionStudy } from './motionStudy.js';
 
 export class MotionStudyMobile extends MotionStudy {
     constructor(frame) {

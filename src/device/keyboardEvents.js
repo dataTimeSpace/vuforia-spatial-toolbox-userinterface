@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.device.keyboardEvents");
+createNameSpace('realityEditor.device.keyboardEvents');
 
 /**
  * @fileOverview realityEditor.device.keyboardEvents.js
@@ -6,9 +6,10 @@ createNameSpace("realityEditor.device.keyboardEvents");
  * Additional modules and experiments can plug into these for touch interaction.
  */
 
-(function(exports) {
-    
-    var callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('device/keyboardEvents');
+(function (exports) {
+    var callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler(
+        'device/keyboardEvents'
+    );
     let keyboardCurrentlyOpen = false;
 
     // register normal/flying mode callbacks, so that when enter fly mode in remote operator, spatialCursor & spatialIndicator's screenX & screenY also switches to screen center
@@ -24,11 +25,11 @@ createNameSpace("realityEditor.device.keyboardEvents");
             handleFlyMode(e);
         });
         document.addEventListener('pointerlockchange', handleFlyModeEscapeKey);
-        realityEditor.network.addPostMessageHandler('resetScroll', function() {
+        realityEditor.network.addPostMessageHandler('resetScroll', function () {
             resetScroll();
-            setTimeout(function() {
+            setTimeout(function () {
                 resetScroll(); // also do it after a slight delay
-            }, 100); 
+            }, 100);
         });
     }
 
@@ -38,7 +39,7 @@ createNameSpace("realityEditor.device.keyboardEvents");
      */
     function resetScroll() {
         if (window.scrollX !== 0 || window.scrollY !== 0) {
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
     }
 
@@ -47,7 +48,7 @@ createNameSpace("realityEditor.device.keyboardEvents");
      * @param {KeyboardEvent} event
      */
     function keyUpHandler(event) {
-        callbackHandler.triggerCallbacks('keyUpHandler', {event: event});
+        callbackHandler.triggerCallbacks('keyUpHandler', { event: event });
     }
 
     /**
@@ -55,7 +56,7 @@ createNameSpace("realityEditor.device.keyboardEvents");
      * @param {KeyboardEvent} event
      */
     function keyDownHandler(event) {
-        callbackHandler.triggerCallbacks('keyDownHandler', {event: event});
+        callbackHandler.triggerCallbacks('keyDownHandler', { event: event });
     }
 
     /**
@@ -65,7 +66,9 @@ createNameSpace("realityEditor.device.keyboardEvents");
      */
     function registerCallback(functionName, callback) {
         if (!callbackHandler) {
-            callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('device/keyboardEvents');
+            callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler(
+                'device/keyboardEvents'
+            );
         }
         callbackHandler.registerCallback(functionName, callback);
     }
@@ -78,12 +81,15 @@ createNameSpace("realityEditor.device.keyboardEvents");
     }
 
     // todo: if detected a pointer lock change, then wait for 1 seconds before triggering the next pointer lock change
-    
+
     function handleFlyModeEscapeKey() {
         if (document.pointerLockElement === document.body) {
-            callbackHandler.triggerCallbacks('enterFlyMode', {isFlying: true});
+            callbackHandler.triggerCallbacks('enterFlyMode', { isFlying: true });
         } else if (document.pointerLockElement === null) {
-            callbackHandler.triggerCallbacks('enterNormalMode', {isFlying: false, from: 'triggered from ESC key'});
+            callbackHandler.triggerCallbacks('enterNormalMode', {
+                isFlying: false,
+                from: 'triggered from ESC key',
+            });
         }
     }
 
@@ -101,7 +107,7 @@ createNameSpace("realityEditor.device.keyboardEvents");
         keyboardInput.style.top = 0;
         keyboardInput.style.opacity = 0;
 
-        document.getElementById('keyboardInput').addEventListener('focusout', function() {
+        document.getElementById('keyboardInput').addEventListener('focusout', function () {
             console.log('keyboard hidden');
             callbackHandler.triggerCallbacks('keyboardHidden', null);
         });
@@ -136,7 +142,7 @@ createNameSpace("realityEditor.device.keyboardEvents");
         document.getElementById('keyboardInput').setAttribute('readonly', 'readonly');
         document.getElementById('keyboardInput').setAttribute('disabled', 'true');
 
-        setTimeout(function() {
+        setTimeout(function () {
             document.getElementById('keyboardInput').blur();
             document.getElementById('keyboardInput').removeAttribute('readonly');
             document.getElementById('keyboardInput').removeAttribute('disabled');
@@ -154,5 +160,4 @@ createNameSpace("realityEditor.device.keyboardEvents");
     exports.openKeyboard = openKeyboard;
     exports.closeKeyboard = closeKeyboard;
     exports.isKeyboardActive = isKeyboardActive;
-
 })(realityEditor.device.keyboardEvents);

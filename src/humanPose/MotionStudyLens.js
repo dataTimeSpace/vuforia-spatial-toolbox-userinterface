@@ -2,8 +2,8 @@
  * MotionStudyLens is a class that represents a lens in the motion study system.
  * Inherit from this class to create new lenses.
  */
-import {MotionStudyColors} from "./MotionStudyColors.js";
-import {JOINTS} from "./constants.js";
+import { MotionStudyColors } from './MotionStudyColors.js';
+import { JOINTS } from './constants.js';
 
 export class MotionStudyLens {
     /**
@@ -17,8 +17,7 @@ export class MotionStudyLens {
     /**
      * Resets the lens to its initial state.
      */
-    reset() {
-    }
+    reset() {}
 
     /**
      * Applies the lens to a single pose by adding new properties to the pose object.
@@ -105,8 +104,8 @@ export class MotionStudyLens {
             JOINTS.LEFT_KNEE,
             JOINTS.RIGHT_KNEE,
             JOINTS.LEFT_ANKLE,
-            JOINTS.RIGHT_ANKLE
-        ]
+            JOINTS.RIGHT_ANKLE,
+        ];
     }
 
     /**

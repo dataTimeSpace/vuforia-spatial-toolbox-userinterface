@@ -1,9 +1,6 @@
-import {RegionCard, RegionCardState} from './regionCard.js';
-import {
-    setAnimationMode,
-    AnimationMode, getPosesInTimeInterval,
-} from '../humanPose/draw.js';
-import {ValueAddWasteTimeTypes} from './ValueAddWasteTimeManager.js';
+import { RegionCard, RegionCardState } from './regionCard.js';
+import { setAnimationMode, AnimationMode, getPosesInTimeInterval } from '../humanPose/draw.js';
+import { ValueAddWasteTimeTypes } from './ValueAddWasteTimeManager.js';
 
 const needleTopPad = 4;
 const needleTipWidth = 12;
@@ -60,11 +57,13 @@ function rgbaToString(rgba) {
  * @return boolean
  */
 function rgbaEquals(rgba1, rgba2) {
-  // >> 0 is the fastest to-int method on Chrome
-  return (rgba1[0] >> 0) === (rgba2[0] >> 0) &&
-    (rgba1[1] >> 0) === (rgba2[1] >> 0) &&
-    (rgba1[2] >> 0) === (rgba2[2] >> 0) &&
-    (rgba1[3] >> 0) === (rgba2[3] >> 0);
+    // >> 0 is the fastest to-int method on Chrome
+    return (
+        rgba1[0] >> 0 === rgba2[0] >> 0 &&
+        rgba1[1] >> 0 === rgba2[1] >> 0 &&
+        rgba1[2] >> 0 === rgba2[2] >> 0 &&
+        rgba1[3] >> 0 === rgba2[3] >> 0
+    );
 }
 
 export class Timeline {
@@ -108,7 +107,7 @@ export class Timeline {
         let dpr = window.devicePixelRatio;
         this.controlsCanvas.width = (rowHeight + rowPad) * dpr;
         this.controlsCanvas.height = this.height * dpr;
-        this.controlsCanvas.style.width = (rowHeight + rowPad) + 'px';
+        this.controlsCanvas.style.width = rowHeight + rowPad + 'px';
         this.controlsCanvas.style.height = this.height + 'px';
         container.appendChild(this.controlsCanvas);
 
@@ -221,13 +220,13 @@ export class Timeline {
             const dragStart = 0.15;
             if (this.mouseX < this.width * dragStart) {
                 let velX = this.width * (dragStart + 0.05) - this.mouseX;
-                let velTime = velX / this.pixelsPerMs * dragSpeedBase;
-                this.timeMin -= velTime * dt / 1000;
+                let velTime = (velX / this.pixelsPerMs) * dragSpeedBase;
+                this.timeMin -= (velTime * dt) / 1000;
                 this.limitTimeMin();
             } else if (this.mouseX > this.width * (1 - dragStart)) {
                 let velX = this.mouseX - this.width * (1 - dragStart - 0.05);
-                let velTime = velX / this.pixelsPerMs * dragSpeedBase;
-                this.timeMin += velTime * dt / 1000;
+                let velTime = (velX / this.pixelsPerMs) * dragSpeedBase;
+                this.timeMin += (velTime * dt) / 1000;
                 this.limitTimeMin();
             }
         }
@@ -300,18 +299,18 @@ export class Timeline {
         let started = false;
         for (const part of parts) {
             switch (part.source) {
-            case 'shared':
-                if (!started) {
+                case 'shared':
+                    if (!started) {
+                        startLabel += part.value;
+                    }
+                    break;
+                case 'startRange':
                     startLabel += part.value;
-                }
-                break;
-            case 'startRange':
-                startLabel += part.value;
-                started = true;
-                break;
-            case 'endRange':
-                endLabel += part.value;
-                break;
+                    started = true;
+                    break;
+                case 'endRange':
+                    endLabel += part.value;
+                    break;
             }
         }
         return {
@@ -321,7 +320,7 @@ export class Timeline {
     }
 
     updateBoardLabels() {
-        const {startLabel, endLabel} = this.formatRangeToLabels(
+        const { startLabel, endLabel } = this.formatRangeToLabels(
             this.dateFormat,
             new Date(this.timeMin),
             new Date(this.timeMin + this.widthMs)
@@ -352,8 +351,11 @@ export class Timeline {
         const midX = this.timeToX(midTime);
 
         let cacheKey = `${leftTime} ${rightTime} ${midX}`;
-        if (this.lastRegionCardCacheKey === cacheKey &&
-            this.regionCard && !this.regionCard.element.classList.contains('pinned')) {
+        if (
+            this.lastRegionCardCacheKey === cacheKey &&
+            this.regionCard &&
+            !this.regionCard.element.classList.contains('pinned')
+        ) {
             return;
         }
         this.lastRegionCardCacheKey = cacheKey;
@@ -364,9 +366,18 @@ export class Timeline {
         }
 
         if (!this.regionCard) {
-            this.regionCard = new RegionCard(this.motionStudy, this.container, getPosesInTimeInterval(leftTime, rightTime), {startTime: leftTime, endTime: rightTime});
+            this.regionCard = new RegionCard(
+                this.motionStudy,
+                this.container,
+                getPosesInTimeInterval(leftTime, rightTime),
+                { startTime: leftTime, endTime: rightTime }
+            );
         } else {
-            this.regionCard.setPoses(getPosesInTimeInterval(leftTime, rightTime), leftTime, rightTime);
+            this.regionCard.setPoses(
+                getPosesInTimeInterval(leftTime, rightTime),
+                leftTime,
+                rightTime
+            );
         }
 
         this.regionCard.moveTo(midX, this.height + labelPad + needleTopPad);
@@ -390,8 +401,7 @@ export class Timeline {
         if (!this.highlightRegion) {
             return true;
         }
-        return time >= this.highlightRegion.startTime &&
-            time <= this.highlightRegion.endTime;
+        return time >= this.highlightRegion.startTime && time <= this.highlightRegion.endTime;
     }
 
     rowIndexToRowY(index) {
@@ -427,12 +437,7 @@ export class Timeline {
                 Math.min(rgba[3] * bri, 255),
             ];
         }
-        return [
-            rgba[0] * dim,
-            rgba[1] * dim,
-            rgba[2] * dim,
-            rgba[3] * dim,
-        ];
+        return [rgba[0] * dim, rgba[1] * dim, rgba[2] * dim, rgba[3] * dim];
     }
 
     drawSpaghettiPoses(poses) {
@@ -457,7 +462,10 @@ export class Timeline {
             }
             const isGap = pose.timestamp - lastPoseTime > maxPoseDelayLenience;
             const poseColor = this.recolorPoseForHighlight(pose.timestamp, pose.originalColor);
-            const lastPoseColor = this.recolorPoseForHighlight(lastPose.timestamp, lastPose.originalColor);
+            const lastPoseColor = this.recolorPoseForHighlight(
+                lastPose.timestamp,
+                lastPose.originalColor
+            );
             const isColorSwap = !rgbaEquals(poseColor, lastPoseColor);
             if (!isGap && !isColorSwap) {
                 lastPose = pose;
@@ -470,24 +478,23 @@ export class Timeline {
             if (isColorSwap && !isGap && this.highlightRegion) {
                 // Swap point is either due to the start or the end, whichever
                 // is between the two poses
-                if (lastPoseTime < this.highlightRegion.startTime &&
-                    this.highlightRegion.startTime < pose.timestamp) {
+                if (
+                    lastPoseTime < this.highlightRegion.startTime &&
+                    this.highlightRegion.startTime < pose.timestamp
+                ) {
                     lastPoseTime = this.highlightRegion.startTime;
                 }
-                if (lastPoseTime < this.highlightRegion.endTime &&
-                    this.highlightRegion.endTime < pose.timestamp) {
+                if (
+                    lastPoseTime < this.highlightRegion.endTime &&
+                    this.highlightRegion.endTime < pose.timestamp
+                ) {
                     lastPoseTime = this.highlightRegion.endTime;
                 }
             }
 
             const startX = this.timeToX(startSectionTime);
             const endX = this.timeToX(lastPoseTime);
-            this.gfx.fillRect(
-                startX,
-                rowY,
-                endX - startX,
-                rowHeight
-            );
+            this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
 
             if (isColorSwap && !isGap) {
                 // When swapping color extend the pose section
@@ -504,16 +511,14 @@ export class Timeline {
             lastPoseTime = timeMax;
         }
 
-        const lastPoseColor = this.recolorPoseForHighlight(lastPose.timestamp, lastPose.originalColor);
+        const lastPoseColor = this.recolorPoseForHighlight(
+            lastPose.timestamp,
+            lastPose.originalColor
+        );
         this.gfx.fillStyle = rgbaToString(lastPoseColor);
         const startX = this.timeToX(startSectionTime);
         const endX = this.timeToX(lastPoseTime);
-        this.gfx.fillRect(
-            startX,
-            rowY,
-            endX - startX,
-            rowHeight
-        );
+        this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
     }
 
     drawPinnedRegionCards() {
@@ -552,20 +557,10 @@ export class Timeline {
             const startX = this.timeToX(timeStart);
             const endX = this.timeToX(timeEnd);
             this.gfx.fillStyle = prc.accentColor;
-            this.gfx.fillRect(
-                startX,
-                rowY,
-                endX - startX,
-                rowHeight
-            );
+            this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
             if (anyActive && !prc.displayActive) {
                 this.gfx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                this.gfx.fillRect(
-                    startX,
-                    rowY,
-                    endX - startX,
-                    rowHeight
-                );
+                this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
             }
 
             if (prc.displayActive) {
@@ -575,12 +570,7 @@ export class Timeline {
                 this.gfx.lineWidth = 3;
                 this.gfx.setLineDash(dashes);
                 this.gfx.strokeStyle = Colors.pinnedRegionCardActiveStroke;
-                this.gfx.strokeRect(
-                    startX,
-                    rowY,
-                    endX - startX,
-                    rowHeight
-                );
+                this.gfx.strokeRect(startX, rowY, endX - startX, rowHeight);
                 this.gfx.setLineDash([]);
                 this.gfx.lineWidth = 1;
             }
@@ -593,8 +583,9 @@ export class Timeline {
             return;
         }
 
-        let patches = Object.values(desktopRenderer.getCameraVisPatches() || {})
-            .filter(this.motionStudy.patchFilter);
+        let patches = Object.values(desktopRenderer.getCameraVisPatches() || {}).filter(
+            this.motionStudy.patchFilter
+        );
 
         if (patches.length === 0) {
             return;
@@ -629,12 +620,7 @@ export class Timeline {
 
             const startX = this.timeToX(timeStart);
             const endX = this.timeToX(timeEnd);
-            this.gfx.fillRect(
-                startX,
-                rowY,
-                endX - startX,
-                rowHeight
-            );
+            this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
         }
     }
 
@@ -648,7 +634,7 @@ export class Timeline {
 
         const timeMax = this.timeMin + this.widthMs;
 
-        this.motionStudy.valueAddWasteTimeManager.regions.forEach(region => {
+        this.motionStudy.valueAddWasteTimeManager.regions.forEach((region) => {
             if (region.endTime < this.timeMin || region.startTime > timeMax) {
                 return;
             }
@@ -658,15 +644,11 @@ export class Timeline {
             const startX = this.timeToX(timeStart);
             const endX = this.timeToX(timeEnd);
 
-            this.gfx.fillStyle = region.value === ValueAddWasteTimeTypes.WASTE_TIME ?
-                Colors.wasteFill :
-                Colors.valueAddFill;
-            this.gfx.fillRect(
-                startX,
-                rowY,
-                endX - startX,
-                rowHeight
-            );
+            this.gfx.fillStyle =
+                region.value === ValueAddWasteTimeTypes.WASTE_TIME
+                    ? Colors.wasteFill
+                    : Colors.valueAddFill;
+            this.gfx.fillRect(startX, rowY, endX - startX, rowHeight);
         });
     }
 
@@ -689,7 +671,7 @@ export class Timeline {
         const sensors = this.motionStudy.sensors;
         let lastPose = poses[0];
         let lastPoseTime = lastPose.timestamp;
-        const lastPoseActives = sensorFrames.map(sensorFrame => {
+        const lastPoseActives = sensorFrames.map((sensorFrame) => {
             return sensors.isSensorActive(sensorFrame, lastPose);
         });
         const poseActives = [].concat(lastPoseActives);
@@ -699,7 +681,7 @@ export class Timeline {
 
         const timeMax = this.timeMin + this.widthMs;
 
-        const sensorColors = sensorFrames.map(sensorFrame => {
+        const sensorColors = sensorFrames.map((sensorFrame) => {
             return sensors.getSensorColor(sensorFrame);
         });
 
@@ -734,12 +716,16 @@ export class Timeline {
             if (isSwap && !isGap && this.highlightRegion) {
                 // Swap point is either due to the start or the end, whichever
                 // is between the two poses
-                if (lastPoseTime < this.highlightRegion.startTime &&
-                    this.highlightRegion.startTime < pose.timestamp) {
+                if (
+                    lastPoseTime < this.highlightRegion.startTime &&
+                    this.highlightRegion.startTime < pose.timestamp
+                ) {
                     lastPoseTime = this.highlightRegion.startTime;
                 }
-                if (lastPoseTime < this.highlightRegion.endTime &&
-                    this.highlightRegion.endTime < pose.timestamp) {
+                if (
+                    lastPoseTime < this.highlightRegion.endTime &&
+                    this.highlightRegion.endTime < pose.timestamp
+                ) {
                     lastPoseTime = this.highlightRegion.endTime;
                 }
             }
@@ -858,8 +844,8 @@ export class Timeline {
         let min = this.minTimeMin;
         let max = this.maxTimeMax;
         let fullTimeWidth = max - min;
-        let startX = (this.timeMin - this.minTimeMin) / fullTimeWidth * this.width;
-        let width = this.widthMs / fullTimeWidth * this.width;
+        let startX = ((this.timeMin - this.minTimeMin) / fullTimeWidth) * this.width;
+        let width = (this.widthMs / fullTimeWidth) * this.width;
         this.gfx.fillRect(startX, minimapStart, width, minimapHeight);
     }
 
@@ -925,18 +911,18 @@ export class Timeline {
     }
 
     isPointerOnRow() {
-        return this.mouseY > boardStart &&
-            this.mouseY < this.rowIndexToRowY(N_INTERACTABLE_ROWS) - rowPad;
+        return (
+            this.mouseY > boardStart &&
+            this.mouseY < this.rowIndexToRowY(N_INTERACTABLE_ROWS) - rowPad
+        );
     }
 
     isPointerOnBoard() {
-        return this.mouseY > boardStart &&
-            this.mouseY < boardStart + boardHeight;
+        return this.mouseY > boardStart && this.mouseY < boardStart + boardHeight;
     }
 
     isPointerOnNeedle() {
-        return this.isPointerOnStartNeedle() ||
-            this.isPointerOnEndNeedle();
+        return this.isPointerOnStartNeedle() || this.isPointerOnEndNeedle();
     }
 
     isPointerOnStartNeedle() {
@@ -1042,15 +1028,15 @@ export class Timeline {
         this.updatePointer(event);
 
         switch (this.dragMode) {
-        case DragMode.NONE:
-            this.onPointerMoveDragModeNone(event);
-            break;
-        case DragMode.SELECT:
-            this.onPointerMoveDragModeSelect(event);
-            break;
-        case DragMode.PAN:
-            this.onPointerMoveDragModePan(event);
-            break;
+            case DragMode.NONE:
+                this.onPointerMoveDragModeNone(event);
+                break;
+            case DragMode.SELECT:
+                this.onPointerMoveDragModeSelect(event);
+                break;
+            case DragMode.PAN:
+                this.onPointerMoveDragModePan(event);
+                break;
         }
         event.stopPropagation();
     }
@@ -1118,10 +1104,14 @@ export class Timeline {
             return;
         }
 
-        if (this.highlightRegion.endTime < this.timeMin ||
-            this.highlightRegion.startTime > this.timeMin + this.widthMs) {
+        if (
+            this.highlightRegion.endTime < this.timeMin ||
+            this.highlightRegion.startTime > this.timeMin + this.widthMs
+        ) {
             // Center on new highlight region
-            this.timeMin = (this.highlightRegion.startTime + this.highlightRegion.endTime) / 2 - this.widthMs / 2;
+            this.timeMin =
+                (this.highlightRegion.startTime + this.highlightRegion.endTime) / 2 -
+                this.widthMs / 2;
         }
     }
 
@@ -1135,7 +1125,7 @@ export class Timeline {
             return;
         }
 
-        let {startTime, endTime} = this.displayRegion;
+        let { startTime, endTime } = this.displayRegion;
         let unbounded = endTime <= 0;
 
         if (!unbounded) {
@@ -1192,8 +1182,10 @@ export class Timeline {
                 regionCard.show();
                 realityEditor.motionStudy.showMatchingRegionCards(regionCard);
             }
-        } else if (this.dragMode === DragMode.SELECT &&
-            Math.abs(this.timeToX(this.highlightStartTime) - this.mouseX) < 3) {
+        } else if (
+            this.dragMode === DragMode.SELECT &&
+            Math.abs(this.timeToX(this.highlightStartTime) - this.mouseX) < 3
+        ) {
             this.motionStudy.setHighlightRegion(null);
         } else {
             setAnimationMode(AnimationMode.region);
@@ -1265,4 +1257,3 @@ export class Timeline {
         event.stopPropagation();
     }
 }
-

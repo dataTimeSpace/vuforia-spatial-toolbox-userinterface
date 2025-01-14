@@ -1,6 +1,6 @@
 /* global mlMatrix */
-const {Matrix, SingularValueDecomposition} = mlMatrix;
-import {JOINTS} from '../humanPose/constants.js';
+const { Matrix, SingularValueDecomposition } = mlMatrix;
+import { JOINTS } from '../humanPose/constants.js';
 
 /**
  * Make a request to the world object (in charge of history logging) to
@@ -12,7 +12,11 @@ export async function postPersistRequest() {
         console.warn('postPersistRequest unable to find worldObject');
         return;
     }
-    const historyLogsUrl = realityEditor.network.getURL(worldObject.ip, realityEditor.network.getPort(worldObject), '/history/persist');
+    const historyLogsUrl = realityEditor.network.getURL(
+        worldObject.ip,
+        realityEditor.network.getPort(worldObject),
+        '/history/persist'
+    );
     try {
         const res = await fetch(historyLogsUrl, {
             method: 'POST',
@@ -41,11 +45,7 @@ function poseToPoints(pose) {
 
     for (const jointName in JOINTS) {
         let joint = pose.joints[jointName.toLowerCase()];
-        points.push([
-            joint.position.x,
-            joint.position.y,
-            joint.position.z,
-        ]);
+        points.push([joint.position.x, joint.position.y, joint.position.z]);
     }
     return points;
 }
@@ -63,7 +63,6 @@ export function scorePose(predicted, target) {
  * @return {number} mean per joint position error after alignment
  */
 function scorePoints(predicted, target) {
-
     const muX = getAxisMean(target);
     const muY = getAxisMean(predicted);
 
@@ -84,12 +83,12 @@ function scorePoints(predicted, target) {
         autoTranspose: true,
     };
     const svd = new SingularValueDecomposition(H, svdOptions);
-    const {U, V} = svd;
+    const { U, V } = svd;
 
     // TODO avoid reflections
     const R = V.mmul(U.transpose());
     let diagSum = svd.diagonalMatrix.sum();
-    const a = diagSum * normX / normY;
+    const a = (diagSum * normX) / normY;
     const t = Matrix.sub(muX, Matrix.mul(muY.mmul(R), a));
 
     const predictedAligned = Matrix.add(Matrix.mul(predicted.mmul(R), a), t);

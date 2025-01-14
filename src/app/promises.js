@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.app.promises");
+createNameSpace('realityEditor.app.promises');
 
 /**
  * @fileOverview
@@ -8,7 +8,7 @@ createNameSpace("realityEditor.app.promises");
  * addNewTarget('target.xml').then(({success, fileName}) => {})
  * APIs for subscriptions, such as the matrix stream, should still be accessed directly using app/index.js
  */
-(function(exports) {
+(function (exports) {
     const app = realityEditor.app;
 
     // resolves to deviceName: string
@@ -34,7 +34,7 @@ createNameSpace("realityEditor.app.promises");
 
     // resolves to providerId: string
     exports.getProviderId = makeAPI(app.getProviderId.bind(app));
-    
+
     // resolves to {texture: string, textureDepth: string}
     exports.get3dSnapshot = makeAPI(app.get3dSnapshot.bind(app), ['texture', 'textureDepth']);
 
@@ -55,7 +55,7 @@ createNameSpace("realityEditor.app.promises");
     // Helper function to wrap the appFunctionCall in a deferred promise that will resolve when the native code finishes
     // The name of each resolve param should be included iff the native API returns multiple values
     function makeAPI(appFunctionCall, resolveParams) {
-        return function() {
+        return function () {
             const functionUuid = '_proxy_' + realityEditor.device.utilities.uuidTime();
 
             // when the API is called, create a new Promise
@@ -64,7 +64,7 @@ createNameSpace("realityEditor.app.promises");
             });
 
             // create a new function to be used as the callback that is passed to the native code
-            realityEditor.app.promises._callbackProxies[functionUuid] = function() {
+            realityEditor.app.promises._callbackProxies[functionUuid] = function () {
                 // when the callback is triggered, resolve the promise
                 if (Array.from(arguments).length < 2) {
                     deferred.resolve.apply(null, arguments);
@@ -81,10 +81,11 @@ createNameSpace("realityEditor.app.promises");
 
             // the APIs in app/index.js expect the callback signature as the final argument
             const argumentsPlusCallback = Array.from(arguments);
-            argumentsPlusCallback.push('realityEditor.app.promises._callbackProxies.' + functionUuid);
+            argumentsPlusCallback.push(
+                'realityEditor.app.promises._callbackProxies.' + functionUuid
+            );
             appFunctionCall.apply(null, argumentsPlusCallback);
             return deferred.promise;
-        }
+        };
     }
-
 })(realityEditor.app.promises);

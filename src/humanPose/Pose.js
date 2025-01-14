@@ -3,7 +3,13 @@
  * It keeps track of the positions of each joint in the pose.
  * It also keeps track of the timestamp of when the pose was recorded.
  */
-import {JOINT_CONNECTIONS, JOINTS, LEFT_HAND_JOINTS, RIGHT_HAND_JOINTS, TRACK_HANDS} from "./constants.js";
+import {
+    JOINT_CONNECTIONS,
+    JOINTS,
+    LEFT_HAND_JOINTS,
+    RIGHT_HAND_JOINTS,
+    TRACK_HANDS,
+} from './constants.js';
 
 export class Pose {
     /**
@@ -15,23 +21,23 @@ export class Pose {
      */
     constructor(jointPositions, jointConfidences, timestamp, metadata) {
         this.joints = {}; // Maps joint names to joint data
-        Object.keys(jointPositions).forEach(jointName => {
+        Object.keys(jointPositions).forEach((jointName) => {
             this.joints[jointName] = {
                 position: jointPositions[jointName],
                 confidence: jointConfidences[jointName],
                 name: jointName,
-                valid: true
-            }
+                valid: true,
+            };
         });
         this.bones = {}; // Maps bone names to bone data
-        Object.keys(JOINT_CONNECTIONS).forEach(boneName => {
+        Object.keys(JOINT_CONNECTIONS).forEach((boneName) => {
             const [joint0, joint1] = JOINT_CONNECTIONS[boneName];
             if (this.joints[joint0] && this.joints[joint1]) {
                 this.bones[boneName] = {
                     joint0: this.joints[joint0],
                     joint1: this.joints[joint1],
                     name: boneName,
-                    valid: true 
+                    valid: true,
                 };
             }
         });
@@ -76,28 +82,47 @@ export class Pose {
     }
 
     setBodyPartValidity(jointConfidenceThreshold) {
-
         // compute validity only for limbs (head and torso are valid by default)
-        const limbJoints = [JOINTS.LEFT_ANKLE, JOINTS.LEFT_KNEE, 
-                      JOINTS.RIGHT_ANKLE, JOINTS.RIGHT_KNEE,
-                      JOINTS.LEFT_ELBOW, JOINTS.LEFT_WRIST, ...LEFT_HAND_JOINTS,
-                      JOINTS.RIGHT_ELBOW, JOINTS.RIGHT_WRIST, ...RIGHT_HAND_JOINTS
-                     ];
+        const limbJoints = [
+            JOINTS.LEFT_ANKLE,
+            JOINTS.LEFT_KNEE,
+            JOINTS.RIGHT_ANKLE,
+            JOINTS.RIGHT_KNEE,
+            JOINTS.LEFT_ELBOW,
+            JOINTS.LEFT_WRIST,
+            ...LEFT_HAND_JOINTS,
+            JOINTS.RIGHT_ELBOW,
+            JOINTS.RIGHT_WRIST,
+            ...RIGHT_HAND_JOINTS,
+        ];
 
         // threshold per-joint confidence
         limbJoints.forEach((jointName) => {
-            this.joints[jointName].valid = (this.joints[jointName].confidence >= jointConfidenceThreshold);
+            this.joints[jointName].valid =
+                this.joints[jointName].confidence >= jointConfidenceThreshold;
         });
 
         // check if hands have a dummy pose (eg. it was not detected or it is not just dummy hands for pose with JOINTS_V1 schema)
         // check if hand tracking is disabled
-        if (this.joints[JOINTS.LEFT_INDEX_FINGER_MCP].position.clone().sub(this.joints[JOINTS.LEFT_WRIST].position).length() <= 1e-6 || !TRACK_HANDS) {
+        if (
+            this.joints[JOINTS.LEFT_INDEX_FINGER_MCP].position
+                .clone()
+                .sub(this.joints[JOINTS.LEFT_WRIST].position)
+                .length() <= 1e-6 ||
+            !TRACK_HANDS
+        ) {
             // hand is not valid
             LEFT_HAND_JOINTS.forEach((jointName) => {
                 this.joints[jointName].valid = false;
             });
         }
-        if (this.joints[JOINTS.RIGHT_INDEX_FINGER_MCP].position.clone().sub(this.joints[JOINTS.RIGHT_WRIST].position).length() <= 1e-6 || !TRACK_HANDS) {
+        if (
+            this.joints[JOINTS.RIGHT_INDEX_FINGER_MCP].position
+                .clone()
+                .sub(this.joints[JOINTS.RIGHT_WRIST].position)
+                .length() <= 1e-6 ||
+            !TRACK_HANDS
+        ) {
             // hand is not valid
             RIGHT_HAND_JOINTS.forEach((jointName) => {
                 this.joints[jointName].valid = false;
@@ -134,9 +159,8 @@ export class Pose {
         Object.keys(this.bones).forEach((boneName) => {
             const jointName0 = this.bones[boneName].joint0.name;
             const jointName1 = this.bones[boneName].joint1.name;
-            this.bones[boneName].valid = this.joints[jointName0].valid && this.joints[jointName1].valid;
+            this.bones[boneName].valid =
+                this.joints[jointName0].valid && this.joints[jointName1].valid;
         });
-
     }
-
 }

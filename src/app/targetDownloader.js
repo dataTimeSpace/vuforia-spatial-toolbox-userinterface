@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.app.targetDownloader");
+createNameSpace('realityEditor.app.targetDownloader');
 
 /**
  * @fileOverview realityEditor.app.targetDownloader.js
@@ -6,8 +6,7 @@ createNameSpace("realityEditor.app.targetDownloader");
  * and using that data to initialize Vuforia targets.
  */
 
-(function(exports) {
-
+(function (exports) {
     /**
      * Used to pass module path to native app to trigger callbacks here
      * @type {string}
@@ -68,20 +67,19 @@ createNameSpace("realityEditor.app.targetDownloader");
      * @type DownloadState
      * enum defining whether a particular download has started, failed, or succeeded
      */
-    var DownloadState = Object.freeze(
-        {
-            NOT_STARTED: 0,
-            STARTED: 1,
-            FAILED: 2,
-            SUCCEEDED: 3
-        });
+    var DownloadState = Object.freeze({
+        NOT_STARTED: 0,
+        STARTED: 1,
+        FAILED: 2,
+        SUCCEEDED: 3,
+    });
 
     let callbacks = {
         onCreateNavmesh: [],
         onTargetAdded: [],
-        onTargetState: []
-    }
-    
+        onTargetState: [],
+    };
+
     let navmeshResolution = null;
     let navmeshReference = null;
 
@@ -90,15 +88,15 @@ createNameSpace("realityEditor.app.targetDownloader");
      * @type {Worker}
      */
     const navmeshWorker = new Worker(new URL('./navmeshWorker.js', import.meta.url), {
-          type: 'module',
-    })
-    navmeshWorker.onmessage = function(evt) {
+        type: 'module',
+    });
+    navmeshWorker.onmessage = function (evt) {
         const navmesh = evt.data.navmesh;
         const objectID = evt.data.objectID;
         navmeshResolution = evt.data.heatmapResolution;
         for (let i = 0; i < window.localStorage.length; i++) {
             const key = window.localStorage.key(i);
-            if (key.includes("realityEditor.navmesh.") && !key.includes(`${objectID}`)) {
+            if (key.includes('realityEditor.navmesh.') && !key.includes(`${objectID}`)) {
                 window.localStorage.removeItem(key);
                 i--;
             }
@@ -107,7 +105,10 @@ createNameSpace("realityEditor.app.targetDownloader");
         // save the navmesh into localStorage if it's small enough, otherwise recalculate it each time
         if (fitsInLocalStorage(navmesh)) {
             try {
-                window.localStorage.setItem(`realityEditor.navmesh.${objectID}`, JSON.stringify(navmesh));
+                window.localStorage.setItem(
+                    `realityEditor.navmesh.${objectID}`,
+                    JSON.stringify(navmesh)
+                );
             } catch (e) {
                 if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
                     console.error('Local storage quota exceeded. Cannot store navmesh.');
@@ -116,12 +117,18 @@ createNameSpace("realityEditor.app.targetDownloader");
                 }
             }
         } else {
-            console.warn(`navmesh for ${objectID} doesn't fit in localStorage; will be recalculated on each page load`);
+            console.warn(
+                `navmesh for ${objectID} doesn't fit in localStorage; will be recalculated on each page load`
+            );
         }
 
         if (realityEditor.device.environment.variables.addOcclusionGltf) {
             let object = realityEditor.getObject(objectID);
-            let gltfPath = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/target/target.glb');
+            let gltfPath = realityEditor.network.getURL(
+                object.ip,
+                realityEditor.network.getPort(object),
+                '/obj/' + object.name + '/target/target.glb'
+            );
             realityEditor.gui.threejsScene.addOcclusionGltf(gltfPath, objectID);
         }
 
@@ -131,11 +138,11 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         navmeshReference = navmesh;
 
-        callbacks.onCreateNavmesh.forEach(cb => cb(navmesh));
-    }
-    navmeshWorker.onerror = function(error) {
+        callbacks.onCreateNavmesh.forEach((cb) => cb(navmesh));
+    };
+    navmeshWorker.onerror = function (error) {
         console.error(`navmeshWorker: '${error.message}' on line ${error.lineno}`);
-    }
+    };
 
     /**
      * Check if the jsonObject will fit in the specified percentage of the localStorage capacity
@@ -155,7 +162,7 @@ createNameSpace("realityEditor.app.targetDownloader");
         const maxLocalStorageSize = 5 * 1024 * 1024; // 5MB
 
         // Check if it exceeds the limit
-        return sizeInBytes <= maxLocalStorageSize * maxAmountUsedForSingleObject
+        return sizeInBytes <= maxLocalStorageSize * maxAmountUsedForSingleObject;
     }
 
     /**
@@ -182,15 +189,19 @@ createNameSpace("realityEditor.app.targetDownloader");
         temporaryHeartbeatMap[objectHeartbeat.id] = objectHeartbeat;
 
         var newChecksum = objectHeartbeat.tcs;
-        if (newChecksum === 'null') { newChecksum = null; }
+        if (newChecksum === 'null') {
+            newChecksum = null;
+        }
         temporaryChecksumMap[objectHeartbeat.id] = newChecksum;
 
         // store info about this download attempt
-        if (typeof retryMap[objectHeartbeat.id] === 'undefined' ||
-            newChecksum !== retryMap[objectHeartbeat.id].previousChecksum) {
+        if (
+            typeof retryMap[objectHeartbeat.id] === 'undefined' ||
+            newChecksum !== retryMap[objectHeartbeat.id].previousChecksum
+        ) {
             retryMap[objectHeartbeat.id] = {
                 previousChecksum: newChecksum,
-                attemptsLeft: MAXIMUM_RETRY_ATTEMPTS
+                attemptsLeft: MAXIMUM_RETRY_ATTEMPTS,
             };
         } else {
             // count down the number of re-download attempts
@@ -208,9 +219,13 @@ createNameSpace("realityEditor.app.targetDownloader");
             DAT: DownloadState.NOT_STARTED,
             JPG: DownloadState.NOT_STARTED,
             GLB: DownloadState.NOT_STARTED,
-            TARGET_ADDED: DownloadState.NOT_STARTED
+            TARGET_ADDED: DownloadState.NOT_STARTED,
         };
-        var xmlAddress = realityEditor.network.getURL(objectHeartbeat.ip, realityEditor.network.getPort(objectHeartbeat), '/obj/' + objectName + '/target/target.xml');
+        var xmlAddress = realityEditor.network.getURL(
+            objectHeartbeat.ip,
+            realityEditor.network.getPort(objectHeartbeat),
+            '/obj/' + objectName + '/target/target.xml'
+        );
 
         // regardless of previous conditions, don't proceed with any downloads if this is an anchor object
         if (realityEditor.gui.ar.anchors.isAnchorHeartbeat(objectHeartbeat)) {
@@ -229,8 +244,10 @@ createNameSpace("realityEditor.app.targetDownloader");
     }
 
     function getObjectNameFromId(objectId) {
-        let objectName = objectId.slice(0,-12); // get objectName from objectId
-        if (objectName.length === 0) { objectName = objectId; } // use objectId as a backup (e.g. for _WORLD_local)
+        let objectName = objectId.slice(0, -12); // get objectName from objectId
+        if (objectName.length === 0) {
+            objectName = objectId;
+        } // use objectId as a backup (e.g. for _WORLD_local)
         return objectName;
     }
 
@@ -244,18 +261,22 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         // first ensure that this object isn't already mid-download
         if (typeof targetDownloadStates[objectID] !== 'undefined') {
-            if (targetDownloadStates[objectID].XML === DownloadState.STARTED ||
+            if (
+                targetDownloadStates[objectID].XML === DownloadState.STARTED ||
                 targetDownloadStates[objectID].DAT === DownloadState.STARTED ||
                 targetDownloadStates[objectID].JPG === DownloadState.STARTED ||
                 targetDownloadStates[objectID].GLB === DownloadState.STARTED ||
-                targetDownloadStates[objectID].TARGET_ADDED === DownloadState.STARTED) {
+                targetDownloadStates[objectID].TARGET_ADDED === DownloadState.STARTED
+            ) {
                 return false;
             }
         }
 
         // next ensure enough time has passed since the failed attempt
-        if (typeof retryMap[objectID] !== 'undefined' &&
-            objectHeartbeat.tcs === retryMap[objectID].previousChecksum) {
+        if (
+            typeof retryMap[objectID] !== 'undefined' &&
+            objectHeartbeat.tcs === retryMap[objectID].previousChecksum
+        ) {
             let timeSinceLastAttempt = Date.now() - retryMap[objectID].previousTimestamp;
             if (timeSinceLastAttempt < MIN_MILLISECONDS_BETWEEN_ATTEMPTS) {
                 return false;
@@ -283,7 +304,11 @@ createNameSpace("realityEditor.app.targetDownloader");
             targetDownloadStates[objectID].XML = DownloadState.SUCCEEDED;
             triggerDownloadStateCallbacks(objectID);
 
-            var datAddress = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/target/target.dat');
+            var datAddress = realityEditor.network.getURL(
+                object.ip,
+                realityEditor.network.getPort(object),
+                '/obj/' + object.name + '/target/target.dat'
+            );
 
             // don't download again if already stored the same checksum version
             if (isAlreadyDownloaded(objectID, 'DAT')) {
@@ -294,7 +319,6 @@ createNameSpace("realityEditor.app.targetDownloader");
             // try to download DAT
             realityEditor.app.downloadFile(datAddress, moduleName + '.onTargetDATDownloaded');
             targetDownloadStates[objectID].DAT = DownloadState.STARTED;
-
         } else {
             console.error('failed to download XML file: ' + fileName);
             targetDownloadStates[objectID].XML = DownloadState.FAILED;
@@ -313,14 +337,22 @@ createNameSpace("realityEditor.app.targetDownloader");
         var objectID = getObjectIDFromFilename(fileName);
         var object = realityEditor.getObject(objectID);
 
-        const jpgAddress = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/target/target.jpg');
+        const jpgAddress = realityEditor.network.getURL(
+            object.ip,
+            realityEditor.network.getPort(object),
+            '/obj/' + object.name + '/target/target.jpg'
+        );
 
         if (success) {
             targetDownloadStates[objectID].DAT = DownloadState.SUCCEEDED;
             triggerDownloadStateCallbacks(objectID);
 
-            var xmlFileName = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/target/target.xml');
-            realityEditor.app.promises.addNewTarget(xmlFileName).then(({success, fileName}) => {
+            var xmlFileName = realityEditor.network.getURL(
+                object.ip,
+                realityEditor.network.getPort(object),
+                '/obj/' + object.name + '/target/target.xml'
+            );
+            realityEditor.app.promises.addNewTarget(xmlFileName).then(({ success, fileName }) => {
                 onTargetAdded(success, fileName);
             });
             targetDownloadStates[objectID].TARGET_ADDED = DownloadState.STARTED;
@@ -328,19 +360,22 @@ createNameSpace("realityEditor.app.targetDownloader");
             realityEditor.getObject(objectID).isJpgTarget = false;
 
             if (realityEditor.getObject(objectID).isWorldObject) {
-              var glbAddress = realityEditor.network.getURL(object.ip, realityEditor.network.getPort(object), '/obj/' + object.name + '/target/target.glb');
+                var glbAddress = realityEditor.network.getURL(
+                    object.ip,
+                    realityEditor.network.getPort(object),
+                    '/obj/' + object.name + '/target/target.glb'
+                );
 
-              // don't download again if already stored the same checksum version
-              if (isAlreadyDownloaded(objectID, 'GLB')) {
-                  onTargetGLBDownloaded(true, glbAddress); // just directly trigger onTargetGLBDownloaded
-                  return;
-              }
+                // don't download again if already stored the same checksum version
+                if (isAlreadyDownloaded(objectID, 'GLB')) {
+                    onTargetGLBDownloaded(true, glbAddress); // just directly trigger onTargetGLBDownloaded
+                    return;
+                }
 
-              // try to download GLB
-              realityEditor.app.downloadFile(glbAddress, moduleName + '.onTargetGLBDownloaded');
-              targetDownloadStates[objectID].GLB = DownloadState.STARTED;
+                // try to download GLB
+                realityEditor.app.downloadFile(glbAddress, moduleName + '.onTargetGLBDownloaded');
+                targetDownloadStates[objectID].GLB = DownloadState.STARTED;
             }
-
         } else {
             console.error('failed to download DAT file: ' + fileName);
             targetDownloadStates[objectID].DAT = DownloadState.FAILED;
@@ -388,7 +423,7 @@ createNameSpace("realityEditor.app.targetDownloader");
         if (callback) {
             callbacks.onCreateNavmesh.push(callback);
         }
-        navmeshWorker.postMessage({fileName, objectID});
+        navmeshWorker.postMessage({ fileName, objectID });
     }
 
     function onNavmeshCreated(callback) {
@@ -415,9 +450,11 @@ createNameSpace("realityEditor.app.targetDownloader");
         if (success) {
             targetDownloadStates[objectID].JPG = DownloadState.SUCCEEDED;
             let targetWidth = realityEditor.gui.utilities.getTargetSize(objectID).width;
-            realityEditor.app.promises.addNewTargetJPG(fileName, objectID, targetWidth).then(({success, fileName}) => {
-                onTargetAdded(success, fileName);
-            });
+            realityEditor.app.promises
+                .addNewTargetJPG(fileName, objectID, targetWidth)
+                .then(({ success, fileName }) => {
+                    onTargetAdded(success, fileName);
+                });
             targetDownloadStates[objectID].TARGET_ADDED = DownloadState.STARTED;
             targetDownloadStates[objectID].FILENAME = fileName;
             realityEditor.getObject(objectID).isJpgTarget = true;
@@ -451,7 +488,7 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         triggerDownloadStateCallbacks(objectID);
 
-        callbacks.onTargetAdded.forEach(listener => {
+        callbacks.onTargetAdded.forEach((listener) => {
             if (listener.objectId === objectID) {
                 listener.callback(success, targetDownloadStates[objectID]);
             }
@@ -472,7 +509,7 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         if (!isPingPending) {
             setTimeout(function () {
-                realityEditor.app.sendUDPMessage({action: 'ping'});
+                realityEditor.app.sendUDPMessage({ action: 'ping' });
                 isPingPending = false;
             }, MIN_MILLISECONDS_BETWEEN_ATTEMPTS);
             isPingPending = true;
@@ -485,7 +522,10 @@ createNameSpace("realityEditor.app.targetDownloader");
      * @return {boolean}
      */
     function isObjectTargetInitialized(objectID) {
-        return targetDownloadStates[objectID] && targetDownloadStates[objectID].TARGET_ADDED === DownloadState.SUCCEEDED;
+        return (
+            targetDownloadStates[objectID] &&
+            targetDownloadStates[objectID].TARGET_ADDED === DownloadState.SUCCEEDED
+        );
     }
 
     /**
@@ -496,7 +536,9 @@ createNameSpace("realityEditor.app.targetDownloader");
      * @return {boolean}
      */
     function isObjectReadyToRetryDownload(objectID, beatChecksum) {
-        if (!retryMap[objectID]) { return false; }
+        if (!retryMap[objectID]) {
+            return false;
+        }
 
         // if we ran out of attempts for this checksum, don't retry download
         let hasAttemptsLeft = retryMap[objectID].attemptsLeft > 0;
@@ -505,12 +547,17 @@ createNameSpace("realityEditor.app.targetDownloader");
         // if xml or target adding failed, or (jpg AND dat) failed, don't rery download
         let didTargetAddFail = targetDownloadStates[objectID].TARGET_ADDED === DownloadState.FAILED;
         let didXmlFail = targetDownloadStates[objectID].XML === DownloadState.FAILED;
-        let didDatFail = targetDownloadStates[objectID].DAT === DownloadState.FAILED ||
-                         targetDownloadStates[objectID].DAT === DownloadState.NOT_STARTED; // dat isn't guaranteed to start
-        let didJpgFail = targetDownloadStates[objectID].JPG === DownloadState.FAILED ||
-                         targetDownloadStates[objectID].JPG === DownloadState.NOT_STARTED; // jpg isn't guaranteed to start
+        let didDatFail =
+            targetDownloadStates[objectID].DAT === DownloadState.FAILED ||
+            targetDownloadStates[objectID].DAT === DownloadState.NOT_STARTED; // dat isn't guaranteed to start
+        let didJpgFail =
+            targetDownloadStates[objectID].JPG === DownloadState.FAILED ||
+            targetDownloadStates[objectID].JPG === DownloadState.NOT_STARTED; // jpg isn't guaranteed to start
 
-        return (hasAttemptsLeft || isNewChecksum) && (didTargetAddFail || didXmlFail || (didDatFail && didJpgFail));
+        return (
+            (hasAttemptsLeft || isNewChecksum) &&
+            (didTargetAddFail || didXmlFail || (didDatFail && didJpgFail))
+        );
     }
 
     /**
@@ -554,7 +601,7 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         // if the file succeeded, also check that the checksum hasn't changed so we don't use stale data
         var newChecksum = temporaryChecksumMap[objectID];
-        return previousChecksum && (previousChecksum === newChecksum);
+        return previousChecksum && previousChecksum === newChecksum;
     }
 
     /**
@@ -573,13 +620,16 @@ createNameSpace("realityEditor.app.targetDownloader");
      */
     function saveDownloadInfo(objectID) {
         if (temporaryChecksumMap[objectID]) {
-            window.localStorage.setItem('realityEditor.previousDownloadInfo.' + objectID, JSON.stringify({
-                checksum: temporaryChecksumMap[objectID],
-                xmlDownloaded: targetDownloadStates[objectID].XML,
-                datDownloaded: targetDownloadStates[objectID].DAT,
-                jpgDownloaded: targetDownloadStates[objectID].JPG,
-                glbDownloaded: targetDownloadStates[objectID].GLB
-            }));
+            window.localStorage.setItem(
+                'realityEditor.previousDownloadInfo.' + objectID,
+                JSON.stringify({
+                    checksum: temporaryChecksumMap[objectID],
+                    xmlDownloaded: targetDownloadStates[objectID].XML,
+                    datDownloaded: targetDownloadStates[objectID].DAT,
+                    jpgDownloaded: targetDownloadStates[objectID].JPG,
+                    glbDownloaded: targetDownloadStates[objectID].GLB,
+                })
+            );
         }
     }
 
@@ -588,11 +638,13 @@ createNameSpace("realityEditor.app.targetDownloader");
      * all targets instead of using a cached version
      */
     function resetTargetDownloadCache() {
-        Object.keys(window.localStorage).filter(function(key) {
-            return key.includes('realityEditor.previousDownloadInfo');
-        }).forEach(function(key) {
-            window.localStorage.removeItem(key);
-        });
+        Object.keys(window.localStorage)
+            .filter(function (key) {
+                return key.includes('realityEditor.previousDownloadInfo');
+            })
+            .forEach(function (key) {
+                window.localStorage.removeItem(key);
+            });
     }
 
     /**
@@ -607,46 +659,63 @@ createNameSpace("realityEditor.app.targetDownloader");
      * zone: the name of the zone this object is in, so we can ignore objects outside this editor's zone if we have previously specified one
      */
     function downloadTargetFilesForDiscoveredObject(objectHeartbeat) {
-
         var objectID = objectHeartbeat.id;
         var objectName = getObjectNameFromId(objectHeartbeat.id);
 
         temporaryHeartbeatMap[objectHeartbeat.id] = objectHeartbeat;
 
         var newChecksum = objectHeartbeat.tcs;
-        if (newChecksum === 'null') { newChecksum = null; }
+        if (newChecksum === 'null') {
+            newChecksum = null;
+        }
         temporaryChecksumMap[objectHeartbeat.id] = newChecksum;
 
         var needsXML = true;
         var needsDAT = true;
 
         if (typeof targetDownloadStates[objectID] !== 'undefined') {
-            if (targetDownloadStates[objectID].XML === DownloadState.STARTED ||
-                targetDownloadStates[objectID].XML === DownloadState.SUCCEEDED) {
+            if (
+                targetDownloadStates[objectID].XML === DownloadState.STARTED ||
+                targetDownloadStates[objectID].XML === DownloadState.SUCCEEDED
+            ) {
                 needsXML = false;
             }
-            if (targetDownloadStates[objectID].DAT === DownloadState.STARTED ||
-                targetDownloadStates[objectID].DAT === DownloadState.SUCCEEDED) {
+            if (
+                targetDownloadStates[objectID].DAT === DownloadState.STARTED ||
+                targetDownloadStates[objectID].DAT === DownloadState.SUCCEEDED
+            ) {
                 needsDAT = false;
             }
-
         } else {
             targetDownloadStates[objectID] = {
                 XML: DownloadState.NOT_STARTED,
                 DAT: DownloadState.NOT_STARTED,
-                TARGET_ADDED: DownloadState.NOT_STARTED
+                TARGET_ADDED: DownloadState.NOT_STARTED,
             };
         }
 
         // don't download again if already stored the same checksum version
-        var storedChecksum = window.localStorage.getItem('realityEditor.objectChecksums.'+objectID);
+        var storedChecksum = window.localStorage.getItem(
+            'realityEditor.objectChecksums.' + objectID
+        );
         if (storedChecksum) {
             if (newChecksum === storedChecksum) {
                 // check that the files still exist in the app's temporary storage
-   var xmlFileName = realityEditor.network.getURL(objectHeartbeat.ip, realityEditor.network.getPort(objectHeartbeat), '/obj/' + objectName + '/target/target.xml');
-                var datFileName = realityEditor.network.getURL(objectHeartbeat.ip, realityEditor.network.getPort(objectHeartbeat), '/obj/' + objectName + '/target/target.dat');
+                var xmlFileName = realityEditor.network.getURL(
+                    objectHeartbeat.ip,
+                    realityEditor.network.getPort(objectHeartbeat),
+                    '/obj/' + objectName + '/target/target.xml'
+                );
+                var datFileName = realityEditor.network.getURL(
+                    objectHeartbeat.ip,
+                    realityEditor.network.getPort(objectHeartbeat),
+                    '/obj/' + objectName + '/target/target.dat'
+                );
 
-                realityEditor.app.getFilesExist([xmlFileName, datFileName], moduleName + '.doTargetFilesExist');
+                realityEditor.app.getFilesExist(
+                    [xmlFileName, datFileName],
+                    moduleName + '.doTargetFilesExist'
+                );
                 return;
             }
         }
@@ -671,14 +740,22 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         // downloads the vuforia target.xml file if it doesn't have it yet
         if (needsXML) {
-            var xmlAddress = realityEditor.network.getURL(objectHeartbeat.ip, realityEditor.network.getPort(objectHeartbeat), '/obj/' + objectName + '/target/target.xml');
+            var xmlAddress = realityEditor.network.getURL(
+                objectHeartbeat.ip,
+                realityEditor.network.getPort(objectHeartbeat),
+                '/obj/' + objectName + '/target/target.xml'
+            );
             realityEditor.app.downloadFile(xmlAddress, moduleName + '.onTargetFileDownloaded');
             targetDownloadStates[objectID].XML = DownloadState.STARTED;
         }
 
         // downloads the vuforia target.dat file it it doesn't have it yet
         if (needsDAT) {
-            var datAddress = realityEditor.network.getURL(objectHeartbeat.ip, realityEditor.network.getPort(objectHeartbeat), '/obj/' + objectName + '/target/target.dat');
+            var datAddress = realityEditor.network.getURL(
+                objectHeartbeat.ip,
+                realityEditor.network.getPort(objectHeartbeat),
+                '/obj/' + objectName + '/target/target.dat'
+            );
             realityEditor.app.downloadFile(datAddress, moduleName + '.onTargetFileDownloaded');
             targetDownloadStates[objectID].DAT = DownloadState.STARTED;
         }
@@ -695,52 +772,65 @@ createNameSpace("realityEditor.app.targetDownloader");
             var heartbeat = temporaryHeartbeatMap[objectID];
 
             if (success) {
-
                 // if the checksums match and we verified that the files exist, proceed without downloading
                 targetDownloadStates[objectID].XML = DownloadState.SUCCEEDED;
                 targetDownloadStates[objectID].DAT = DownloadState.SUCCEEDED;
 
-                var xmlFileName = fileNameArray.filter(function(fileName) {
+                var xmlFileName = fileNameArray.filter(function (fileName) {
                     return fileName.indexOf('xml') > -1;
                 })[0];
 
-                realityEditor.app.promises.addNewTarget(xmlFileName).then(({success, fileName}) => {
-                    onTargetAdded(success, fileName);
-                });
+                realityEditor.app.promises
+                    .addNewTarget(xmlFileName)
+                    .then(({ success, fileName }) => {
+                        onTargetAdded(success, fileName);
+                    });
                 targetDownloadStates[objectID].TARGET_ADDED = DownloadState.STARTED;
                 targetDownloadStates[objectID].FILENAME = xmlFileName;
-
             } else {
+                var needsXML = !(
+                    targetDownloadStates[objectID].XML === DownloadState.STARTED ||
+                    targetDownloadStates[objectID].XML === DownloadState.SUCCEEDED
+                );
 
-                var needsXML = !(targetDownloadStates[objectID].XML === DownloadState.STARTED ||
-                    targetDownloadStates[objectID].XML === DownloadState.SUCCEEDED);
-
-                var needsDAT = !(targetDownloadStates[objectID].DAT === DownloadState.STARTED ||
-                    targetDownloadStates[objectID].DAT === DownloadState.SUCCEEDED);
+                var needsDAT = !(
+                    targetDownloadStates[objectID].DAT === DownloadState.STARTED ||
+                    targetDownloadStates[objectID].DAT === DownloadState.SUCCEEDED
+                );
 
                 continueDownload(objectID, heartbeat, needsXML, needsDAT);
             }
-
         }
-
     }
 
- // let schema = {
- //        "type": "object",
- //        "items": {
- //            "properties": {
- //                "obj": {"type": "string", "minLength": 1, "maxLength": 50, "pattern": "^[A-Za-z0-9_]*$"},
- //                "server" : {"type": "string", "minLength": 0, "maxLength": 2000, "pattern": "^[A-Za-z0-9~!@$%^&*()-_=+|;:,.]"},
- //            },
- //            "required": ["server", "obj"],
- //            "expected": ["server", "obj"],
- //        }
- //    }
+    // let schema = {
+    //        "type": "object",
+    //        "items": {
+    //            "properties": {
+    //                "obj": {"type": "string", "minLength": 1, "maxLength": 50, "pattern": "^[A-Za-z0-9_]*$"},
+    //                "server" : {"type": "string", "minLength": 0, "maxLength": 2000, "pattern": "^[A-Za-z0-9~!@$%^&*()-_=+|;:,.]"},
+    //            },
+    //            "required": ["server", "obj"],
+    //            "expected": ["server", "obj"],
+    //        }
+    //    }
 
     const schema = new ToolSocket.Schema([
-        new ToolSocket.Schema.StringValidator('obj', {minLength: 1, maxLength: 50, pattern: /^[A-Za-z0-9_]*$/, required: true, expected: true}),
-        new ToolSocket.Schema.StringValidator('server', {minLength: 0, maxLength: 2000, pattern: /^[A-Za-z0-9~!@$%^&*()-_=+|;:,.]/, required: true, expected: true})
-    ])
+        new ToolSocket.Schema.StringValidator('obj', {
+            minLength: 1,
+            maxLength: 50,
+            pattern: /^[A-Za-z0-9_]*$/,
+            required: true,
+            expected: true,
+        }),
+        new ToolSocket.Schema.StringValidator('server', {
+            minLength: 0,
+            maxLength: 2000,
+            pattern: /^[A-Za-z0-9~!@$%^&*()-_=+|;:,.]/,
+            required: true,
+            expected: true,
+        }),
+    ]);
 
     /**
      * Uses a combination of IP address and object name to locate the ID.
@@ -757,12 +847,14 @@ createNameSpace("realityEditor.app.targetDownloader");
         }
         let parsedUrl = schema.parseUrl(fileUrl);
         if (!parsedUrl) {
-            console.warn('schema.parseUrl failed. this may cause targets not to download', fileName);
+            console.warn(
+                'schema.parseUrl failed. this may cause targets not to download',
+                fileName
+            );
             return;
         }
         const ip = parsedUrl.server;
         const objectName = parsedUrl.obj;
-
 
         for (var objectKey in objects) {
             if (!objects.hasOwnProperty(objectKey)) continue;
@@ -773,7 +865,7 @@ createNameSpace("realityEditor.app.targetDownloader");
             }
         }
 
-        console.warn('tried to download a file that couldn\'t locate a matching object', fileName);
+        console.warn("tried to download a file that couldn't locate a matching object", fileName);
     }
 
     /**
@@ -784,8 +876,7 @@ createNameSpace("realityEditor.app.targetDownloader");
      * @param {string} fileName
      */
     function onTargetFileDownloaded(success, fileName) {
-
-        var isXML = fileName.split('/')[fileName.split('/').length-1].indexOf('xml') > -1;
+        var isXML = fileName.split('/')[fileName.split('/').length - 1].indexOf('xml') > -1;
         var fileTypeString = isXML ? 'XML' : 'DAT';
 
         // we don't have the objectID but luckily it can be extracted from the fileName
@@ -801,81 +892,100 @@ createNameSpace("realityEditor.app.targetDownloader");
 
         var hasXML = targetDownloadStates[objectID].XML === DownloadState.SUCCEEDED;
         var hasDAT = targetDownloadStates[objectID].DAT === DownloadState.SUCCEEDED;
-        var targetNotAdded = (targetDownloadStates[objectID].TARGET_ADDED === DownloadState.NOT_STARTED ||
-            targetDownloadStates[objectID].TARGET_ADDED === DownloadState.FAILED);
+        var targetNotAdded =
+            targetDownloadStates[objectID].TARGET_ADDED === DownloadState.NOT_STARTED ||
+            targetDownloadStates[objectID].TARGET_ADDED === DownloadState.FAILED;
 
         // synchronizes the two async download calls to add the target when both tasks have completed
         var xmlFileName = isXML ? fileName : fileName.slice(0, -3) + 'xml';
         if (hasXML && hasDAT && targetNotAdded) {
-            realityEditor.app.promises.addNewTarget(xmlFileName).then(({success, fileName}) => {
+            realityEditor.app.promises.addNewTarget(xmlFileName).then(({ success, fileName }) => {
                 onTargetAdded(success, fileName);
             });
             targetDownloadStates[objectID].TARGET_ADDED = DownloadState.STARTED;
             targetDownloadStates[objectID].FILENAME = fileName;
 
             if (temporaryChecksumMap[objectID]) {
-                window.localStorage.setItem('realityEditor.objectChecksums.'+objectID, temporaryChecksumMap[objectID]);
+                window.localStorage.setItem(
+                    'realityEditor.objectChecksums.' + objectID,
+                    temporaryChecksumMap[objectID]
+                );
             }
         }
     }
 
     // if the vuforia engine gets hard-restarted during the session, we can use this to add the observers back to engine
     function reinstatePreviouslyAddedTargets() {
-        Object.keys(targetDownloadStates).forEach(function(objectID) {
+        Object.keys(targetDownloadStates).forEach(function (objectID) {
             let states = targetDownloadStates[objectID];
-            if (states && states.TARGET_ADDED === DownloadState.SUCCEEDED && targetDownloadStates[objectID].FILENAME) {
-                if (states.JPG === DownloadState.SUCCEEDED && states.DAT !== DownloadState.SUCCEEDED) {
+            if (
+                states &&
+                states.TARGET_ADDED === DownloadState.SUCCEEDED &&
+                targetDownloadStates[objectID].FILENAME
+            ) {
+                if (
+                    states.JPG === DownloadState.SUCCEEDED &&
+                    states.DAT !== DownloadState.SUCCEEDED
+                ) {
                     let targetWidth = realityEditor.gui.utilities.getTargetSize(objectID).width;
-                    realityEditor.app.promises.addNewTargetJPG(targetDownloadStates[objectID].FILENAME, objectID, targetWidth).then(({success, fileName}) => {
-                        onTargetAdded(success, fileName);
-                    });
+                    realityEditor.app.promises
+                        .addNewTargetJPG(
+                            targetDownloadStates[objectID].FILENAME,
+                            objectID,
+                            targetWidth
+                        )
+                        .then(({ success, fileName }) => {
+                            onTargetAdded(success, fileName);
+                        });
                     targetDownloadStates[objectID].TARGET_ADDED = DownloadState.STARTED;
                 } else if (states.DAT === DownloadState.SUCCEEDED) {
-                    realityEditor.app.promises.addNewTarget(targetDownloadStates[objectID].FILENAME).then(({success, fileName}) => {
-                        onTargetAdded(success, fileName);
-                    });
+                    realityEditor.app.promises
+                        .addNewTarget(targetDownloadStates[objectID].FILENAME)
+                        .then(({ success, fileName }) => {
+                            onTargetAdded(success, fileName);
+                        });
                 }
             }
         });
     }
-    
-    exports.addTargetAddedCallback = function(objectId, callback) {
+
+    exports.addTargetAddedCallback = function (objectId, callback) {
         callbacks.onTargetAdded.push({
             objectId: objectId,
-            callback: callback
+            callback: callback,
         });
-        
+
         if (typeof targetDownloadStates[objectId] !== 'undefined') {
             if (targetDownloadStates[objectId].TARGET_ADDED === DownloadState.SUCCEEDED) {
                 // process any previously added targets in case we added the listener too late
                 callback(true, targetDownloadStates[objectId]);
             }
         }
-    }
-    
-    exports.addTargetStateCallback = function(objectId, callback) {
+    };
+
+    exports.addTargetStateCallback = function (objectId, callback) {
         callbacks.onTargetState.push({
             objectId: objectId,
-            callback: callback
+            callback: callback,
         });
 
         if (typeof targetDownloadStates[objectId] !== 'undefined') {
             // process any previously added targets in case we added the listener too late
             callback(targetDownloadStates[objectId]);
         }
-    }
+    };
 
     function triggerDownloadStateCallbacks(objectID) {
-        callbacks.onTargetState.forEach(listener => {
+        callbacks.onTargetState.forEach((listener) => {
             if (listener.objectId === objectID) {
                 listener.callback(targetDownloadStates[objectID]);
             }
         });
     }
-    
-    exports.getNavmeshResolution = function() {
+
+    exports.getNavmeshResolution = function () {
         return navmeshResolution;
-    }
+    };
 
     // These functions are the public API that should be called by other modules
     exports.downloadAvailableTargetFiles = downloadAvailableTargetFiles;
@@ -894,5 +1004,4 @@ createNameSpace("realityEditor.app.targetDownloader");
     exports.createNavmesh = createNavmesh;
     exports.doTargetFilesExist = doTargetFilesExist;
     exports.onTargetFileDownloaded = onTargetFileDownloaded;
-
 })(realityEditor.app.targetDownloader);

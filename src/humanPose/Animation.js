@@ -73,7 +73,7 @@ export class Animation {
     pause() {
         this.playing = false;
         if (this.videoPlayer) {
-            this.videoPlayer.colorVideo.pause()
+            this.videoPlayer.colorVideo.pause();
         }
     }
 

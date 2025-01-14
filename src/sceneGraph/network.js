@@ -1,28 +1,28 @@
 /*
-* Created by Ben Reynolds on 11/20/20.
-*
-* Copyright (c) 2020 PTC Inc
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Created by Ben Reynolds on 11/20/20.
+ *
+ * Copyright (c) 2020 PTC Inc
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
-createNameSpace("realityEditor.sceneGraph.network");
+createNameSpace('realityEditor.sceneGraph.network');
 
 /**
  * This module interfaces and synchronizes the local scene graph with the scene graphs of any edge servers.
  * Only uploads if everything has been localized to a world object.
  * Periodically uploads any updated objects' positions, and provides public functions to immediately upload positions.
  */
-(function(exports) {
+(function (exports) {
     let sceneGraph = realityEditor.sceneGraph;
     let uploadInfo = {};
     const synchronizationDelay = 1000; // waits 1 second between potential uploads
 
     function initService() {
         // every X seconds, send out an update to the server's sceneGraph with any updates to object positions
-        setInterval(function() {
+        setInterval(function () {
             uploadChangesToServers();
         }, synchronizationDelay);
     }
@@ -32,21 +32,26 @@ createNameSpace("realityEditor.sceneGraph.network");
      */
     function uploadChangesToServers() {
         // certain environments (e.g. VR) might only be viewers of object scene graph, not authors
-        if (!realityEditor.device.environment.isSourceOfObjectPositions()) { return; }
-        
+        if (!realityEditor.device.environment.isSourceOfObjectPositions()) {
+            return;
+        }
+
         // don't upload if we haven't localized everything to a world object yet
-        if (!realityEditor.sceneGraph.getWorldId())  { return; }
-        
-        realityEditor.forEachObject(function(object, objectKey) {
-            
+        if (!realityEditor.sceneGraph.getWorldId()) {
+            return;
+        }
+
+        realityEditor.forEachObject(function (object, objectKey) {
             // don't synchronise pose of human pose objects, it is done through real-time channels
-            if (realityEditor.humanPose.utils.isHumanPoseObject(object)) { return; }
+            if (realityEditor.humanPose.utils.isHumanPoseObject(object)) {
+                return;
+            }
 
             let sceneNode = sceneGraph.getSceneNodeById(objectKey);
             if (doesObjectNeedUpload(sceneNode)) {
                 uploadObjectSceneNode(sceneNode);
             }
-            
+
             realityEditor.forEachFrameInObject(objectKey, (objectKey, frameKey) => {
                 let sceneNode = sceneGraph.getSceneNodeById(frameKey);
                 if (doesFrameNeedUpload(sceneNode)) {
@@ -65,20 +70,30 @@ createNameSpace("realityEditor.sceneGraph.network");
     function doesObjectNeedUpload(sceneNode) {
         // only do this for objects
         let object = realityEditor.getObject(sceneNode.id);
-        if (!object) { return false; }
-        
+        if (!object) {
+            return false;
+        }
+
         // if the object specifically marked itself as needing to upload, upload it
-        if (sceneNode.needsUploadToServer) { return true; }
+        if (sceneNode.needsUploadToServer) {
+            return true;
+        }
 
         // otherwise check that it's moved since the last upload
         let previousUploadInfo = uploadInfo[sceneNode.id];
         if (previousUploadInfo) {
             // the less distance it's moved, the more time needs to pass between uploads
             let timeSinceLastUpload = (Date.now() - previousUploadInfo.timestamp) / 1000;
-            let distanceMoved = distance(sceneGraph.getWorldPosition(sceneNode.id), previousUploadInfo.worldPosition) / 1000;
-            if (distanceMoved === 0) { return false; }
+            let distanceMoved =
+                distance(
+                    sceneGraph.getWorldPosition(sceneNode.id),
+                    previousUploadInfo.worldPosition
+                ) / 1000;
+            if (distanceMoved === 0) {
+                return false;
+            }
             // needs to wait 1 second if it moves 10cm, 0.1 second if moves 1m, 10 sec if moves only 1cm
-            return (distanceMoved * timeSinceLastUpload) > 0.1;
+            return distanceMoved * timeSinceLastUpload > 0.1;
         }
 
         return true;
@@ -98,17 +113,21 @@ createNameSpace("realityEditor.sceneGraph.network");
      */
     function uploadObjectSceneNode(sceneNode) {
         // don't upload if we haven't localized everything to a world object yet
-        if (!realityEditor.sceneGraph.getWorldId())  { return; }
+        if (!realityEditor.sceneGraph.getWorldId()) {
+            return;
+        }
 
         let object = realityEditor.getObject(sceneNode.id);
-        if (!object) { return; }
+        if (!object) {
+            return;
+        }
 
         uploadInfo[sceneNode.id] = {
             localMatrix: sceneNode.localMatrix,
             worldPosition: sceneGraph.getWorldPosition(sceneNode.id),
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
-        
+
         // if it's an object, post object position relative to a world object
         let worldObjectId = sceneGraph.getWorldId();
         let worldNode = sceneGraph.getSceneNodeById(worldObjectId);
@@ -123,9 +142,14 @@ createNameSpace("realityEditor.sceneGraph.network");
             }
         }
 
-        realityEditor.network.postObjectPosition(object.ip, sceneNode.id, relativeMatrix, worldObjectId);
+        realityEditor.network.postObjectPosition(
+            object.ip,
+            sceneNode.id,
+            relativeMatrix,
+            worldObjectId
+        );
 
-        objectLocalizedCallbacks.forEach(function(callback) {
+        objectLocalizedCallbacks.forEach(function (callback) {
             callback(sceneNode.id, worldObjectId);
         });
 
@@ -137,10 +161,14 @@ createNameSpace("realityEditor.sceneGraph.network");
     function doesFrameNeedUpload(sceneNode) {
         // only do this for frames
         let frame = sceneNode.linkedVehicle;
-        if (!frame) { return false; }
+        if (!frame) {
+            return false;
+        }
 
         // if the frame specifically marked itself as needing to upload, upload it
-        if (sceneNode.needsUploadToServer) { return true; }
+        if (sceneNode.needsUploadToServer) {
+            return true;
+        }
 
         // otherwise check that it's moved since the last upload
         let previousUploadInfo = uploadInfo[sceneNode.id];
@@ -148,13 +176,23 @@ createNameSpace("realityEditor.sceneGraph.network");
             // the less distance it's moved, the more time needs to pass between uploads
             let timeSinceLastUpload = (Date.now() - previousUploadInfo.timestamp) / 1000;
             // let distanceMoved = distance(sceneGraph.getWorldPosition(sceneNode.id), previousUploadInfo.worldPosition) / 1000;
-            let currentPosition = { x: sceneNode.localMatrix[12], y: sceneNode.localMatrix[13], z: sceneNode.localMatrix[14] };
-            let previousPosition = { x: previousUploadInfo.localMatrix[12], y: previousUploadInfo.localMatrix[13], z: previousUploadInfo.localMatrix[14] };
+            let currentPosition = {
+                x: sceneNode.localMatrix[12],
+                y: sceneNode.localMatrix[13],
+                z: sceneNode.localMatrix[14],
+            };
+            let previousPosition = {
+                x: previousUploadInfo.localMatrix[12],
+                y: previousUploadInfo.localMatrix[13],
+                z: previousUploadInfo.localMatrix[14],
+            };
             let distanceMoved = distance(currentPosition, previousPosition) / 1000;
-            
-            if (distanceMoved === 0) { return false; }
+
+            if (distanceMoved === 0) {
+                return false;
+            }
             // needs to wait 1 second if it moves 10cm, 0.1 second if moves 1m, 10 sec if moves only 1cm
-            return (distanceMoved * timeSinceLastUpload) > 0.1;
+            return distanceMoved * timeSinceLastUpload > 0.1;
         }
 
         return true;
@@ -164,11 +202,13 @@ createNameSpace("realityEditor.sceneGraph.network");
     // simpler upload because just updating localMatrix, not computing relative to world
     function uploadFrameSceneNode(sceneNode) {
         let frame = sceneNode.linkedVehicle;
-        if (!frame) { return; }
+        if (!frame) {
+            return;
+        }
 
         uploadInfo[sceneNode.id] = {
             localMatrix: sceneNode.localMatrix,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
 
         realityEditor.network.postVehiclePosition(frame, false);
@@ -179,11 +219,13 @@ createNameSpace("realityEditor.sceneGraph.network");
     // helps us from re-uploading frame position when the frame is initially loaded, by keeping track of its initial
     // position, so that we only have to upload if it moves from the position last stored in the server
     function recordInitialFramePosition(sceneNode) {
-        if (!sceneNode.linkedVehicle) { return; } // only work for frames
+        if (!sceneNode.linkedVehicle) {
+            return;
+        } // only work for frames
 
         uploadInfo[sceneNode.id] = {
             localMatrix: sceneNode.localMatrix,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 
@@ -207,7 +249,7 @@ createNameSpace("realityEditor.sceneGraph.network");
         // check what it's best worldId should be
         let worldObjectId = sceneGraph.getWorldId();
 
-        objectLocalizedCallbacks.forEach(function(callback) {
+        objectLocalizedCallbacks.forEach(function (callback) {
             callback(objectId, worldObjectId);
         });
     }
@@ -217,5 +259,4 @@ createNameSpace("realityEditor.sceneGraph.network");
     exports.onObjectLocalized = onObjectLocalized;
     exports.triggerLocalizationCallbacks = triggerLocalizationCallbacks;
     exports.recordInitialFramePosition = recordInitialFramePosition;
-
 })(realityEditor.sceneGraph.network);

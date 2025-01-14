@@ -19,11 +19,17 @@ function getBaseEdgePath() {
     if (!worldObject) {
         return new URL('http://localhost:8080'); // Default to this if world object unavailable
     }
-    return new URL(realityEditor.network.getURL(worldObject.ip, realityEditor.network.getPort(worldObject), '/'));
+    return new URL(
+        realityEditor.network.getURL(
+            worldObject.ip,
+            realityEditor.network.getPort(worldObject),
+            '/'
+        )
+    );
 }
 
 function jsonFetch(endpoint) {
-    return fetch(endpoint).then(res => res.json());
+    return fetch(endpoint).then((res) => res.json());
 }
 
 function withTimeout(promise, duration, rejectReason) {
@@ -31,12 +37,14 @@ function withTimeout(promise, duration, rejectReason) {
         let timeout = setTimeout(() => {
             reject(rejectReason);
         }, duration);
-        promise.then(result => {
-            clearTimeout(timeout);
-            resolve(result);
-        }).catch(err => {
-            reject(err);
-        });
+        promise
+            .then((result) => {
+                clearTimeout(timeout);
+                resolve(result);
+            })
+            .catch((err) => {
+                reject(err);
+            });
     });
 }
 
@@ -53,13 +61,19 @@ function checkMessageRate(socket, timeoutSeconds) {
         socket.send = (...args) => {
             messagesOut++;
             originalSend(...args);
-        }
+        };
 
         setTimeout(() => {
             const inRate = (messagesIn / timeoutSeconds).toFixed(2);
             const outRate = (messagesOut / timeoutSeconds).toFixed(2);
-            const inMessage = messagesIn === 0 ? 'Did not receive any messages' : `Received message rate: ${inRate} per second`;
-            const outMessage = messagesOut === 0 ? 'Did not send any messages' : `Sent message rate: ${outRate} per second`;
+            const inMessage =
+                messagesIn === 0
+                    ? 'Did not receive any messages'
+                    : `Received message rate: ${inRate} per second`;
+            const outMessage =
+                messagesOut === 0
+                    ? 'Did not send any messages'
+                    : `Sent message rate: ${outRate} per second`;
             const message = `${inMessage}\n${outMessage}`;
             if (messagesIn === 0 || messagesOut === 0) {
                 reject(message);
@@ -74,8 +88,8 @@ const CheckStatus = {
     NOT_STARTED: 'NOT_STARTED',
     IN_PROGRESS: 'IN_PROGRESS',
     PASSED: 'PASSED',
-    FAILED: 'FAILED'
-}
+    FAILED: 'FAILED',
+};
 
 class Check {
     constructor(name, test) {
@@ -86,7 +100,7 @@ class Check {
         this.duration = 0;
         this.result = null;
     }
-    
+
     get text() {
         return `# ${this.name}\n- ${this.status}\n${this.result}`;
     }
@@ -101,15 +115,17 @@ class Check {
     run() {
         this.status = CheckStatus.IN_PROGRESS;
         this._startTime = Date.now();
-        return this.test().then(result => {
-            this.duration = Date.now() - this._startTime;
-            this.status = CheckStatus.PASSED;
-            this.result = result;
-        }).catch(err => {
-            this.duration = Date.now() - this._startTime;
-            this.status = CheckStatus.FAILED;
-            this.result = err;
-        });
+        return this.test()
+            .then((result) => {
+                this.duration = Date.now() - this._startTime;
+                this.status = CheckStatus.PASSED;
+                this.result = result;
+            })
+            .catch((err) => {
+                this.duration = Date.now() - this._startTime;
+                this.status = CheckStatus.FAILED;
+                this.result = err;
+            });
     }
 }
 
@@ -118,13 +134,13 @@ class Checklist {
         this.checks = [...checks];
         this._runNumber = 0;
     }
-    
+
     get text() {
-        return this.checks.map(check => check.text).join('\n\n');
+        return this.checks.map((check) => check.text).join('\n\n');
     }
 
     reset() {
-        this.checks.forEach(check => {
+        this.checks.forEach((check) => {
             check.reset();
         });
         this._runNumber++;
@@ -132,7 +148,7 @@ class Checklist {
 
     run(cb) {
         const runNumber = this._runNumber;
-        this.checks.forEach(check => {
+        this.checks.forEach((check) => {
             check.run().finally(() => {
                 if (runNumber !== this._runNumber) {
                     return;
@@ -144,7 +160,7 @@ class Checklist {
 }
 
 const containerDiv = document.createElement('div');
-containerDiv.addEventListener('wheel', e => {
+containerDiv.addEventListener('wheel', (e) => {
     e.stopPropagation();
 });
 containerDiv.className = 'status-page-container hidden';
@@ -175,13 +191,13 @@ const elements = {};
 function statusClassFromStatus(status) {
     switch (status) {
         case CheckStatus.NOT_STARTED:
-            return 'status-page-not-started'
+            return 'status-page-not-started';
         case CheckStatus.IN_PROGRESS:
-            return 'status-page-in-progress'
+            return 'status-page-in-progress';
         case CheckStatus.PASSED:
-            return 'status-page-passed'
+            return 'status-page-passed';
         case CheckStatus.FAILED:
-            return 'status-page-failed'
+            return 'status-page-failed';
     }
 }
 
@@ -191,7 +207,7 @@ function initializePage() {
 
 function setupPage(checklist) {
     entriesDiv.innerHTML = '';
-    checklist.checks.forEach(check => {
+    checklist.checks.forEach((check) => {
         const div = document.createElement('div');
         div.className = 'status-page-entry status-page-hide-data';
         const statusIndicator = document.createElement('div');
@@ -218,7 +234,7 @@ function setupPage(checklist) {
         elements[check.name] = {
             indicator: statusIndicator,
             duration: durationElement,
-            data: dataElement
+            data: dataElement,
         };
     });
 }
@@ -226,8 +242,16 @@ function setupPage(checklist) {
 function updateCheckElements(check) {
     elements[check.name].indicator.className = 'status-page-indicator';
     elements[check.name].indicator.classList.add(statusClassFromStatus(check.status));
-    elements[check.name].duration.innerText = check.status === CheckStatus.NOT_STARTED ? '' : (check.status === CheckStatus.IN_PROGRESS ? '...' : ` in ${check.duration}ms`)
-    elements[check.name].data.innerText = (check.status === CheckStatus.NOT_STARTED || check.status === CheckStatus.IN_PROGRESS) ? '' : (check.result);
+    elements[check.name].duration.innerText =
+        check.status === CheckStatus.NOT_STARTED
+            ? ''
+            : check.status === CheckStatus.IN_PROGRESS
+              ? '...'
+              : ` in ${check.duration}ms`;
+    elements[check.name].data.innerText =
+        check.status === CheckStatus.NOT_STARTED || check.status === CheckStatus.IN_PROGRESS
+            ? ''
+            : check.result;
     elements[check.name].data.className = 'status-page-data';
     elements[check.name].data.classList.add(statusClassFromStatus(check.status));
 }
@@ -235,11 +259,13 @@ function updateCheckElements(check) {
 const checklist = new Checklist([
     new Check('HTTP API', () => {
         const url = new URL('availableFrames', getBaseEdgePath());
-        return jsonFetch(url).then(frames => {
-            return `${Object.keys(frames).length} frames found\nframes\n${JSON.stringify(Object.keys(frames))}`;
-        }).catch(() => {
-            throw `Failed to get available frames from ${url}`;
-        });
+        return jsonFetch(url)
+            .then((frames) => {
+                return `${Object.keys(frames).length} frames found\nframes\n${JSON.stringify(Object.keys(frames))}`;
+            })
+            .catch(() => {
+                throw `Failed to get available frames from ${url}`;
+            });
     }),
     new Check('World object check', () => {
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
@@ -251,48 +277,74 @@ const checklist = new Checklist([
     new Check('World object ToolSocket connection', () => {
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
         if (!worldObject) {
-            return Promise.reject('Failed to find world object, cannot connect to server socket for world object');
+            return Promise.reject(
+                'Failed to find world object, cannot connect to server socket for world object'
+            );
         }
-        const socket = realityEditor.network.realtime.getServerSocketForObject(worldObject.objectId);
+        const socket = realityEditor.network.realtime.getServerSocketForObject(
+            worldObject.objectId
+        );
         if (!socket) {
-            return Promise.reject(`World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`);
+            return Promise.reject(
+                `World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`
+            );
         }
         if (socket.readyState === socket.OPEN) {
             return Promise.resolve(`World object ToolSocket connection is OPEN`);
         }
-        return Promise.reject(`World object ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`);
+        return Promise.reject(
+            `World object ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('World object ToolSocket passive reception', () => {
         const timeoutSeconds = 10;
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
         if (!worldObject) {
-            return Promise.reject('Failed to find world object, cannot connect to server socket for world object');
+            return Promise.reject(
+                'Failed to find world object, cannot connect to server socket for world object'
+            );
         }
-        const socket = realityEditor.network.realtime.getServerSocketForObject(worldObject.objectId);
+        const socket = realityEditor.network.realtime.getServerSocketForObject(
+            worldObject.objectId
+        );
         if (!socket) {
-            return Promise.reject(`World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`);
+            return Promise.reject(
+                `World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`
+            );
         }
-        return withTimeout(new Promise((resolve) => {
-            socket.on('rawMessage', () => {
-                resolve(`Received io message via ToolSocket`);
-            });
-        }), timeoutSeconds * 1000, `Did not receive io message within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`);
+        return withTimeout(
+            new Promise((resolve) => {
+                socket.on('rawMessage', () => {
+                    resolve(`Received io message via ToolSocket`);
+                });
+            }),
+            timeoutSeconds * 1000,
+            `Did not receive io message within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('World object ToolSocket message rate', () => {
         const timeoutSeconds = 5;
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
         if (!worldObject) {
-            return Promise.reject('Failed to find world object, cannot connect to server socket for world object');
+            return Promise.reject(
+                'Failed to find world object, cannot connect to server socket for world object'
+            );
         }
-        const socket = realityEditor.network.realtime.getServerSocketForObject(worldObject.objectId);
+        const socket = realityEditor.network.realtime.getServerSocketForObject(
+            worldObject.objectId
+        );
         if (!socket) {
-            return Promise.reject(`World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`);
+            return Promise.reject(
+                `World object ToolSocket (realityEditor.network.realtime.getServerSocketForObject(${worldObject.objectId})) is undefined`
+            );
         }
         return checkMessageRate(socket, timeoutSeconds);
     }),
     new Check('Desktop ToolSocket connection', () => {
         if (!realityEditor.device.environment.shouldCreateDesktopSocket()) {
-            return Promise.resolve('Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)');
+            return Promise.resolve(
+                'Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)'
+            );
         }
         const socket = realityEditor.network.realtime.getDesktopSocket();
         if (!socket) {
@@ -301,68 +353,92 @@ const checklist = new Checklist([
         if (socket.readyState === socket.OPEN) {
             return Promise.resolve(`Desktop ToolSocket connection is OPEN`);
         }
-        return Promise.reject(`Desktop ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`);
+        return Promise.reject(
+            `Desktop ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('Desktop ToolSocket passive reception', () => {
         if (!realityEditor.device.environment.shouldCreateDesktopSocket()) {
-            return Promise.resolve('Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)');
+            return Promise.resolve(
+                'Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)'
+            );
         }
         const socket = realityEditor.network.realtime.getDesktopSocket();
         if (!socket) {
-            return Promise.reject('Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined');
+            return Promise.reject(
+                'Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined'
+            );
         }
         const timeoutSeconds = 10;
-        return withTimeout(new Promise(resolve => {
-            socket.on('io', () => {
-                // These messages (udp/beat, udpMessage, e.g.) are sent only by edge server, not cloud proxy, allowing us to check if that connection is still active
-                resolve(`Received message via ToolSocket`);
-            });
-        }), timeoutSeconds * 1000, `Did not receive any messages via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`);
+        return withTimeout(
+            new Promise((resolve) => {
+                socket.on('io', () => {
+                    // These messages (udp/beat, udpMessage, e.g.) are sent only by edge server, not cloud proxy, allowing us to check if that connection is still active
+                    resolve(`Received message via ToolSocket`);
+                });
+            }),
+            timeoutSeconds * 1000,
+            `Did not receive any messages via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('Desktop ToolSocket WebRTC signalling', () => {
         if (!realityEditor.device.environment.shouldCreateDesktopSocket()) {
-            return Promise.resolve('Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)');
+            return Promise.resolve(
+                'Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)'
+            );
         }
         const socket = realityEditor.network.realtime.getDesktopSocket();
         if (!socket) {
-            return Promise.reject('Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined');
+            return Promise.reject(
+                'Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined'
+            );
         }
 
         const signallingMessage = {
             command: 'joinNetwork',
             src: 'cam' + Math.floor(Math.random() * 1000),
-            role: 'consumer'
-        }
+            role: 'consumer',
+        };
         let identifier = 'unused';
         const worldObject = realityEditor.worldObjects.getBestWorldObject();
         if (worldObject) {
             identifier = worldObject.port;
         }
         socket.emit(realityEditor.network.getIoTitle(identifier, '/signalling'), signallingMessage);
-        
+
         const timeoutSeconds = 10;
-        
-        return withTimeout(new Promise(resolve => {
-            socket.on('/signalling', () => {
-                resolve(`Received signalling message via ToolSocket`);
-            });
-        }), timeoutSeconds * 1000, `Did not receive any messages via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`);
+
+        return withTimeout(
+            new Promise((resolve) => {
+                socket.on('/signalling', () => {
+                    resolve(`Received signalling message via ToolSocket`);
+                });
+            }),
+            timeoutSeconds * 1000,
+            `Did not receive any messages via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('Desktop ToolSocket message rate', () => {
         const timeoutSeconds = 5;
         if (!realityEditor.device.environment.shouldCreateDesktopSocket()) {
-            return Promise.resolve('Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)');
+            return Promise.resolve(
+                'Desktop ToolSocket not used on this platform (realityEditor.device.environment.shouldCreateDesktopSocket() is false)'
+            );
         }
         const socket = realityEditor.network.realtime.getDesktopSocket();
         if (!socket) {
-            return Promise.reject('Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined');
+            return Promise.reject(
+                'Desktop ToolSocket (realityEditor.network.realtime.getDesktopSocket()) is undefined'
+            );
         }
 
         return checkMessageRate(socket, timeoutSeconds);
     }),
     new Check('Cloud ToolSocket connection', () => {
         if (!isCloud) {
-            return Promise.resolve('Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)');
+            return Promise.resolve(
+                'Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)'
+            );
         }
         const socket = realityEditor.cloud.socket;
         if (!socket) {
@@ -371,29 +447,39 @@ const checklist = new Checklist([
         if (socket.readyState === socket.OPEN) {
             return Promise.resolve(`Cloud ToolSocket connection is OPEN`);
         }
-        return Promise.reject(`Cloud ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`);
-    }), 
+        return Promise.reject(
+            `Cloud ToolSocket connection is not OPEN (realityEditor.cloud.socket.readyState = ${socket.readyState})\nsocket\n${JSON.stringify(socket)}`
+        );
+    }),
     new Check('Cloud ToolSocket passive beat reception', () => {
         if (!isCloud) {
-            return Promise.resolve('Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)');
+            return Promise.resolve(
+                'Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)'
+            );
         }
         const socket = realityEditor.cloud.socket;
         if (!socket) {
             return Promise.reject('Cloud ToolSocket (realityEditor.cloud.socket) is undefined');
         }
         const timeoutSeconds = 10;
-        return withTimeout(new Promise(resolve => {
-            socket.on('beat', function (_route, body) {
-                resolve(`Received beat via ToolSocket\nbeat\n${JSON.stringify(body)}`);
-            });
-            socket.on('action', function (_route, body) {
-                resolve(`Received action via ToolSocket\naction\n${JSON.stringify(body)}`);
-            });
-        }), timeoutSeconds * 1000, `Did not receive any beats via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`);
+        return withTimeout(
+            new Promise((resolve) => {
+                socket.on('beat', function (_route, body) {
+                    resolve(`Received beat via ToolSocket\nbeat\n${JSON.stringify(body)}`);
+                });
+                socket.on('action', function (_route, body) {
+                    resolve(`Received action via ToolSocket\naction\n${JSON.stringify(body)}`);
+                });
+            }),
+            timeoutSeconds * 1000,
+            `Did not receive any beats via ToolSocket within ${timeoutSeconds} second timeout\nsocket\n${JSON.stringify(socket)}`
+        );
     }),
     new Check('Cloud ToolSocket message rate', () => {
         if (!isCloud) {
-            return Promise.resolve('Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)');
+            return Promise.resolve(
+                'Cloud ToolSocket not used on this platform (window.location.pathname does not match realityEditor.network.desktopURLSchema)'
+            );
         }
         const socket = realityEditor.cloud.socket;
         if (!socket) {
@@ -401,7 +487,7 @@ const checklist = new Checklist([
         }
         const timeoutSeconds = 5;
         return checkMessageRate(socket, timeoutSeconds);
-    })
+    }),
 ]);
 
 initializePage();
@@ -410,7 +496,7 @@ setupPage(checklist);
 runButton.addEventListener('click', () => {
     checklist.reset();
     checklist.run(updateCheckElements);
-    checklist.checks.forEach(check => {
+    checklist.checks.forEach((check) => {
         updateCheckElements(check);
     });
 });

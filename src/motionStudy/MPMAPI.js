@@ -48,55 +48,62 @@ export class MPMAPI {
         headers.append('Authorization', this.auth);
 
         const criteria = JSON.stringify({
-            'processPlanNavigationCriteria': {
-                'ApplicableType': 'PTC.MfgProcMgmt.ProcessPlan',
-                'ApplyToTopLevelObject': true,
-                'HideUnresolvedDependents': true,
-                'UseDefaultForUnresolved': false,
-                'ConfigSpecs': [{
-                    '@odata.type': '#PTC.NavCriteria.WTPartStandardConfigSpec',
-                    'LifeCycleState': {
-                        'Value': null
+            processPlanNavigationCriteria: {
+                ApplicableType: 'PTC.MfgProcMgmt.ProcessPlan',
+                ApplyToTopLevelObject: true,
+                HideUnresolvedDependents: true,
+                UseDefaultForUnresolved: false,
+                ConfigSpecs: [
+                    {
+                        '@odata.type': '#PTC.NavCriteria.WTPartStandardConfigSpec',
+                        LifeCycleState: {
+                            Value: null,
+                        },
+                        Variation1: {
+                            Value: null,
+                        },
+                        Variation2: {
+                            Value: null,
+                        },
+                        View: 'Manufacturing',
+                        WorkingIncluded: false,
                     },
-                    'Variation1': {
-                        'Value': null
-                    },
-                    'Variation2': {
-                        'Value': null
-                    },
-                    'View': 'Manufacturing',
-                    'WorkingIncluded': false
-                }]
+                ],
             },
-            'relatedAssemblyNavigationCriteria': {
-                'ApplicableType': 'PTC.ProdMgmt.Part',
-                'ApplyToTopLevelObject': true,
-                'HideUnresolvedDependents': true,
-                'UseDefaultForUnresolved': false,
-                'ConfigSpecs': [{
-                    '@odata.type': '#PTC.NavCriteria.WTPartStandardConfigSpec',
-                    'LifeCycleState': {
-                        'Value': null
+            relatedAssemblyNavigationCriteria: {
+                ApplicableType: 'PTC.ProdMgmt.Part',
+                ApplyToTopLevelObject: true,
+                HideUnresolvedDependents: true,
+                UseDefaultForUnresolved: false,
+                ConfigSpecs: [
+                    {
+                        '@odata.type': '#PTC.NavCriteria.WTPartStandardConfigSpec',
+                        LifeCycleState: {
+                            Value: null,
+                        },
+                        Variation1: {
+                            Value: null,
+                        },
+                        Variation2: {
+                            Value: null,
+                        },
+                        View: 'Manufacturing',
+                        WorkingIncluded: false,
                     },
-                    'Variation1': {
-                        'Value': null
-                    },
-                    'Variation2': {
-                        'Value': null
-                    },
-                    'View': 'Manufacturing',
-                    'WorkingIncluded': false
-                }]
-            }
+                ],
+            },
         });
 
         const requestOptions = {
-              method: 'POST',
-              headers,
-              body: criteria,
+            method: 'POST',
+            headers,
+            body: criteria,
         };
 
-        const res = await fetch(`${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/ProcessPlans('${processPlanId}')/PTC.MfgProcMgmt.GetBOPWithInlineNavCriteria?$expand=Components($expand=OperationHolder,OperationHolderUsageLink,ConsumedParts($expand=Part,OperationToPartLink,PartPathOccurrenceLinks);$levels=max)`, requestOptions);
+        const res = await fetch(
+            `${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/ProcessPlans('${processPlanId}')/PTC.MfgProcMgmt.GetBOPWithInlineNavCriteria?$expand=Components($expand=OperationHolder,OperationHolderUsageLink,ConsumedParts($expand=Part,OperationToPartLink,PartPathOccurrenceLinks);$levels=max)`,
+            requestOptions
+        );
         return await res.json();
     }
 
@@ -111,8 +118,8 @@ export class MPMAPI {
         headers.append('Authorization', this.auth);
 
         const requestOptions = {
-              method: 'GET',
-              headers,
+            method: 'GET',
+            headers,
         };
         let url = `${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/ProcessPlans`;
         if (filter) {
@@ -139,12 +146,15 @@ export class MPMAPI {
         const raw = JSON.stringify(vars);
 
         const requestOptions = {
-          method: 'PATCH',
-          headers,
-          body: raw,
+            method: 'PATCH',
+            headers,
+            body: raw,
         };
 
-        const res = await fetch(`${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/Operations('${operationId}')`, requestOptions);
+        const res = await fetch(
+            `${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/Operations('${operationId}')`,
+            requestOptions
+        );
         const data = await res.json();
         return data;
     }
@@ -182,7 +192,7 @@ export class MPMAPI {
     }
 
     async checkInOrOut(params) {
-        const {id, group, op} = params;
+        const { id, group, op } = params;
 
         if (!this.csrfNonce) {
             await this.getCSRFToken();
@@ -193,16 +203,17 @@ export class MPMAPI {
         headers.append('X-CSRF-NONCE', this.csrfNonce);
 
         const requestOptions = {
-          method: 'POST',
-          headers,
+            method: 'POST',
+            headers,
         };
 
-        const res = await fetch(`${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/${group}('${id}')/PTC.MfgProcMgmt.${op}`, requestOptions);
+        const res = await fetch(
+            `${this.baseUrl}/Windchill/servlet/odata/v6/MfgProcMgmt/${group}('${id}')/PTC.MfgProcMgmt.${op}`,
+            requestOptions
+        );
         let doc = await res.json();
         // Alias to match prevailing conventions
         doc.id = doc.ID;
         return doc;
     }
 }
-
-

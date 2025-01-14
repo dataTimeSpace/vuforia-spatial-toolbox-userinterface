@@ -11,7 +11,7 @@ class EnvelopeIconRenderer {
 
         this.callbacks = {
             onIconStartDrag: [],
-            onIconStopDrag: []
+            onIconStopDrag: [],
         };
 
         this.dragState = {
@@ -20,9 +20,9 @@ class EnvelopeIconRenderer {
             target: {
                 icon: null,
                 objectId: null,
-                frameId: null
+                frameId: null,
             },
-            draggedIcon: null
+            draggedIcon: null,
         };
 
         this.onVehicleDeleted = this.onVehicleDeleted.bind(this);
@@ -44,7 +44,7 @@ class EnvelopeIconRenderer {
         document.addEventListener('pointermove', this.onPointerMove);
 
         realityEditor.gui.ar.draw.addUpdateListener(() => {
-            Object.values(this.knownEnvelopes).forEach(envelope => {
+            Object.values(this.knownEnvelopes).forEach((envelope) => {
                 this.updateEnvelope(envelope);
             });
         });
@@ -121,22 +121,46 @@ class EnvelopeIconRenderer {
         let finalMatrix = [];
         let modelMatrix = realityEditor.sceneGraph.getModelMatrixLookingAt(frameId, 'CAMERA');
         let modelViewMatrix = [];
-        this.arUtilities.multiplyMatrix(modelMatrix, realityEditor.sceneGraph.getViewMatrix(), modelViewMatrix);
+        this.arUtilities.multiplyMatrix(
+            modelMatrix,
+            realityEditor.sceneGraph.getViewMatrix(),
+            modelViewMatrix
+        );
 
         // In AR mode, we need to use this lookAt method, because camera up vec doesn't always match scene up vec
         if (realityEditor.device.environment.isARMode()) {
-            this.arUtilities.multiplyMatrix(modelViewMatrix, globalStates.projectionMatrix, finalMatrix);
+            this.arUtilities.multiplyMatrix(
+                modelViewMatrix,
+                globalStates.projectionMatrix,
+                finalMatrix
+            );
         } else {
             // the lookAt method isn't perfect – it has a singularity as you approach top or bottom
             // so let's correct the scale and remove the rotation – this works on desktop because camera up = scene up
             let scale = realityEditor.sceneGraph.getSceneNodeById(frameId).getVehicleScale();
             let constructedModelViewMatrix = [
-                scale, 0, 0, 0,
-                0, -scale, 0, 0,
-                0, 0, scale, 0,
-                modelViewMatrix[12], modelViewMatrix[13], modelViewMatrix[14], 1
+                scale,
+                0,
+                0,
+                0,
+                0,
+                -scale,
+                0,
+                0,
+                0,
+                0,
+                scale,
+                0,
+                modelViewMatrix[12],
+                modelViewMatrix[13],
+                modelViewMatrix[14],
+                1,
             ];
-            this.arUtilities.multiplyMatrix(constructedModelViewMatrix, globalStates.projectionMatrix, finalMatrix);
+            this.arUtilities.multiplyMatrix(
+                constructedModelViewMatrix,
+                globalStates.projectionMatrix,
+                finalMatrix
+            );
         }
 
         finalMatrix[14] = realityEditor.gui.ar.positioning.getFinalMatrixScreenZ(finalMatrix[14]);
@@ -180,13 +204,16 @@ class EnvelopeIconRenderer {
         // if we have a draggedIcon, remove it
         if (draggedIcon && draggedIcon.parentElement) {
             let boundingRect = draggedIcon.getBoundingClientRect();
-            let x = parseInt(draggedIcon.style.left) + boundingRect.width/2;
-            let y = parseInt(draggedIcon.style.top) + boundingRect.height/2;
+            let x = parseInt(draggedIcon.style.left) + boundingRect.width / 2;
+            let y = parseInt(draggedIcon.style.top) + boundingRect.height / 2;
 
             // delete the associated tool if the icon is over the trash zone
             if (realityEditor.device.isPointerInTrashZone(x, y)) {
                 // delete it
-                let frame = realityEditor.getFrame(this.dragState.target.objectId, this.dragState.target.frameId);
+                let frame = realityEditor.getFrame(
+                    this.dragState.target.objectId,
+                    this.dragState.target.frameId
+                );
                 if (frame) {
                     realityEditor.device.tryToDeleteSelectedVehicle(frame);
                 }
@@ -200,12 +227,12 @@ class EnvelopeIconRenderer {
             target: {
                 icon: null,
                 objectId: null,
-                frameId: null
+                frameId: null,
             },
-            draggedIcon: null
-        }
+            draggedIcon: null,
+        };
 
-        this.callbacks.onIconStopDrag.forEach(cb => cb());
+        this.callbacks.onIconStopDrag.forEach((cb) => cb());
     }
 
     setDragTarget(objectId, frameId) {
@@ -235,8 +262,10 @@ class EnvelopeIconRenderer {
 
         const iconElt = event.target;
         if (this.dragState.pointerDown) {
-            if (this.dragState.target.frameId &&
-                this.dragState.target.frameId === iconElt.dataset.frameId) {
+            if (
+                this.dragState.target.frameId &&
+                this.dragState.target.frameId === iconElt.dataset.frameId
+            ) {
                 this.activateDrag();
             }
         }
@@ -265,7 +294,7 @@ class EnvelopeIconRenderer {
         document.body.appendChild(draggedIcon);
         this.dragState.draggedIcon = draggedIcon;
 
-        this.callbacks.onIconStartDrag.forEach(cb => cb());
+        this.callbacks.onIconStartDrag.forEach((cb) => cb());
     }
 
     onPointerMove(event) {
@@ -276,8 +305,8 @@ class EnvelopeIconRenderer {
 
         let boundingRect = this.dragState.draggedIcon.getBoundingClientRect();
 
-        this.dragState.draggedIcon.style.left = `${event.pageX - boundingRect.width/2}px`;
-        this.dragState.draggedIcon.style.top = `${event.pageY - boundingRect.height/2}px`;
+        this.dragState.draggedIcon.style.left = `${event.pageX - boundingRect.width / 2}px`;
+        this.dragState.draggedIcon.style.top = `${event.pageY - boundingRect.height / 2}px`;
 
         if (realityEditor.device.isPointerInTrashZone(event.pageX, event.pageY)) {
             overlayDiv.classList.add('overlayNegative');

@@ -1,14 +1,14 @@
-import { saveToken } from "./tokens.js";
+import { saveToken } from './tokens.js';
 
-const isCloud = location => {
+const isCloud = (location) => {
     try {
         location = new URL(location);
     } catch (e) {
         console.error(`Passed a non-fully-formed URL to isCloud: ${location}`);
         return false;
     }
-    return !location.port || location.port === "443";
-}
+    return !location.port || location.port === '443';
+};
 
 function handleError(error, toolboxUrl) {
     console.error(error);
@@ -39,38 +39,46 @@ window.onload = () => {
     const nonce = parameters.get('state');
     const state = JSON.parse(localStorage.getItem('activeOAuthState')) || {};
     if (localStorage.getItem('activeOAuthNonce') !== nonce) {
-        handleError(`${localStorage.getItem('activeOAuthNonce')} does not match ${nonce}`, state.toolboxUrl);
+        handleError(
+            `${localStorage.getItem('activeOAuthNonce')} does not match ${nonce}`,
+            state.toolboxUrl
+        );
         clearLocalStorage();
         return;
     }
     clearLocalStorage();
     if (code) {
-        const path = isCloud(window.location) ? '/stable/oauth/redirect' : '/src/oauth/redirect.html';
+        const path = isCloud(window.location)
+            ? '/stable/oauth/redirect'
+            : '/src/oauth/redirect.html';
         const data = {
-            'code': code,
-            'frameName': state.frameName,
-            'redirect_uri': window.location.origin + path,
-        }
+            code: code,
+            frameName: state.frameName,
+            redirect_uri: window.location.origin + path,
+        };
         const serverUrl = `${state.edgeServer}/oauthAcquire`;
         fetch(serverUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: new URLSearchParams(data)
-        }).then(response => {
-            return response.json();
-        }).then(responseData => {
-            if (responseData.error) {
-                handleError(responseData.error, state.toolboxUrl);
-                return;
-            }
-            saveToken(responseData, state.frameName);
-            window.location = state.toolboxUrl;
-        }).catch(error => {
-            console.error(error);
-        });
+            body: new URLSearchParams(data),
+        })
+            .then((response) => {
+                return response.json();
+            })
+            .then((responseData) => {
+                if (responseData.error) {
+                    handleError(responseData.error, state.toolboxUrl);
+                    return;
+                }
+                saveToken(responseData, state.frameName);
+                window.location = state.toolboxUrl;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
     } else {
         handleError(error, state.toolboxUrl);
     }
-}
+};

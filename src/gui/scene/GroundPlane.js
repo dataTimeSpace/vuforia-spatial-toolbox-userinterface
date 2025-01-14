@@ -1,4 +1,4 @@
-import * as THREE from "../../../thirdPartyCode/three/three.module.js"
+import * as THREE from '../../../thirdPartyCode/three/three.module.js';
 
 /**
  * @typedef {number} Millimeters
@@ -12,13 +12,17 @@ class GroundPlane {
     #plane;
 
     /**
-     * 
-     * @param {Millimeters} size 
+     *
+     * @param {Millimeters} size
      */
     constructor(size) {
         const geometry = new THREE.PlaneGeometry(size, size);
         geometry.rotateX(Math.PI / 2); // directly set the geometry's rotation to get the desired visual rotation & raycast direction. Otherwise setting mesh's rotation & run updateWorldMatrix(true, false) looks correct, but has wrong raycast direction
-        const material = new THREE.MeshBasicMaterial({color: 0x88ffff, side: THREE.DoubleSide, wireframe: true});
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x88ffff,
+            side: THREE.DoubleSide,
+            wireframe: true,
+        });
         this.#plane = new THREE.Mesh(geometry, material);
         // plane.rotateX(Math.PI/2);
         this.#plane.visible = false;
@@ -29,23 +33,30 @@ class GroundPlane {
     tryUpdatingGroundPlanePosition(areaTargetMesh, areaTargetNavmesh) {
         this.#plane.remove(this.#plane);
         areaTargetMesh.add(this.#plane);
-        let areaTargetMeshScale = Math.max(areaTargetMesh.matrixWorld.elements[0], areaTargetMesh.matrixWorld.elements[5], areaTargetMesh.matrixWorld.elements[10]);
-        let floorOffset = (areaTargetNavmesh.floorOffset / realityEditor.gui.threejsScene.getInternals().getGlobalScale().getSceneScale()) / areaTargetMeshScale;
+        let areaTargetMeshScale = Math.max(
+            areaTargetMesh.matrixWorld.elements[0],
+            areaTargetMesh.matrixWorld.elements[5],
+            areaTargetMesh.matrixWorld.elements[10]
+        );
+        let floorOffset =
+            areaTargetNavmesh.floorOffset /
+            realityEditor.gui.threejsScene.getInternals().getGlobalScale().getSceneScale() /
+            areaTargetMeshScale;
         this.#plane.position.set(0, floorOffset, 0);
         this.#plane.updateMatrix();
         this.#plane.updateWorldMatrix(true);
         console.log(this.#plane.matrixWorld);
 
-         // update the groundPlane sceneNode to match the position of the new groundplane collider
-         let groundPlaneRelativeOrigin = areaTargetMesh.localToWorld(this.#plane.position.clone());
-         let groundPlaneRelativeMatrix = new THREE.Matrix4().setPosition(groundPlaneRelativeOrigin); //.copyPosition(groundPlaneRelativeOrigin);
-         realityEditor.sceneGraph.setGroundPlanePosition(groundPlaneRelativeMatrix.elements);
+        // update the groundPlane sceneNode to match the position of the new groundplane collider
+        let groundPlaneRelativeOrigin = areaTargetMesh.localToWorld(this.#plane.position.clone());
+        let groundPlaneRelativeMatrix = new THREE.Matrix4().setPosition(groundPlaneRelativeOrigin); //.copyPosition(groundPlaneRelativeOrigin);
+        realityEditor.sceneGraph.setGroundPlanePosition(groundPlaneRelativeMatrix.elements);
     }
 
     /**
-     * 
-     * @param {boolean} updateParents 
-     * @param {boolean} updateChildren 
+     *
+     * @param {boolean} updateParents
+     * @param {boolean} updateChildren
      */
     updateWorldMatrix(updateParents, updateChildren) {
         this.#plane.updateWorldMatrix(updateParents, updateChildren);

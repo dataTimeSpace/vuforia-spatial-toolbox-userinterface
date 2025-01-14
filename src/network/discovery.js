@@ -1,7 +1,6 @@
-createNameSpace("realityEditor.network.discovery");
+createNameSpace('realityEditor.network.discovery');
 
-(function(exports) {
-
+(function (exports) {
     // discoveryMap[serverIp][objectId] = { heartbeat: { id, ip, port, vn, tcs }, metadata: { name, type } }
     let discoveryMap = {};
     let serverServices = {};
@@ -16,7 +15,7 @@ createNameSpace("realityEditor.network.discovery");
 
     let callbacks = {
         onServerDetected: [],
-        onObjectDetected: []
+        onObjectDetected: [],
     };
 
     function initService() {
@@ -33,15 +32,21 @@ createNameSpace("realityEditor.network.discovery");
     }
 
     function processNextQueuedHeartbeat() {
-        if (queuedHeartbeats.length === 0) { return; }
+        if (queuedHeartbeats.length === 0) {
+            return;
+        }
         let message = queuedHeartbeats.shift();
         processHeartbeat(message);
         setTimeout(processNextQueuedHeartbeat, 100); // process async to avoid overwhelming all at once
     }
 
     function deleteFromDiscoveryMap(ip, id) {
-        if (typeof discoveryMap[ip] === 'undefined') { return; }
-        if (typeof discoveryMap[ip][id] === 'undefined') { return; }
+        if (typeof discoveryMap[ip] === 'undefined') {
+            return;
+        }
+        if (typeof discoveryMap[ip][id] === 'undefined') {
+            return;
+        }
         delete discoveryMap[ip][id];
         // todo: trigger any callbacks? depends if other modules are subscribed to the full discoveryMap or not
         // todo: can we detect when a server turns off so we can delete it from our map?
@@ -50,14 +55,18 @@ createNameSpace("realityEditor.network.discovery");
     function updateDiscoveryMap(message) {
         if (typeof discoveryMap[message.ip] === 'undefined') {
             discoveryMap[message.ip] = {};
-            callbacks.onServerDetected.forEach(cb => cb(message.ip));
+            callbacks.onServerDetected.forEach((cb) => cb(message.ip));
         }
         if (typeof discoveryMap[message.ip][message.id] === 'undefined') {
             discoveryMap[message.ip][message.id] = {
                 heartbeat: message,
-                metadata: null
+                metadata: null,
             };
-            processNewObjectDiscovery(message.ip, realityEditor.network.getPort(message), message.id);
+            processNewObjectDiscovery(
+                message.ip,
+                realityEditor.network.getPort(message),
+                message.id
+            );
         }
         // TODO: should this module concern itself with the heartbeat checksum? probably not, we are only concerned about presence
     }
@@ -65,16 +74,22 @@ createNameSpace("realityEditor.network.discovery");
     // independently from adding the json to the objects data structure, we query the server for some important metadata about this heartbeat
     function processNewObjectDiscovery(ip, port, id) {
         let url = realityEditor.network.getURL(ip, port, '/object/' + id);
-        realityEditor.network.getData(id,  null, null, url, function (objectKey, frameKey, nodeKey, msg) {
-            if (!msg) return;
-            if (typeof discoveryMap[ip][id] !== 'undefined') {
-                discoveryMap[ip][id].metadata = {
-                    name: msg.name,
-                    type: msg.type
+        realityEditor.network.getData(
+            id,
+            null,
+            null,
+            url,
+            function (objectKey, frameKey, nodeKey, msg) {
+                if (!msg) return;
+                if (typeof discoveryMap[ip][id] !== 'undefined') {
+                    discoveryMap[ip][id].metadata = {
+                        name: msg.name,
+                        type: msg.type,
+                    };
+                    callbacks.onObjectDetected.forEach((cb) => cb(discoveryMap[ip][id]));
                 }
-                callbacks.onObjectDetected.forEach(cb => cb(discoveryMap[ip][id]));
             }
-        });
+        );
     }
 
     // This should be directly triggered by whatever is listening for UDP messages
@@ -89,25 +104,34 @@ createNameSpace("realityEditor.network.discovery");
 
         let ignoreFromPause = false;
         if (heartbeatsPaused) {
-            ignoreFromPause = !exceptions.some(name => message.id.includes(name));
+            ignoreFromPause = !exceptions.some((name) => message.id.includes(name));
         }
 
-        if (realityEditor.device.environment.variables.suppressObjectDetections || ignoreFromPause || isSystemInitializing) {
+        if (
+            realityEditor.device.environment.variables.suppressObjectDetections ||
+            ignoreFromPause ||
+            isSystemInitializing
+        ) {
             // only add it if we don't already have the same one pending
-            const alreadyInArray = queuedHeartbeats.some(existingMessage => {
-                return existingMessage.id === message.id &&
+            const alreadyInArray = queuedHeartbeats.some((existingMessage) => {
+                return (
+                    existingMessage.id === message.id &&
                     existingMessage.ip === message.ip &&
                     existingMessage.port === message.port &&
                     existingMessage.vn === message.vn &&
                     existingMessage.pr === message.pr &&
-                    existingMessage.tcs === message.tcs;
+                    existingMessage.tcs === message.tcs
+                );
             });
             if (!alreadyInArray) {
                 queuedHeartbeats.push(message);
             }
         } else {
             if (typeof message.zone !== 'undefined' && message.zone !== '') {
-                if (realityEditor.gui.settings.toggleStates.zoneState && realityEditor.gui.settings.toggleStates.zoneStateText === message.zone) {
+                if (
+                    realityEditor.gui.settings.toggleStates.zoneState &&
+                    realityEditor.gui.settings.toggleStates.zoneStateText === message.zone
+                ) {
                     realityEditor.network.addHeartbeatObject(message);
                 }
             } else if (!realityEditor.gui.settings.toggleStates.zoneState) {
@@ -125,7 +149,7 @@ createNameSpace("realityEditor.network.discovery");
 
         if (typeof discoveryMap[message.ip] === 'undefined') {
             discoveryMap[message.ip] = {};
-            callbacks.onServerDetected.forEach(cb => cb(message.ip));
+            callbacks.onServerDetected.forEach((cb) => cb(message.ip));
         }
 
         if (typeof message.services !== 'undefined') {
@@ -136,48 +160,48 @@ createNameSpace("realityEditor.network.discovery");
     exports.setPrimaryWorld = (ip, id) => {
         primaryWorld = {
             ip: ip,
-            id: id
+            id: id,
         };
-    }
+    };
 
     exports.getPrimaryWorldInfo = () => {
         return primaryWorld;
-    }
+    };
 
     exports.pauseObjectDetections = () => {
         heartbeatsPaused = true;
-    }
+    };
 
     exports.resumeObjectDetections = () => {
         heartbeatsPaused = false;
         processNextQueuedHeartbeat();
-    }
+    };
 
     exports.addExceptionToPausedObjectDetections = (objectName) => {
         exceptions.push(objectName);
-    }
+    };
 
     exports.deleteObject = (ip, id) => {
         deleteFromDiscoveryMap(ip, id);
 
-        queuedHeartbeats = queuedHeartbeats.filter(message => {
+        queuedHeartbeats = queuedHeartbeats.filter((message) => {
             return message.id !== id && message.ip !== ip;
         });
-    }
+    };
 
     exports.onServerDetected = (callback) => {
         callbacks.onServerDetected.push(callback);
-    }
+    };
 
     exports.onObjectDetected = (callback) => {
         callbacks.onObjectDetected.push(callback);
-    }
+    };
 
-    exports.getDetectedServerIPs = ({limitToWorldService = false} = {}) => {
+    exports.getDetectedServerIPs = ({ limitToWorldService = false } = {}) => {
         if (!limitToWorldService) return Object.keys(discoveryMap);
 
         // if limitToWorldService, and at least one server demands services=world, only return servers with the demand
-        let serversWithWorldService = Object.keys(discoveryMap).filter(serverIp => {
+        let serversWithWorldService = Object.keys(discoveryMap).filter((serverIp) => {
             return serverServices[serverIp] && serverServices[serverIp].includes('world');
         });
 
@@ -187,28 +211,29 @@ createNameSpace("realityEditor.network.discovery");
 
         // if no servers demand the world, return all servers
         return Object.keys(discoveryMap);
-    }
+    };
 
     exports.getDetectedObjectIDs = () => {
-        return Object.values(discoveryMap).map(serverContents => Object.keys(serverContents)).flat();
-    }
+        return Object.values(discoveryMap)
+            .map((serverContents) => Object.keys(serverContents))
+            .flat();
+    };
 
     exports.getDetectedObjectsOfType = (type) => {
         let serverContents = Object.values(discoveryMap); // array of [{id1: info}, { id2: info, id3: info }]
         let matchingObjects = [];
-        serverContents.forEach(serverInfo => {
-            Object.keys(serverInfo).forEach(objectId => {
+        serverContents.forEach((serverInfo) => {
+            Object.keys(serverInfo).forEach((objectId) => {
                 let objectInfo = serverInfo[objectId];
                 if (objectInfo.metadata && objectInfo.metadata.type === type) {
                     matchingObjects.push(objectInfo);
                 }
             });
-        })
+        });
         return matchingObjects;
-    }
+    };
 
     exports.initService = initService;
     exports.processHeartbeat = processHeartbeat;
     exports.processServerBeat = processServerBeat;
-
 })(realityEditor.network.discovery);

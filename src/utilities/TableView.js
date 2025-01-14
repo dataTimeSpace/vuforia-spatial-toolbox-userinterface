@@ -4,9 +4,9 @@ export class TableView {
         this.columnNames = columnNames;
 
         // Need to keep track of originalData so that we can highlight user-modified data
-        this.originalData = data.map(row => {
+        this.originalData = data.map((row) => {
             // Must convert data to strings to do proper comparison with contents
-            return row.map(cell => `${cell}`);
+            return row.map((cell) => `${cell}`);
         });
         if (options.colorFunction) {
             this.colorFunction = options.colorFunction;
@@ -44,21 +44,21 @@ export class TableView {
                     cell.classList.add('table-view-corner');
                 } else if (i === 0) {
                     const cell = row.insertCell();
-                    cell.textContent = this.columnNames[j-1];
+                    cell.textContent = this.columnNames[j - 1];
                     cell.classList.add('table-view-header');
                     cell.classList.add('table-view-column-header');
                     cell.x = j;
                     // Add image if available
-                    if (this.headerImages[j-1]) {
+                    if (this.headerImages[j - 1]) {
                         const img = document.createElement('img');
-                        img.src = this.headerImages[j-1];
-                        img.alt = this.columnNames[j-1]; // Use column name as alt text
+                        img.src = this.headerImages[j - 1];
+                        img.alt = this.columnNames[j - 1]; // Use column name as alt text
                         img.classList.add('table-view-header-image');
                         cell.appendChild(img);
                     }
                 } else if (j === 0) {
                     const cell = row.insertCell();
-                    cell.textContent = this.rowNames[i-1];
+                    cell.textContent = this.rowNames[i - 1];
                     cell.classList.add('table-view-header');
                     cell.classList.add('table-view-row-header');
                     cell.y = i;
@@ -85,11 +85,11 @@ export class TableView {
                 if (i === 0) {
                     return;
                 }
-                if (j-1 < 0 || j-1 >= data.length || i-1 < 0 || i-1 >= data[j-1].length) {
+                if (j - 1 < 0 || j - 1 >= data.length || i - 1 < 0 || i - 1 >= data[j - 1].length) {
                     return;
                 }
-                const value = data[j-1][i-1];
-                const columnName = this.columnNames[i-1];
+                const value = data[j - 1][i - 1];
+                const columnName = this.columnNames[i - 1];
                 cell.textContent = value;
                 cell.style.backgroundColor = `color-mix(in srgb, ${this.colorFunction(value, columnName)}, transparent 80%)`;
                 cell.style.color = 'white';
@@ -97,13 +97,15 @@ export class TableView {
             });
         });
     }
-    
+
     setInteractable(isInteractable) {
         this.isInteractable = isInteractable;
     }
 
     checkModified(cell) {
-        if (cell.textContent === this.originalData[cell.parentNode.rowIndex-1][cell.cellIndex-1]) {
+        if (
+            cell.textContent === this.originalData[cell.parentNode.rowIndex - 1][cell.cellIndex - 1]
+        ) {
             cell.classList.remove('table-view-data-modified');
         } else {
             cell.classList.add('table-view-data-modified');
@@ -116,14 +118,17 @@ export class TableView {
                 return;
             }
             let cell = e.target;
-            if (cell.tagName === 'IMG') { // Handle clicks on header images
+            if (cell.tagName === 'IMG') {
+                // Handle clicks on header images
                 cell = cell.parentNode;
             }
             const cellIndex = cell.cellIndex;
             const rowIndex = cell.parentNode.rowIndex;
 
             if (cell.tagName === 'TH' || cell.tagName === 'TD') {
-                const originalSelectedElements = Array.from(this.table.querySelectorAll('.selected'));
+                const originalSelectedElements = Array.from(
+                    this.table.querySelectorAll('.selected')
+                );
                 const editingCell = this.getEditingCell();
                 // Handle cell losing focus
                 if (editingCell) {
@@ -148,7 +153,11 @@ export class TableView {
                 let newSelectedElements = Array.from(this.table.querySelectorAll('.selected'));
                 if (!e.shiftKey) {
                     if (newSelectedElements.length === originalSelectedElements.length) {
-                        if (originalSelectedElements.every(element => newSelectedElements.includes(element))) {
+                        if (
+                            originalSelectedElements.every((element) =>
+                                newSelectedElements.includes(element)
+                            )
+                        ) {
                             // Selection did not change, meaning we should clear selection
                             this.clearSelection();
                         }
@@ -161,85 +170,117 @@ export class TableView {
                     cell.classList.add('editing');
                 }
                 const currentSelectedData = this.getSelectedData();
-                this.selectionCallbacks.forEach(cb => cb(currentSelectedData));
+                this.selectionCallbacks.forEach((cb) => cb(currentSelectedData));
             }
         });
 
-        document.addEventListener('keydown', e => {
-            if (!this.isInteractable) {
-                return;
-            }
-            const cell = this.getEditingCell();
-            if (!cell) {
-                return;
-            }
-            if (!['0','1','2','3','4','5','6','7','8','9','.','Backspace','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.key)) {
-                return;
-            }
-            e.preventDefault(); // Prevents view from jumping around from arrow keys
-            e.stopPropagation();
-            if (e.key === 'ArrowUp') {
-                if (cell.parentNode.rowIndex - 1 > 0) {
-                    this.selectCell(cell.parentNode.rowIndex - 1, cell.cellIndex);
-                    const currentSelectedData = this.getSelectedData();
-                    this.selectionCallbacks.forEach(cb => cb(currentSelectedData));
-                    this.table.rows[cell.parentNode.rowIndex - 1].cells[cell.cellIndex].scrollIntoView({ behavior: "smooth"});
+        document.addEventListener(
+            'keydown',
+            (e) => {
+                if (!this.isInteractable) {
+                    return;
                 }
-                this.commitCellEdits(cell);
-                return;
-            }
-            if (['ArrowDown','Enter'].includes(e.key)) {
-                if (cell.parentNode.rowIndex + 1 <= this.rowNames.length) {
-                    this.selectCell(cell.parentNode.rowIndex + 1, cell.cellIndex);
-                    const currentSelectedData = this.getSelectedData();
-                    this.selectionCallbacks.forEach(cb => cb(currentSelectedData));
-                    this.table.rows[cell.parentNode.rowIndex + 1].cells[cell.cellIndex].scrollIntoView({ behavior: "smooth"});
+                const cell = this.getEditingCell();
+                if (!cell) {
+                    return;
                 }
-                this.commitCellEdits(cell);
-                return;
-            }
-            if (e.key === 'ArrowLeft') {
-                if (cell.cellIndex - 1 > 0) {
-                    this.selectCell(cell.parentNode.rowIndex, cell.cellIndex - 1);
-                    const currentSelectedData = this.getSelectedData();
-                    this.selectionCallbacks.forEach(cb => cb(currentSelectedData));
-                    this.table.rows[cell.parentNode.rowIndex].cells[cell.cellIndex - 1].scrollIntoView({ behavior: "smooth"});
+                if (
+                    ![
+                        '0',
+                        '1',
+                        '2',
+                        '3',
+                        '4',
+                        '5',
+                        '6',
+                        '7',
+                        '8',
+                        '9',
+                        '.',
+                        'Backspace',
+                        'ArrowUp',
+                        'ArrowDown',
+                        'ArrowLeft',
+                        'ArrowRight',
+                        'Enter',
+                    ].includes(e.key)
+                ) {
+                    return;
                 }
-                this.commitCellEdits(cell);
-                return;
-            }
-            if (e.key === 'ArrowRight') {
-                if (cell.cellIndex + 1 <= this.columnNames.length) {
-                    this.selectCell(cell.parentNode.rowIndex, cell.cellIndex + 1);
-                    const currentSelectedData = this.getSelectedData();
-                    this.selectionCallbacks.forEach(cb => cb(currentSelectedData));
-                    this.table.rows[cell.parentNode.rowIndex].cells[cell.cellIndex + 1].scrollIntoView({ behavior: "smooth"});
+                e.preventDefault(); // Prevents view from jumping around from arrow keys
+                e.stopPropagation();
+                if (e.key === 'ArrowUp') {
+                    if (cell.parentNode.rowIndex - 1 > 0) {
+                        this.selectCell(cell.parentNode.rowIndex - 1, cell.cellIndex);
+                        const currentSelectedData = this.getSelectedData();
+                        this.selectionCallbacks.forEach((cb) => cb(currentSelectedData));
+                        this.table.rows[cell.parentNode.rowIndex - 1].cells[
+                            cell.cellIndex
+                        ].scrollIntoView({ behavior: 'smooth' });
+                    }
+                    this.commitCellEdits(cell);
+                    return;
                 }
-                this.commitCellEdits(cell);
-                return;
-            }
-            if (this.newEdit) {
-                cell.textContent = '';
-                this.newEdit = false;
-            }
-            if (['0','1','2','3','4','5','6','7','8','9'].includes(e.key)) {
-                cell.textContent += e.key;
-            }
-            if (e.key === '.') {
-                if (!cell.textContent.includes('.')) {
-                    cell.textContent += '.';
+                if (['ArrowDown', 'Enter'].includes(e.key)) {
+                    if (cell.parentNode.rowIndex + 1 <= this.rowNames.length) {
+                        this.selectCell(cell.parentNode.rowIndex + 1, cell.cellIndex);
+                        const currentSelectedData = this.getSelectedData();
+                        this.selectionCallbacks.forEach((cb) => cb(currentSelectedData));
+                        this.table.rows[cell.parentNode.rowIndex + 1].cells[
+                            cell.cellIndex
+                        ].scrollIntoView({ behavior: 'smooth' });
+                    }
+                    this.commitCellEdits(cell);
+                    return;
                 }
-            }
-            if (e.key === 'Backspace') {
-                cell.textContent = cell.textContent.slice(0, -1);
-            }
-            this.checkModified(cell);
-            const value = Number.parseFloat(cell.textContent);
-            if (!Number.isNaN(value)) {
-                const columnName = this.columnNames[cell.cellIndex - 1];
-                cell.style.backgroundColor = `color-mix(in srgb, ${this.colorFunction(value, columnName)}, transparent 80%)`;
-            }
-        }, {capture: true});
+                if (e.key === 'ArrowLeft') {
+                    if (cell.cellIndex - 1 > 0) {
+                        this.selectCell(cell.parentNode.rowIndex, cell.cellIndex - 1);
+                        const currentSelectedData = this.getSelectedData();
+                        this.selectionCallbacks.forEach((cb) => cb(currentSelectedData));
+                        this.table.rows[cell.parentNode.rowIndex].cells[
+                            cell.cellIndex - 1
+                        ].scrollIntoView({ behavior: 'smooth' });
+                    }
+                    this.commitCellEdits(cell);
+                    return;
+                }
+                if (e.key === 'ArrowRight') {
+                    if (cell.cellIndex + 1 <= this.columnNames.length) {
+                        this.selectCell(cell.parentNode.rowIndex, cell.cellIndex + 1);
+                        const currentSelectedData = this.getSelectedData();
+                        this.selectionCallbacks.forEach((cb) => cb(currentSelectedData));
+                        this.table.rows[cell.parentNode.rowIndex].cells[
+                            cell.cellIndex + 1
+                        ].scrollIntoView({ behavior: 'smooth' });
+                    }
+                    this.commitCellEdits(cell);
+                    return;
+                }
+                if (this.newEdit) {
+                    cell.textContent = '';
+                    this.newEdit = false;
+                }
+                if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+                    cell.textContent += e.key;
+                }
+                if (e.key === '.') {
+                    if (!cell.textContent.includes('.')) {
+                        cell.textContent += '.';
+                    }
+                }
+                if (e.key === 'Backspace') {
+                    cell.textContent = cell.textContent.slice(0, -1);
+                }
+                this.checkModified(cell);
+                const value = Number.parseFloat(cell.textContent);
+                if (!Number.isNaN(value)) {
+                    const columnName = this.columnNames[cell.cellIndex - 1];
+                    cell.style.backgroundColor = `color-mix(in srgb, ${this.colorFunction(value, columnName)}, transparent 80%)`;
+                }
+            },
+            { capture: true }
+        );
     }
 
     getEditingCell() {
@@ -253,12 +294,16 @@ export class TableView {
         if (cell.textContent.endsWith('.')) {
             cell.textContent = cell.textContent.slice(0, -1);
         }
-        while (cell.textContent.startsWith('0') && !cell.textContent.startsWith('0.') && cell.textContent.length !== 1) {
+        while (
+            cell.textContent.startsWith('0') &&
+            !cell.textContent.startsWith('0.') &&
+            cell.textContent.length !== 1
+        ) {
             // Remove leading zeroes
             cell.textContent = cell.textContent.slice(1);
         }
         if (cell.textContent.length === 0) {
-            cell.textContent = this.originalData[cell.parentNode.rowIndex-1][cell.cellIndex-1];
+            cell.textContent = this.originalData[cell.parentNode.rowIndex - 1][cell.cellIndex - 1];
         }
 
         const value = Number.parseFloat(cell.textContent);
@@ -268,11 +313,13 @@ export class TableView {
         }
 
         this.checkModified(cell);
-        this.editCallbacks.forEach(cb => cb({
-            row: this.rowNames[cell.y - 1],
-            column: this.columnNames[cell.x - 1],
-            value: cell.textContent
-        }));
+        this.editCallbacks.forEach((cb) =>
+            cb({
+                row: this.rowNames[cell.y - 1],
+                column: this.columnNames[cell.x - 1],
+                value: cell.textContent,
+            })
+        );
 
         this.persistEdits();
     }
@@ -290,11 +337,11 @@ export class TableView {
                 if (i === 0) {
                     return;
                 }
-                if (cell.textContent !== this.originalData[j-1][i-1]) {
+                if (cell.textContent !== this.originalData[j - 1][i - 1]) {
                     edits.push({
                         row: j,
                         column: i,
-                        value: cell.textContent
+                        value: cell.textContent,
                     });
                 }
             });
@@ -311,26 +358,28 @@ export class TableView {
             return;
         }
         const edits = JSON.parse(editsString);
-        edits.forEach(edit => {
+        edits.forEach((edit) => {
             if (edit.row >= this.table.rows.length) {
                 return;
             }
             const cell = this.table.rows[edit.row].cells[edit.column];
             cell.textContent = edit.value;
             cell.classList.add('table-view-data-modified');
-            const columnName = this.columnNames[edit.column-1];
+            const columnName = this.columnNames[edit.column - 1];
             cell.style.backgroundColor = `color-mix(in srgb, ${this.colorFunction(edit.value, columnName)}, transparent 80%)`;
         });
     }
 
     getSelectedData() {
-        const selectedCells = Array.from(this.table.querySelectorAll('.selected')).filter(cell => cell.x !== undefined && cell.y !== undefined);
-        return selectedCells.map(cell => {
+        const selectedCells = Array.from(this.table.querySelectorAll('.selected')).filter(
+            (cell) => cell.x !== undefined && cell.y !== undefined
+        );
+        return selectedCells.map((cell) => {
             return {
                 row: this.rowNames[cell.y - 1],
                 column: this.columnNames[cell.x - 1],
-                value: cell.textContent
-            }
+                value: cell.textContent,
+            };
         });
     }
 
@@ -338,10 +387,18 @@ export class TableView {
         this.newEdit = true;
         const selectedCells = Array.from(this.table.querySelectorAll('.selected'));
         if (extendSelection && selectedCells) {
-            const minX = selectedCells.filter(cell => cell.x !== undefined).reduce((prev, curr) => Math.min(prev, curr.x), col);
-            const maxX = selectedCells.filter(cell => cell.x !== undefined).reduce((prev, curr) => Math.max(prev, curr.x), col);
-            const minY = selectedCells.filter(cell => cell.y !== undefined).reduce((prev, curr) => Math.min(prev, curr.y), row);
-            const maxY = selectedCells.filter(cell => cell.y !== undefined).reduce((prev, curr) => Math.max(prev, curr.y), row);
+            const minX = selectedCells
+                .filter((cell) => cell.x !== undefined)
+                .reduce((prev, curr) => Math.min(prev, curr.x), col);
+            const maxX = selectedCells
+                .filter((cell) => cell.x !== undefined)
+                .reduce((prev, curr) => Math.max(prev, curr.x), col);
+            const minY = selectedCells
+                .filter((cell) => cell.y !== undefined)
+                .reduce((prev, curr) => Math.min(prev, curr.y), row);
+            const maxY = selectedCells
+                .filter((cell) => cell.y !== undefined)
+                .reduce((prev, curr) => Math.max(prev, curr.y), row);
             this.clearSelection();
             for (let j = minX; j <= maxX; j++) {
                 for (let i = minY; i <= maxY; i++) {
@@ -360,8 +417,12 @@ export class TableView {
     selectRow(row, extendSelection) {
         const selectedCells = Array.from(this.table.querySelectorAll('.selected'));
         if (extendSelection && selectedCells) {
-            const minY = selectedCells.filter(cell => cell.y !== undefined).reduce((prev, curr) => Math.min(prev, curr.y), row);
-            const maxY = selectedCells.filter(cell => cell.y !== undefined).reduce((prev, curr) => Math.max(prev, curr.y), row);
+            const minY = selectedCells
+                .filter((cell) => cell.y !== undefined)
+                .reduce((prev, curr) => Math.min(prev, curr.y), row);
+            const maxY = selectedCells
+                .filter((cell) => cell.y !== undefined)
+                .reduce((prev, curr) => Math.max(prev, curr.y), row);
             this.clearSelection();
             for (let j = 0; j <= this.columnNames.length; j++) {
                 for (let i = minY; i <= maxY; i++) {
@@ -381,8 +442,12 @@ export class TableView {
     selectColumn(col, extendSelection) {
         const selectedCells = Array.from(this.table.querySelectorAll('.selected'));
         if (extendSelection && selectedCells) {
-            const minX = selectedCells.filter(cell => cell.x !== undefined).reduce((prev, curr) => Math.min(prev, curr.x), col);
-            const maxX = selectedCells.filter(cell => cell.x !== undefined).reduce((prev, curr) => Math.max(prev, curr.x), col);
+            const minX = selectedCells
+                .filter((cell) => cell.x !== undefined)
+                .reduce((prev, curr) => Math.min(prev, curr.x), col);
+            const maxX = selectedCells
+                .filter((cell) => cell.x !== undefined)
+                .reduce((prev, curr) => Math.max(prev, curr.x), col);
             this.clearSelection();
             for (let j = minX; j <= maxX; j++) {
                 for (let i = 0; i <= this.rowNames.length; i++) {
@@ -410,7 +475,7 @@ export class TableView {
 
     clearSelection() {
         const selectedCells = this.table.querySelectorAll('.selected');
-        selectedCells.forEach(cell => {
+        selectedCells.forEach((cell) => {
             cell.classList.remove('selected');
             cell.classList.remove('editing');
         });

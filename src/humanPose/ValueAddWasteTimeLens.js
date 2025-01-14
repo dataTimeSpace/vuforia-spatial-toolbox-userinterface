@@ -1,7 +1,7 @@
-import {MotionStudyLens} from "./MotionStudyLens.js";
-import {MotionStudyColors} from "./MotionStudyColors.js";
-import {JOINTS} from "./constants.js";
-import {ValueAddWasteTimeTypes} from "../motionStudy/ValueAddWasteTimeManager.js";
+import { MotionStudyLens } from './MotionStudyLens.js';
+import { MotionStudyColors } from './MotionStudyColors.js';
+import { JOINTS } from './constants.js';
+import { ValueAddWasteTimeTypes } from '../motionStudy/ValueAddWasteTimeManager.js';
 
 function colorFromValue(value) {
     if (value === ValueAddWasteTimeTypes.VALUE_ADD) {
@@ -23,7 +23,7 @@ export class ValueAddWasteTimeLens extends MotionStudyLens {
      * @param {MotionStudy} motionStudy
      */
     constructor(motionStudy) {
-        super("Value Add/Waste Time");
+        super('Value Add/Waste Time');
         this.motionStudy = motionStudy;
     }
 
@@ -32,10 +32,10 @@ export class ValueAddWasteTimeLens extends MotionStudyLens {
         //     return false;
         // }
         const value = this.motionStudy.valueAddWasteTimeManager.getValue(pose.timestamp);
-        pose.forEachJoint(joint => {
+        pose.forEachJoint((joint) => {
             joint.valueAddWasteTimeValue = value;
         });
-        pose.forEachBone(bone => {
+        pose.forEachBone((bone) => {
             bone.valueAddWasteTimeValue = value;
         });
         return true;
@@ -49,36 +49,36 @@ export class ValueAddWasteTimeLens extends MotionStudyLens {
     }
 
     applyLensToHistory(poseHistory) {
-        return poseHistory.map(pose => {
+        return poseHistory.map((pose) => {
             return this.applyLensToPose(pose);
         });
     }
-    
+
     getColorForJoint(joint) {
-        if (typeof joint.valueAddWasteTimeValue === "undefined") {
+        if (typeof joint.valueAddWasteTimeValue === 'undefined') {
             return MotionStudyColors.undefined;
         }
         return colorFromValue(joint.valueAddWasteTimeValue);
     }
 
     getColorForBone(bone) {
-        if (typeof bone.valueAddWasteTimeValue === "undefined") {
+        if (typeof bone.valueAddWasteTimeValue === 'undefined') {
             return MotionStudyColors.undefined;
         }
         return colorFromValue(bone.valueAddWasteTimeValue);
     }
 
     getColorForPose(pose) {
-        if (typeof pose.getJoint(JOINTS.HEAD).valueAddWasteTimeValue === "undefined") {
+        if (typeof pose.getJoint(JOINTS.HEAD).valueAddWasteTimeValue === 'undefined') {
             return MotionStudyColors.undefined;
         }
-        return MotionStudyColors.fade(colorFromValue(pose.getJoint(JOINTS.HEAD).valueAddWasteTimeValue));
+        return MotionStudyColors.fade(
+            colorFromValue(pose.getJoint(JOINTS.HEAD).valueAddWasteTimeValue)
+        );
     }
 
     getTableViewJoints() {
-        return [
-            JOINTS.CHEST
-        ]
+        return [JOINTS.CHEST];
     }
 
     getTableViewValue(joint) {

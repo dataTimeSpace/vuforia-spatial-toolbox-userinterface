@@ -47,8 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
-createNameSpace("realityEditor.gui.ar.positioning");
+createNameSpace('realityEditor.gui.ar.positioning');
 
 /**
  * @fileOverview realityEditor.gui.ar.positioning.js
@@ -71,7 +70,7 @@ realityEditor.gui.ar.positioning.tempDraggingState = {
     currentlyMovingPreservingDistance: false,
     // state to help preserve distance to tool over the drag and its position relative to the pointerdown
     initialOffset: null,
-    initialDistance: null
+    initialDistance: null,
 };
 
 realityEditor.gui.ar.positioning.setVehicleScale = (activeVehicle, scale) => {
@@ -84,8 +83,14 @@ realityEditor.gui.ar.positioning.setVehicleScale = (activeVehicle, scale) => {
 
     var keys = realityEditor.getKeysFromVehicle(activeVehicle);
     var propertyPath = activeVehicle.hasOwnProperty('visualization') ? 'ar.scale' : 'scale';
-    realityEditor.network.realtime.broadcastUpdate(keys.objectKey, keys.frameKey, keys.nodeKey, propertyPath, positionData.scale);
-}
+    realityEditor.network.realtime.broadcastUpdate(
+        keys.objectKey,
+        keys.frameKey,
+        keys.nodeKey,
+        propertyPath,
+        positionData.scale
+    );
+};
 
 /**
  * Scales the specified frame or node using the first two touches.
@@ -94,9 +99,15 @@ realityEditor.gui.ar.positioning.setVehicleScale = (activeVehicle, scale) => {
  * @param {Object.<x,y>} centerTouch - the first touch event, where the scale is centered from
  * @param {Object.<x,y>} outerTouch - the other touch, where the scale extends to
  */
-realityEditor.gui.ar.positioning.scaleVehicle = function(activeVehicle, centerTouch, outerTouch) {
-    
-    if (!centerTouch || !outerTouch || !centerTouch.x || !centerTouch.y || !outerTouch.x || !outerTouch.y) {
+realityEditor.gui.ar.positioning.scaleVehicle = function (activeVehicle, centerTouch, outerTouch) {
+    if (
+        !centerTouch ||
+        !outerTouch ||
+        !centerTouch.x ||
+        !centerTouch.y ||
+        !outerTouch.x ||
+        !outerTouch.y
+    ) {
         console.warn('trying to scale vehicle using improperly formatted touches');
         return;
     }
@@ -110,7 +121,7 @@ realityEditor.gui.ar.positioning.scaleVehicle = function(activeVehicle, centerTo
     if (!this.initialScaleData) {
         this.initialScaleData = {
             radius: radius,
-            scale: positionData.scale
+            scale: positionData.scale,
         };
         return;
     }
@@ -118,7 +129,7 @@ realityEditor.gui.ar.positioning.scaleVehicle = function(activeVehicle, centerTo
     // calculate the new scale based on the radius between the two touches
     var newScale = this.initialScaleData.scale + (radius - this.initialScaleData.radius) / 300;
 
-    // TODO ben: low priority: re-implement scaling gesture to preserve touch location rather than scaling center 
+    // TODO ben: low priority: re-implement scaling gesture to preserve touch location rather than scaling center
     // TODO: this only works for frames right now, not nodes (at least not after scaling nodes twice in one gesture)
     // manually calculate positionData.x and y to keep centerTouch in the same place relative to the vehicle
     // var overlayDiv = document.getElementById(activeVehicle.uuid);
@@ -140,7 +151,11 @@ realityEditor.gui.ar.positioning.scaleVehicle = function(activeVehicle, centerTo
 
     // draw a blue circle visualizing the initial radius
     var circleCenterCoordinates = [centerTouch.x, centerTouch.y];
-    realityEditor.gui.ar.lines.drawBlue(globalCanvas.context, circleCenterCoordinates, this.initialScaleData.radius);
+    realityEditor.gui.ar.lines.drawBlue(
+        globalCanvas.context,
+        circleCenterCoordinates,
+        this.initialScaleData.radius
+    );
 
     // draw a red or green circle visualizing the new radius
     if (radius < this.initialScaleData.radius) {
@@ -155,7 +170,7 @@ realityEditor.gui.ar.positioning.scaleVehicle = function(activeVehicle, centerTo
  * This should be done if you want to directly set the position of a tool to a given matrix
  * @param {Frame|Node} activeVehicle
  */
-realityEditor.gui.ar.positioning.resetVehicleTranslation = function(activeVehicle) {
+realityEditor.gui.ar.positioning.resetVehicleTranslation = function (activeVehicle) {
     let positionData = this.getPositionData(activeVehicle);
     positionData.x = 0;
     positionData.y = 0;
@@ -164,19 +179,33 @@ realityEditor.gui.ar.positioning.resetVehicleTranslation = function(activeVehicl
     realityEditor.sceneGraph.updatePositionData(activeVehicle.uuid);
 
     // broadcasts this to the realtime system if it's enabled
-    if (!realityEditor.gui.settings.toggleStates.realtimeEnabled) { return; }
+    if (!realityEditor.gui.settings.toggleStates.realtimeEnabled) {
+        return;
+    }
 
     let keys = realityEditor.getKeysFromVehicle(activeVehicle);
     let propertyPath = activeVehicle.hasOwnProperty('visualization') ? 'ar.x' : 'x';
-    realityEditor.network.realtime.broadcastUpdate(keys.objectKey, keys.frameKey, keys.nodeKey, propertyPath, positionData.x);
+    realityEditor.network.realtime.broadcastUpdate(
+        keys.objectKey,
+        keys.frameKey,
+        keys.nodeKey,
+        propertyPath,
+        positionData.x
+    );
     propertyPath = activeVehicle.hasOwnProperty('visualization') ? 'ar.y' : 'y';
-    realityEditor.network.realtime.broadcastUpdate(keys.objectKey, keys.frameKey, keys.nodeKey, propertyPath, positionData.y);
+    realityEditor.network.realtime.broadcastUpdate(
+        keys.objectKey,
+        keys.frameKey,
+        keys.nodeKey,
+        propertyPath,
+        positionData.y
+    );
 };
 
 /**
  * Call this when you stop a drag gesture to reset the tempDraggingState
  */
-realityEditor.gui.ar.positioning.stopRepositioning = function() {
+realityEditor.gui.ar.positioning.stopRepositioning = function () {
     this.tempDraggingState.currentlyMovingAlongPlane = false;
     this.tempDraggingState.currentlyMovingPreservingDistance = false;
     this.tempDraggingState.initialDistance = null;
@@ -190,7 +219,12 @@ realityEditor.gui.ar.positioning.stopRepositioning = function() {
  * @param {number} screenY
  * @param {boolean} useTouchOffset
  */
-realityEditor.gui.ar.positioning.moveVehiclePreservingDistance = function(activeVehicle, screenX, screenY, useTouchOffset = false) {
+realityEditor.gui.ar.positioning.moveVehiclePreservingDistance = function (
+    activeVehicle,
+    screenX,
+    screenY,
+    useTouchOffset = false
+) {
     const utils = realityEditor.gui.ar.utilities;
 
     let toolNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
@@ -198,16 +232,36 @@ realityEditor.gui.ar.positioning.moveVehiclePreservingDistance = function(active
 
     if (!this.tempDraggingState.initialOffset) {
         let pointInObject = this.getLocalPointAtScreenXY(activeVehicle, screenX, screenY);
-        let toolOriginLocal = realityEditor.sceneGraph.convertToNewCoordSystem(realityEditor.sceneGraph.getWorldPosition(activeVehicle.uuid), rootNode, toolNode.parent);
-        this.tempDraggingState.initialOffset = utils.subtract([pointInObject.x, pointInObject.y, pointInObject.z], [toolOriginLocal.x, toolOriginLocal.y, toolOriginLocal.z]);
-        let worldPoint = realityEditor.sceneGraph.convertToNewCoordSystem(this.tempDraggingState.initialOffset, toolNode, rootNode);
+        let toolOriginLocal = realityEditor.sceneGraph.convertToNewCoordSystem(
+            realityEditor.sceneGraph.getWorldPosition(activeVehicle.uuid),
+            rootNode,
+            toolNode.parent
+        );
+        this.tempDraggingState.initialOffset = utils.subtract(
+            [pointInObject.x, pointInObject.y, pointInObject.z],
+            [toolOriginLocal.x, toolOriginLocal.y, toolOriginLocal.z]
+        );
+        let worldPoint = realityEditor.sceneGraph.convertToNewCoordSystem(
+            this.tempDraggingState.initialOffset,
+            toolNode,
+            rootNode
+        );
         let cameraPoint = realityEditor.sceneGraph.getWorldPosition('CAMERA');
-        let pointToCamera = utils.subtract(worldPoint, [cameraPoint.x, cameraPoint.y, cameraPoint.z]);
+        let pointToCamera = utils.subtract(worldPoint, [
+            cameraPoint.x,
+            cameraPoint.y,
+            cameraPoint.z,
+        ]);
         this.tempDraggingState.initialDistance = utils.magnitude(pointToCamera); // this is the distance from the camera to the point at (toolOrigin + storedOffset)
     }
 
     let outputCoordinateSystem = toolNode.parent;
-    let point = realityEditor.sceneGraph.getPointAtDistanceFromCamera(screenX, screenY, this.tempDraggingState.initialDistance, outputCoordinateSystem);
+    let point = realityEditor.sceneGraph.getPointAtDistanceFromCamera(
+        screenX,
+        screenY,
+        this.tempDraggingState.initialDistance,
+        outputCoordinateSystem
+    );
 
     // recalculate touchOffset if switch reposition modes
     if (this.tempDraggingState.currentlyMovingAlongPlane) {
@@ -239,7 +293,11 @@ realityEditor.gui.ar.positioning.moveVehiclePreservingDistance = function(active
  * @param {number} screenY
  * @returns {{x: number, y: number, z: number}}
  */
-realityEditor.gui.ar.positioning.getLocalPointAtScreenXY = function(activeVehicle, screenX, screenY) {
+realityEditor.gui.ar.positioning.getLocalPointAtScreenXY = function (
+    activeVehicle,
+    screenX,
+    screenY
+) {
     const utils = realityEditor.gui.ar.utilities;
 
     let cameraNode = realityEditor.sceneGraph.getCameraNode();
@@ -248,9 +306,20 @@ realityEditor.gui.ar.positioning.getLocalPointAtScreenXY = function(activeVehicl
     let planeOrigin = [toolPoint.x, toolPoint.y, toolPoint.z];
     let planeNormal = utils.getForwardVector(toolNode.worldMatrix);
 
-    let worldCoordinates = utils.getPointOnPlaneFromScreenXY(planeOrigin, planeNormal, cameraNode, screenX, screenY);
-    let rootCoordinateSystem = cameraNode.parent || realityEditor.sceneGraph.getSceneNodeById('ROOT');
-    return realityEditor.sceneGraph.convertToNewCoordSystem(worldCoordinates, rootCoordinateSystem, toolNode.parent);
+    let worldCoordinates = utils.getPointOnPlaneFromScreenXY(
+        planeOrigin,
+        planeNormal,
+        cameraNode,
+        screenX,
+        screenY
+    );
+    let rootCoordinateSystem =
+        cameraNode.parent || realityEditor.sceneGraph.getSceneNodeById('ROOT');
+    return realityEditor.sceneGraph.convertToNewCoordSystem(
+        worldCoordinates,
+        rootCoordinateSystem,
+        toolNode.parent
+    );
 };
 
 /**
@@ -260,7 +329,12 @@ realityEditor.gui.ar.positioning.getLocalPointAtScreenXY = function(activeVehicl
  * @param {number} screenY
  * @param {boolean} useTouchOffset - if false, jumps to center on pointer. if true, translates relative to pointerdown position
  */
-realityEditor.gui.ar.positioning.moveVehicleAlongPlane = function(activeVehicle, screenX, screenY, useTouchOffset = false) {
+realityEditor.gui.ar.positioning.moveVehicleAlongPlane = function (
+    activeVehicle,
+    screenX,
+    screenY,
+    useTouchOffset = false
+) {
     let toolNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
     let localPoint = this.getLocalPointAtScreenXY(activeVehicle, screenX, screenY);
 
@@ -296,7 +370,11 @@ realityEditor.gui.ar.positioning.moveVehicleAlongPlane = function(activeVehicle,
  * @param {boolean} useTouchOffset - if false, always return (0,0,0)
  * @returns {{x: number, y: number, z: number}}
  */
-realityEditor.gui.ar.positioning.computeTouchOffset = function(sceneNode, newOrigin, useTouchOffset) {
+realityEditor.gui.ar.positioning.computeTouchOffset = function (
+    sceneNode,
+    newOrigin,
+    useTouchOffset
+) {
     let editingState = realityEditor.device.editingState;
     if (!useTouchOffset) {
         editingState.offset = null;
@@ -306,20 +384,20 @@ realityEditor.gui.ar.positioning.computeTouchOffset = function(sceneNode, newOri
     editingState.touchOffset = {
         x: newOrigin.x - sceneNode.localMatrix[12],
         y: newOrigin.y - sceneNode.localMatrix[13],
-        z: newOrigin.z - sceneNode.localMatrix[14]
-    }
+        z: newOrigin.z - sceneNode.localMatrix[14],
+    };
     return editingState.touchOffset; // return newly calculated offset at the start of each drag
-}
+};
 
 /**
  * Determines whether to translate tool along its local plane, or parallel to camera (preserving distance to camera)
  * @param {Frame|Node} activeVehicle
  * @returns {boolean}
  */
-realityEditor.gui.ar.positioning.shouldPreserveDistanceWhileMoving = function(activeVehicle) {
+realityEditor.gui.ar.positioning.shouldPreserveDistanceWhileMoving = function (activeVehicle) {
     // always move 3D tools
     if (activeVehicle.fullScreen) return true;
-    
+
     // for now, moving along plane while attached to camera is a bit buggy if offset is included
     // so force it to use distance-preserving method if in this mode
     if (realityEditor.device.isEditingUnconstrained(activeVehicle)) return true;
@@ -327,11 +405,15 @@ realityEditor.gui.ar.positioning.shouldPreserveDistanceWhileMoving = function(ac
     // preserve distance while moving a 2D tool if the plane that the tool sits on isn't roughly parallel to the camera
     const DIRECTION_SIMILARITY_THRESHOLD = 0.8;
     const utils = realityEditor.gui.ar.utilities;
-    let toolDirection = utils.getForwardVector(realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).worldMatrix);
-    let cameraDirection = utils.getForwardVector(realityEditor.sceneGraph.getCameraNode().worldMatrix);
+    let toolDirection = utils.getForwardVector(
+        realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).worldMatrix
+    );
+    let cameraDirection = utils.getForwardVector(
+        realityEditor.sceneGraph.getCameraNode().worldMatrix
+    );
     let dotProduct = utils.dotProduct(toolDirection, cameraDirection); // 1=parallel, 0=perpendicular
-    return (Math.abs(dotProduct) < DIRECTION_SIMILARITY_THRESHOLD);
-}
+    return Math.abs(dotProduct) < DIRECTION_SIMILARITY_THRESHOLD;
+};
 
 /**
  * Primary method to move a transformed frame or node to the (x,y) point on its plane where the (screenX,screenY) ray cast intersects
@@ -342,7 +424,12 @@ realityEditor.gui.ar.positioning.shouldPreserveDistanceWhileMoving = function(ac
  *                                   if true, the first time you call it, it determines the x,y offset to drag the frame/node
  *                                   from the ray cast without it jumping, and subsequently drags it from that point
  */
-realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate = function(activeVehicle, screenX, screenY, useTouchOffset) {
+realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate = function (
+    activeVehicle,
+    screenX,
+    screenY,
+    useTouchOffset
+) {
     if (this.shouldPreserveDistanceWhileMoving(activeVehicle)) {
         this.moveVehiclePreservingDistance(activeVehicle, screenX, screenY, useTouchOffset);
     } else {
@@ -356,18 +443,20 @@ realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate = function(active
  * @param {{x: number, y: number}} pointReference - object containing the x and y values you want to adjust
  * @todo: currently not in use. re-enable later once node position dragging gets fixed
  */
-realityEditor.gui.ar.positioning.applyParentScaleToDragPosition = function(activeVehicle, pointReference) {
-
+realityEditor.gui.ar.positioning.applyParentScaleToDragPosition = function (
+    activeVehicle,
+    pointReference
+) {
     if (!realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable(activeVehicle)) {
         // position is affected by parent frame scale
         var parentFrame = realityEditor.getFrame(activeVehicle.objectId, activeVehicle.frameId);
         if (parentFrame) {
-            var parentFramePositionData = realityEditor.gui.ar.positioning.getPositionData(parentFrame);
-            pointReference.x /= (parentFramePositionData.scale/globalStates.defaultScale);
-            pointReference.y /= (parentFramePositionData.scale/globalStates.defaultScale);
+            var parentFramePositionData =
+                realityEditor.gui.ar.positioning.getPositionData(parentFrame);
+            pointReference.x /= parentFramePositionData.scale / globalStates.defaultScale;
+            pointReference.y /= parentFramePositionData.scale / globalStates.defaultScale;
         }
     }
-    
 };
 
 /**
@@ -378,7 +467,7 @@ realityEditor.gui.ar.positioning.applyParentScaleToDragPosition = function(activ
  * @param {Frame|Node} activeVehicle
  * @return {{x: number, y: number, scale: number, matrix: Array.<number>, ...}}
  */
-realityEditor.gui.ar.positioning.getPositionData = function(activeVehicle) {
+realityEditor.gui.ar.positioning.getPositionData = function (activeVehicle) {
     // frames use their AR data
     if (activeVehicle.hasOwnProperty('visualization')) {
         return activeVehicle.ar;
@@ -395,8 +484,11 @@ realityEditor.gui.ar.positioning.getPositionData = function(activeVehicle) {
  * @param {boolean|undefined} dontBroadcast – pass true to prevent realtime broadcasting this update
  * @todo: ensure fully implemented
  */
-realityEditor.gui.ar.positioning.setPositionDataMatrix = function(activeVehicle, newMatrixValue, dontBroadcast) {
-
+realityEditor.gui.ar.positioning.setPositionDataMatrix = function (
+    activeVehicle,
+    newMatrixValue,
+    dontBroadcast
+) {
     if (realityEditor.isVehicleAFrame(activeVehicle)) {
         realityEditor.gui.ar.utilities.copyMatrixInPlace(newMatrixValue, activeVehicle.ar.matrix);
     } else {
@@ -406,7 +498,13 @@ realityEditor.gui.ar.positioning.setPositionDataMatrix = function(activeVehicle,
     if (!dontBroadcast) {
         var keys = realityEditor.getKeysFromVehicle(activeVehicle);
         var propertyPath = activeVehicle.hasOwnProperty('visualization') ? 'ar.matrix' : 'matrix';
-        realityEditor.network.realtime.broadcastUpdate(keys.objectKey, keys.frameKey, keys.nodeKey, propertyPath, newMatrixValue);
+        realityEditor.network.realtime.broadcastUpdate(
+            keys.objectKey,
+            keys.frameKey,
+            keys.nodeKey,
+            propertyPath,
+            newMatrixValue
+        );
     }
 };
 
@@ -416,22 +514,28 @@ realityEditor.gui.ar.positioning.setPositionDataMatrix = function(activeVehicle,
  * @todo: it will jump back and forth between the two fingers depending on which one moved last
  * @return {{x: number, y: number}}
  */
-realityEditor.gui.ar.positioning.getMostRecentTouchPosition = function() {
-    var touchX = globalStates.height/2; // defaults to center of screen;
-    var touchY = globalStates.width/2;
-    
+realityEditor.gui.ar.positioning.getMostRecentTouchPosition = function () {
+    var touchX = globalStates.height / 2; // defaults to center of screen;
+    var touchY = globalStates.width / 2;
+
     try {
-        var translate3d = overlayDiv.style.transform.split('(')[1].split(')')[0].split(',').map(function(elt){return parseInt(elt);});
+        var translate3d = overlayDiv.style.transform
+            .split('(')[1]
+            .split(')')[0]
+            .split(',')
+            .map(function (elt) {
+                return parseInt(elt);
+            });
         touchX = translate3d[0];
         touchY = translate3d[1];
     } catch (e) {
         // no touches on screen yet, so defaulting to center
     }
-    
+
     return {
         x: touchX,
-        y: touchY
-    }
+        y: touchY,
+    };
 };
 
 /**
@@ -442,16 +546,19 @@ realityEditor.gui.ar.positioning.getMostRecentTouchPosition = function() {
  * @param {Frame|Node} activeVehicle
  * @return {boolean}
  */
-realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable = function(activeVehicle) {
-    
+realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable = function (activeVehicle) {
     if (activeVehicle.type === 'node') {
         var parentFrame = realityEditor.getFrame(activeVehicle.objectId, activeVehicle.frameId);
         if (parentFrame) {
             return parentFrame.location === 'local';
         }
     }
-    
-    return  (typeof activeVehicle.type === 'undefined' || activeVehicle.type === 'ui' || activeVehicle.type === 'logic');
+
+    return (
+        typeof activeVehicle.type === 'undefined' ||
+        activeVehicle.type === 'ui' ||
+        activeVehicle.type === 'logic'
+    );
 };
 
 /**
@@ -459,33 +566,50 @@ realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable = function(activ
  * upperLeft, center, and lowerRight screen coordinates of a frame or node using as few arithmetic operations as possible,
  * using only the final CSS matrix of the vehicle, and its half width and height
  * Return value includes center even if not needed, because faster to compute lowerRight using center than without it
- * 
+ *
  * @param {Array.<number>} finalMatrix - the CSS transform3d matrix
  * @param {number} vehicleHalfWidth - get from frameSizeX (scale is already stored separately in the matrix)
  * @param {number} vehicleHalfHeight - get from frameSizeY
  * @param {boolean} onlyCenter - if defined, doesn't waste resources computing upperLeft and lowerRight
  * @return {{ center: {x: number, y: number}, upperLeft: {x: number, y: number}|undefined, lowerRight: {x: number, y: number}|undefined }}
  */
-realityEditor.gui.ar.positioning.getVehicleBoundingBoxFast = function(finalMatrix, vehicleHalfWidth, vehicleHalfHeight, onlyCenter) {
-    
+realityEditor.gui.ar.positioning.getVehicleBoundingBoxFast = function (
+    finalMatrix,
+    vehicleHalfWidth,
+    vehicleHalfHeight,
+    onlyCenter
+) {
     // compute the screen coordinates for various points within the frame
     var screenCoordinates = {};
 
     // var halfWidth = parseInt(frame.frameSizeX)/2;
     // var halfHeight = parseInt(frame.frameSizeY)/2;
-    
+
     // super optimized version of getProjectedCoordinates (including multiplyMatrix4 and perspectiveDivide) for the 0,0 coordinate
     screenCoordinates.center = {
-        x: (globalStates.height / 2) + (finalMatrix[12] / finalMatrix[15]),
-        y: (globalStates.width / 2) + (finalMatrix[13] / finalMatrix[15])
+        x: globalStates.height / 2 + finalMatrix[12] / finalMatrix[15],
+        y: globalStates.width / 2 + finalMatrix[13] / finalMatrix[15],
     };
-    
+
     if (typeof onlyCenter === 'undefined') {
         // perspective divide is more complicated for point not at 0,0 ... but still pretty optimized
-        var perspectiveDivide = finalMatrix[3] * (-1 * vehicleHalfWidth) + finalMatrix[7] * (-1 * vehicleHalfHeight) + finalMatrix[15];
+        var perspectiveDivide =
+            finalMatrix[3] * (-1 * vehicleHalfWidth) +
+            finalMatrix[7] * (-1 * vehicleHalfHeight) +
+            finalMatrix[15];
         screenCoordinates.upperLeft = {
-            x: (globalStates.height / 2) + ((finalMatrix[0] * (-1 * vehicleHalfWidth) + finalMatrix[4] * (-1 * vehicleHalfHeight) + finalMatrix[12]) / perspectiveDivide),
-            y: (globalStates.width / 2) + ((finalMatrix[1] * (-1 * vehicleHalfWidth) + finalMatrix[5] * (-1 * vehicleHalfHeight) + finalMatrix[13]) / perspectiveDivide)
+            x:
+                globalStates.height / 2 +
+                (finalMatrix[0] * (-1 * vehicleHalfWidth) +
+                    finalMatrix[4] * (-1 * vehicleHalfHeight) +
+                    finalMatrix[12]) /
+                    perspectiveDivide,
+            y:
+                globalStates.width / 2 +
+                (finalMatrix[1] * (-1 * vehicleHalfWidth) +
+                    finalMatrix[5] * (-1 * vehicleHalfHeight) +
+                    finalMatrix[13]) /
+                    perspectiveDivide,
         };
 
         // don't calculate lowerRight with expensive matrix multiplications, it can be deduced from center and upperLeft because it is the reflection of upperLeft across the center
@@ -494,7 +618,7 @@ realityEditor.gui.ar.positioning.getVehicleBoundingBoxFast = function(finalMatri
 
         screenCoordinates.lowerRight = {
             x: screenCoordinates.center.x + dx,
-            y: screenCoordinates.center.y + dy
+            y: screenCoordinates.center.y + dy,
         };
     }
 
@@ -508,7 +632,7 @@ realityEditor.gui.ar.positioning.getVehicleBoundingBoxFast = function(finalMatri
  * @param {string} frameKey
  * @return {{ center: {x: number, y: number}, upperLeft: {x: number, y: number}, lowerRight: {x: number, y: number} }}
  */
-realityEditor.gui.ar.positioning.getFrameScreenCoordinates = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.getFrameScreenCoordinates = function (objectKey, frameKey) {
     return this.getScreenPosition(objectKey, frameKey, true, true, false, false, true);
 };
 
@@ -525,47 +649,85 @@ realityEditor.gui.ar.positioning.getFrameScreenCoordinates = function(objectKey,
  * @param {boolean|undefined} includeLowerRight
  * @param {number|undefined} buffer - extra padding to extend corner positions by, defaults to 0
  */
-realityEditor.gui.ar.positioning.getScreenPosition = function(objectKey, frameKey, includeCenter, includeUpperLeft, includeUpperRight, includeLowerLeft, includeLowerRight, buffer) {
-    if (typeof includeCenter === 'undefined') { includeCenter = true; }
-    if (typeof includeUpperLeft === 'undefined') { includeUpperLeft = true; }
-    if (typeof includeUpperRight === 'undefined') { includeUpperRight = true; }
-    if (typeof includeLowerLeft === 'undefined') { includeLowerLeft = true; }
-    if (typeof includeLowerRight === 'undefined') { includeLowerRight = true; }
-    if (typeof buffer === 'undefined') { buffer = 0; }
+realityEditor.gui.ar.positioning.getScreenPosition = function (
+    objectKey,
+    frameKey,
+    includeCenter,
+    includeUpperLeft,
+    includeUpperRight,
+    includeLowerLeft,
+    includeLowerRight,
+    buffer
+) {
+    if (typeof includeCenter === 'undefined') {
+        includeCenter = true;
+    }
+    if (typeof includeUpperLeft === 'undefined') {
+        includeUpperLeft = true;
+    }
+    if (typeof includeUpperRight === 'undefined') {
+        includeUpperRight = true;
+    }
+    if (typeof includeLowerLeft === 'undefined') {
+        includeLowerLeft = true;
+    }
+    if (typeof includeLowerRight === 'undefined') {
+        includeLowerRight = true;
+    }
+    if (typeof buffer === 'undefined') {
+        buffer = 0;
+    }
 
     var utils = realityEditor.gui.ar.utilities;
     var draw = realityEditor.gui.ar.draw;
-    
+
     // 1. recompute the ModelViewProjection matrix for the target
     var activeObjectMatrix = [];
-    utils.multiplyMatrix(draw.visibleObjects[objectKey], globalStates.projectionMatrix, activeObjectMatrix);
-    
+    utils.multiplyMatrix(
+        draw.visibleObjects[objectKey],
+        globalStates.projectionMatrix,
+        activeObjectMatrix
+    );
+
     // 2. Get the matrix of the frame and compute the composed matrix of the frame relative to the object.
     //   *the order of multiplications is important*
     var frame = realityEditor.getFrame(objectKey, frameKey);
     var positionData = realityEditor.gui.ar.positioning.getPositionData(frame);
-    var positionDataMatrix = positionData.matrix.length === 16 ? positionData.matrix : utils.newIdentityMatrix();
+    var positionDataMatrix =
+        positionData.matrix.length === 16 ? positionData.matrix : utils.newIdentityMatrix();
     var frameMatrixTemp = [];
     var frameMatrix = [];
     utils.multiplyMatrix(positionDataMatrix, activeObjectMatrix, frameMatrixTemp);
-    
+
     // 4. Scale/translate the final result.
     var scale = [
-        positionData.scale, 0, 0, 0,
-        0, positionData.scale, 0, 0,
-        0, 0, positionData.scale, 0,
-        positionData.x, positionData.y, 0, 1
+        positionData.scale,
+        0,
+        0,
+        0,
+        0,
+        positionData.scale,
+        0,
+        0,
+        0,
+        0,
+        positionData.scale,
+        0,
+        positionData.x,
+        positionData.y,
+        0,
+        1,
     ];
     utils.multiplyMatrix(scale, frameMatrixTemp, frameMatrix);
-    
+
     // compute the screen coordinates for various points within the frame
     var screenCoordinates = {};
-    
-    var halfWidth = parseInt(frame.frameSizeX)/2;
-    var halfHeight = parseInt(frame.frameSizeY)/2;
+
+    var halfWidth = parseInt(frame.frameSizeX) / 2;
+    var halfHeight = parseInt(frame.frameSizeY) / 2;
 
     // start with coordinates in frame-space -> compute coordinates in screen space
-    
+
     // for each "include..." parameter, add a value to the result with that coordinate
     if (includeCenter) {
         var center = [0, 0, 0, 1];
@@ -591,7 +753,7 @@ realityEditor.gui.ar.positioning.getScreenPosition = function(objectKey, frameKe
         var lowerRight = [halfWidth + buffer, halfHeight + buffer, 0, 1];
         screenCoordinates.lowerRight = this.getProjectedCoordinates(lowerRight, frameMatrix);
     }
-    
+
     return screenCoordinates;
 };
 
@@ -602,14 +764,19 @@ realityEditor.gui.ar.positioning.getScreenPosition = function(objectKey, frameKe
  * @param {Array.<number>} frameMatrix - 4x4 MVP matrix, composition of the object and frame transformations
  * @return {{x: number, y: number}}
  */
-realityEditor.gui.ar.positioning.getProjectedCoordinates = function(frameCoordinateVector, frameMatrix) {
+realityEditor.gui.ar.positioning.getProjectedCoordinates = function (
+    frameCoordinateVector,
+    frameMatrix
+) {
     var utils = realityEditor.gui.ar.utilities;
-    var projectedCoordinateVector = utils.perspectiveDivide(utils.multiplyMatrix4(frameCoordinateVector, frameMatrix));
-    projectedCoordinateVector[0] += (globalStates.height / 2);
-    projectedCoordinateVector[1] += (globalStates.width / 2);
+    var projectedCoordinateVector = utils.perspectiveDivide(
+        utils.multiplyMatrix4(frameCoordinateVector, frameMatrix)
+    );
+    projectedCoordinateVector[0] += globalStates.height / 2;
+    projectedCoordinateVector[1] += globalStates.width / 2;
     return {
         x: projectedCoordinateVector[0],
-        y: projectedCoordinateVector[1]
+        y: projectedCoordinateVector[1],
     };
 };
 
@@ -619,8 +786,11 @@ realityEditor.gui.ar.positioning.getProjectedCoordinates = function(frameCoordin
  * @param {string} frameKey
  * @param {number} mmInFrontOfCamera - e.g. 400 = 0.4 meters. default 0
  */
-realityEditor.gui.ar.positioning.moveFrameToCamera = function(objectKey, frameKey, mmInFrontOfCamera) {
-
+realityEditor.gui.ar.positioning.moveFrameToCamera = function (
+    objectKey,
+    frameKey,
+    mmInFrontOfCamera
+) {
     // reset the (x, y) position so it will move to center of screen
     let frame = realityEditor.getFrame(objectKey, frameKey);
     if (frame) {
@@ -634,16 +804,32 @@ realityEditor.gui.ar.positioning.moveFrameToCamera = function(objectKey, frameKe
     let distanceInFrontOfCamera = mmInFrontOfCamera || 0; // 0.4 meters
 
     let initialVehicleMatrix = [
-        -1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, -1, 0,
-        0, 0, -1 * distanceInFrontOfCamera, 1
+        -1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        -1 * distanceInFrontOfCamera,
+        1,
     ];
 
     let additionalRotation = realityEditor.device.environment.getInitialPocketToolRotation();
     if (additionalRotation) {
         let temp = [];
-        realityEditor.gui.ar.utilities.multiplyMatrix(additionalRotation, initialVehicleMatrix, temp);
+        realityEditor.gui.ar.utilities.multiplyMatrix(
+            additionalRotation,
+            initialVehicleMatrix,
+            temp
+        );
         initialVehicleMatrix = temp;
     }
 
@@ -656,8 +842,14 @@ realityEditor.gui.ar.positioning.moveFrameToCamera = function(objectKey, frameKe
 
     sceneNode.setPositionRelativeTo(cameraNode, initialVehicleMatrix);
 
-    setTimeout(function() {
-        realityEditor.network.realtime.broadcastUpdate(objectKey, frameKey, null, 'ar.matrix', sceneNode.localMatrix);
+    setTimeout(function () {
+        realityEditor.network.realtime.broadcastUpdate(
+            objectKey,
+            frameKey,
+            null,
+            'ar.matrix',
+            sceneNode.localMatrix
+        );
     }, 300);
 };
 
@@ -672,7 +864,13 @@ realityEditor.gui.ar.positioning.moveFrameToCamera = function(objectKey, frameKe
  * @param {number?} maxDistance - if further away than this, unload. (unit scale: 1000=1meter)
  * @return {boolean}
  */
-realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, vehicleHalfWidth, vehicleHalfHeight, maxDistance) {
+realityEditor.gui.ar.positioning.canUnload = function (
+    activeKey,
+    finalMatrix,
+    vehicleHalfWidth,
+    vehicleHalfHeight,
+    maxDistance
+) {
     // don't bother unloading/reloading on desktop environments, as the camera moves around so quickly that this can cause more overhead than it saves
     if (!realityEditor.device.environment.isARMode()) return false;
 
@@ -680,16 +878,20 @@ realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, ve
     if (!realityEditor.sceneGraph.isInFrontOfCamera(activeKey)) {
         return true;
     }
-    
+
     // if a distance threshold is provided, unload if it is too far away
     if (typeof maxDistance !== 'undefined') {
         if (realityEditor.sceneGraph.getDistanceToCamera(activeKey) > maxDistance) {
             return true;
         }
     }
-    
+
     // get a rough estimation of screen position so we can see if it overlaps with viewport
-    var frameScreenPosition = this.getVehicleBoundingBoxFast(finalMatrix, vehicleHalfWidth, vehicleHalfHeight);
+    var frameScreenPosition = this.getVehicleBoundingBoxFast(
+        finalMatrix,
+        vehicleHalfWidth,
+        vehicleHalfHeight
+    );
     var left = frameScreenPosition.upperLeft.x;
     var right = frameScreenPosition.lowerRight.x;
     var top = frameScreenPosition.upperLeft.y;
@@ -700,7 +902,7 @@ realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, ve
         left: 0,
         right: globalStates.height,
         top: 0,
-        bottom: globalStates.width
+        bottom: globalStates.width,
     };
 
     // if not in powerSave mode, be more generous about keeping frames loaded
@@ -708,7 +910,7 @@ realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, ve
     if (!realityEditor.gui.settings.toggleStates.powerSaveMode) {
         let additionalBuffer = {
             x: globalStates.height,
-            y: globalStates.width
+            y: globalStates.width,
         };
         viewportBounds.left -= additionalBuffer.x;
         viewportBounds.right += additionalBuffer.x;
@@ -717,8 +919,12 @@ realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, ve
     }
 
     // if it is fully beyond any edge of the viewport, it can be unloaded
-    return bottom < viewportBounds.top || top > viewportBounds.bottom ||
-        right < viewportBounds.left || left > viewportBounds.right;
+    return (
+        bottom < viewportBounds.top ||
+        top > viewportBounds.bottom ||
+        right < viewportBounds.left ||
+        left > viewportBounds.right
+    );
 };
 
 /**
@@ -729,7 +935,10 @@ realityEditor.gui.ar.positioning.canUnload = function(activeKey, finalMatrix, ve
  * @example getObjectPositionsOfTypes({'human': true}) returns:
  * { 'human': { 'objectId1': { matrix: [worldMatrix], worldId: '_WORLD_xyz', tools: { 'toolId1': [localMatrix], 'toolId2': [localMatrix] }}}}
  */
-realityEditor.gui.ar.positioning.getObjectPositionsOfTypes = function(objectTypesToSend, includeToolPositions = true) {
+realityEditor.gui.ar.positioning.getObjectPositionsOfTypes = function (
+    objectTypesToSend,
+    includeToolPositions = true
+) {
     let dataToSend = {};
     realityEditor.forEachObject((object, objectKey) => {
         if (objectTypesToSend[object.type]) {
@@ -744,14 +953,15 @@ realityEditor.gui.ar.positioning.getObjectPositionsOfTypes = function(objectType
                 let relativeMatrix = objectSceneNode.getMatrixRelativeTo(worldSceneNode);
                 dataToSend[object.type][objectKey] = {
                     matrix: relativeMatrix,
-                    worldId: object.worldId
+                    worldId: object.worldId,
                 };
 
                 if (includeToolPositions) {
                     dataToSend[object.type][objectKey].tools = {};
                     realityEditor.forEachFrameInObject(objectKey, (_, frameKey) => {
                         let toolSceneNode = realityEditor.sceneGraph.getSceneNodeById(frameKey);
-                        dataToSend[object.type][objectKey].tools[frameKey] = toolSceneNode.localMatrix;
+                        dataToSend[object.type][objectKey].tools[frameKey] =
+                            toolSceneNode.localMatrix;
                     });
                 }
             }
@@ -770,7 +980,7 @@ let previousMoveDelays = {};
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.addTitleBarToTool = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.addTitleBarToTool = function (objectKey, frameKey) {
     let toolContainer = globalDOMCache[`object${frameKey}`];
     let toolIframe = globalDOMCache[`iframe${frameKey}`];
     let toolOverlay = globalDOMCache[frameKey];
@@ -793,8 +1003,8 @@ realityEditor.gui.ar.positioning.addTitleBarToTool = function(objectKey, frameKe
     titleBar.style.width = toolIframe.style.width;
     // titleBar.style.height = toolIframe.style.height;
     titleBar.style.left = toolIframe.style.left;
-    let top = parseInt(toolIframe.style.top)
-    titleBar.style.top = `${(top - 70)}px`;
+    let top = parseInt(toolIframe.style.top);
+    titleBar.style.top = `${top - 70}px`;
     titleBar.style.height = '50px';
 
     toolContainer.appendChild(titleBar);
@@ -826,7 +1036,7 @@ realityEditor.gui.ar.positioning.addTitleBarToTool = function(objectKey, frameKe
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.removeTitleBarFromTool = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.removeTitleBarFromTool = function (objectKey, frameKey) {
     let toolContainer = globalDOMCache[`object${frameKey}`];
     let toolIframe = globalDOMCache[`iframe${frameKey}`];
     let toolOverlay = globalDOMCache[frameKey];
@@ -867,7 +1077,7 @@ realityEditor.gui.ar.positioning.removeTitleBarFromTool = function(objectKey, fr
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.updateTitleBarIfNeeded = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.updateTitleBarIfNeeded = function (objectKey, frameKey) {
     let toolContainer = globalDOMCache[`object${frameKey}`];
     let toolIframe = globalDOMCache[`iframe${frameKey}`];
     let toolOverlay = globalDOMCache[frameKey];
@@ -879,8 +1089,8 @@ realityEditor.gui.ar.positioning.updateTitleBarIfNeeded = function(objectKey, fr
     titleBar.style.width = toolIframe.style.width;
     // titleBar.style.height = toolIframe.style.height;
     titleBar.style.left = toolIframe.style.left;
-    let top = parseInt(toolIframe.style.top)
-    titleBar.style.top = `${(top - 70)}px`;
+    let top = parseInt(toolIframe.style.top);
+    titleBar.style.top = `${top - 70}px`;
     titleBar.style.height = '50px';
 
     toolOverlay.style.height = titleBar.style.height;
@@ -896,14 +1106,14 @@ realityEditor.gui.ar.positioning.updateTitleBarIfNeeded = function(objectKey, fr
     }
 
     realityEditor.gui.ar.positioning.updateMoveabilityCorners(objectKey, frameKey);
-}
+};
 
 /**
  * Adjusts the width/height of the cyan corners that appear when you drag a tool, so they match the size of the iframe
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.updateMoveabilityCorners = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.updateMoveabilityCorners = function (objectKey, frameKey) {
     let toolOverlay = globalDOMCache[frameKey];
     if (!toolOverlay) return;
 
@@ -925,7 +1135,7 @@ realityEditor.gui.ar.positioning.updateMoveabilityCorners = function(objectKey, 
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.updateCornersForTitleBarIfNeeded = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.updateCornersForTitleBarIfNeeded = function (objectKey, frameKey) {
     if (!globalDOMCache[frameKey]) return;
     let cornersContainer = globalDOMCache[frameKey].querySelector('.corners');
     if (!cornersContainer.classList.contains('corners-title-bar')) return;
@@ -948,7 +1158,7 @@ realityEditor.gui.ar.positioning.updateCornersForTitleBarIfNeeded = function(obj
  * @param {string} objectKey
  * @param {string} frameKey
  */
-realityEditor.gui.ar.positioning.resetCornersForTitleBarIfNeeded = function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.resetCornersForTitleBarIfNeeded = function (objectKey, frameKey) {
     if (!globalDOMCache[frameKey]) return;
     let cornersContainer = globalDOMCache[frameKey].querySelector('.corners');
     if (!cornersContainer.classList.contains('corners-title-bar')) return;
@@ -979,19 +1189,23 @@ realityEditor.gui.ar.positioning.resetCornersForTitleBarIfNeeded = function(obje
  * to remove these temporary protector divs so that the full2d windowed tools receive native events again.
  * @param {boolean} shouldCover
  */
-realityEditor.gui.ar.positioning.coverFull2DTools = function(shouldCover) {
-    realityEditor.forEachFrameInAllObjects(function(objectKey, frameKey) {
+realityEditor.gui.ar.positioning.coverFull2DTools = function (shouldCover) {
+    realityEditor.forEachFrameInAllObjects(function (objectKey, frameKey) {
         if (shouldCover) {
             realityEditor.gui.ar.positioning.updateCornersForTitleBarIfNeeded(objectKey, frameKey);
         } else {
             realityEditor.gui.ar.positioning.resetCornersForTitleBarIfNeeded(objectKey, frameKey);
         }
     });
-}
+};
 
 // adjusts the screenZ (modelViewProjection[14]) to give values that correctly determine stacking order based on distance
 // to screen. if you don't do this, CSS-3D tools/icons have opposite stacking order compared to how you might expect.
-realityEditor.gui.ar.positioning.getFinalMatrixScreenZ = function(originalScreenZ, thisIsBeingEdited = false, shouldRenderFramesInNodeView = false) {
+realityEditor.gui.ar.positioning.getFinalMatrixScreenZ = function (
+    originalScreenZ,
+    thisIsBeingEdited = false,
+    shouldRenderFramesInNodeView = false
+) {
     let activeElementZIncrease = thisIsBeingEdited ? 100 : 0;
 
     // originalScreenZ is lower as it is closer to camera. We want newScreenZ to be higher when it approaches camera.

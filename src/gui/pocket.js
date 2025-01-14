@@ -47,83 +47,85 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.gui.pocket");
+createNameSpace('realityEditor.gui.pocket');
 
 /**
  * @type {CallbackHandler}
  */
-realityEditor.gui.pocket.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('gui/pocket');
+realityEditor.gui.pocket.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler(
+    'gui/pocket'
+);
 
 /**
  * Adds a callback function that will be invoked when the specified function is called
  * @param {string} functionName
  * @param {function} callback
  */
-realityEditor.gui.pocket.registerCallback = function(functionName, callback) {
+realityEditor.gui.pocket.registerCallback = function (functionName, callback) {
     if (!this.callbackHandler) {
         this.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('gui/pocket');
     }
     this.callbackHandler.registerCallback(functionName, callback);
 };
 
-realityEditor.gui.pocket.pocketButtonAction = function() {
+realityEditor.gui.pocket.pocketButtonAction = function () {
     if (globalStates.pocketButtonState === true) {
         globalStates.pocketButtonState = false;
 
         if (globalStates.guiState === 'logic') {
             realityEditor.gui.crafting.blockMenuVisible();
         }
-    }
-    else {
+    } else {
         globalStates.pocketButtonState = true;
 
         if (globalStates.guiState === 'logic') {
             realityEditor.gui.crafting.blockMenuHide();
-            realityEditor.gui.menus.switchToMenu("crafting", null, ["logicPocket"]);
+            realityEditor.gui.menus.switchToMenu('crafting', null, ['logicPocket']);
         }
     }
-
 };
 
-realityEditor.gui.pocket.setPocketPosition = function(evt){
-    
-    if(pocketItem["pocket"].frames["pocket"].nodes[pocketItemId]){
+realityEditor.gui.pocket.setPocketPosition = function (evt) {
+    if (pocketItem['pocket'].frames['pocket'].nodes[pocketItemId]) {
+        var thisItem = pocketItem['pocket'].frames['pocket'].nodes[pocketItemId];
 
-        var thisItem = pocketItem["pocket"].frames["pocket"].nodes[pocketItemId];
-        
         var pocketDomElement = globalDOMCache['object' + thisItem.uuid];
         if (!pocketDomElement) return; // wait until DOM element for this pocket item exists before attempting to move it
 
         var closestObjectKey = realityEditor.gui.ar.getClosestObject()[0];
 
         if (!closestObjectKey) {
-            
-            thisItem.x = evt.clientX - (globalStates.height / 2);
-            thisItem.y = evt.clientY - (globalStates.width / 2);
-            
+            thisItem.x = evt.clientX - globalStates.height / 2;
+            thisItem.y = evt.clientY - globalStates.width / 2;
         } else {
-            
-            if(thisItem.screenZ !== 2 && thisItem.screenZ) {
-                
+            if (thisItem.screenZ !== 2 && thisItem.screenZ) {
                 var centerOffsetX = thisItem.frameSizeX / 2;
                 var centerOffsetY = thisItem.frameSizeY / 2;
-                
-                realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(thisItem, evt.clientX - centerOffsetX, evt.clientY - centerOffsetY, false);
 
+                realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(
+                    thisItem,
+                    evt.clientX - centerOffsetX,
+                    evt.clientY - centerOffsetY,
+                    false
+                );
             }
         }
-        
     }
 };
 
-realityEditor.gui.pocket.setPocketFrame = function(frame, positionOnLoad, closestObjectKey) {
+realityEditor.gui.pocket.setPocketFrame = function (frame, positionOnLoad, closestObjectKey) {
     pocketFrame.vehicle = frame;
     pocketFrame.positionOnLoad = positionOnLoad;
     pocketFrame.closestObjectKey = closestObjectKey;
     pocketFrame.waitingToRender = true;
 };
 
-realityEditor.gui.pocket.setPocketNode = function(node, positionOnLoad, closestObjectKey, closestFrameKey) {
+realityEditor.gui.pocket.setPocketNode = function (
+    node,
+    positionOnLoad,
+    closestObjectKey,
+    closestFrameKey
+) {
     pocketNode.vehicle = node;
     pocketNode.positionOnLoad = positionOnLoad;
     pocketNode.closestObjectKey = closestObjectKey;
@@ -136,22 +138,31 @@ realityEditor.gui.pocket.setPocketNode = function(node, positionOnLoad, closestO
  * @param {Logic|undefined} logicNodeMemory
  * @return {*}
  */
-realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
+realityEditor.gui.pocket.createLogicNode = function (logicNodeMemory) {
     var addedLogic = new Logic();
 
     // if this is being created from a logic node memory, copy over most properties from the saved pocket logic node
     if (logicNodeMemory) {
-        var keysToCopyOver = ['blocks', 'iconImage', 'lastSetting', 'lastSettingBlock', 'links', 'lockPassword', 'lockType', 'name', 'nameInput', 'nameOutput'];
-        keysToCopyOver.forEach( function(key) {
+        var keysToCopyOver = [
+            'blocks',
+            'iconImage',
+            'lastSetting',
+            'lastSettingBlock',
+            'links',
+            'lockPassword',
+            'lockType',
+            'name',
+            'nameInput',
+            'nameOutput',
+        ];
+        keysToCopyOver.forEach(function (key) {
             addedLogic[key] = logicNodeMemory[key];
         });
-        
+
         if (typeof logicNodeMemory.nodeMemoryCustomIconSrc !== 'undefined') {
             addedLogic.nodeMemoryCustomIconSrc = logicNodeMemory.nodeMemoryCustomIconSrc;
         }
-        
     }
-    
 
     // give new logic node a new unique identifier so each copy is stored separately
     var logicKey = realityEditor.device.utilities.uuidTime();
@@ -159,12 +170,12 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
     var closestFrameKey = null;
     var closestObjectKey = null;
-    
+
     // try to find the closest local AR frame to attach the logic node to
-    var objectKeys = realityEditor.gui.ar.getClosestFrame(function(frame) {
+    var objectKeys = realityEditor.gui.ar.getClosestFrame(function (frame) {
         return frame.visualization !== 'screen' && frame.location === 'local';
     });
-    
+
     // if no local frames found, expand the search to include all frames
     if (!objectKeys[1]) {
         objectKeys = realityEditor.gui.ar.getClosestFrame();
@@ -186,38 +197,60 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         //closestObject ? closestObject.averageScale : globalStates.defaultScale;
         addedLogic.screenZ = 1000;
         addedLogic.loaded = false;
-        addedLogic.matrix = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1,
-        ];
+        addedLogic.matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
         // make sure that logic nodes only stick to 2.0 server version
-        if(realityEditor.network.testVersion(closestObjectKey) > 165) {
+        if (realityEditor.network.testVersion(closestObjectKey) > 165) {
             closestFrame.nodes[logicKey] = addedLogic;
 
             // render it
-            var nodeUrl = realityEditor.network.getURL(closestObject.ip, realityEditor.network.getPort(closestObject), "/nodes/logic/index.html");
-            realityEditor.gui.ar.draw.addElement(nodeUrl, closestObjectKey, closestFrameKey, logicKey, 'logic', addedLogic);
+            var nodeUrl = realityEditor.network.getURL(
+                closestObject.ip,
+                realityEditor.network.getPort(closestObject),
+                '/nodes/logic/index.html'
+            );
+            realityEditor.gui.ar.draw.addElement(
+                nodeUrl,
+                closestObjectKey,
+                closestFrameKey,
+                logicKey,
+                'logic',
+                addedLogic
+            );
 
-            var _thisNode = document.getElementById("iframe" + logicKey);
+            var _thisNode = document.getElementById('iframe' + logicKey);
             if (_thisNode && _thisNode.getAttribute('loaded')) {
                 realityEditor.network.onElementLoad(closestObjectKey, logicKey);
             }
 
             // send it to the server
-            realityEditor.network.postNewLogicNode(closestObject.ip, closestObjectKey, closestFrameKey, logicKey, addedLogic);
+            realityEditor.network.postNewLogicNode(
+                closestObject.ip,
+                closestObjectKey,
+                closestFrameKey,
+                logicKey,
+                addedLogic
+            );
 
-            realityEditor.sceneGraph.addNode(closestObjectKey, closestFrameKey, logicKey, addedLogic);
+            realityEditor.sceneGraph.addNode(
+                closestObjectKey,
+                closestFrameKey,
+                logicKey,
+                addedLogic
+            );
 
-            realityEditor.gui.pocket.setPocketNode(addedLogic, {pageX: globalStates.pointerPosition[0], pageY: globalStates.pointerPosition[1]}, closestObjectKey, closestFrameKey);
+            realityEditor.gui.pocket.setPocketNode(
+                addedLogic,
+                { pageX: globalStates.pointerPosition[0], pageY: globalStates.pointerPosition[1] },
+                closestObjectKey,
+                closestFrameKey
+            );
 
             return {
                 logicNode: addedLogic,
                 domElement: globalDOMCache[logicKey],
                 objectKey: closestObjectKey,
-                frameKey: closestFrameKey
+                frameKey: closestFrameKey,
             };
         }
     }
@@ -230,20 +263,19 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
  * the user is creating memories or when the user is dragging saved
  * memories/programming blocks, respectively.
  */
-(function(exports) {
-
+(function (exports) {
     var pocket;
     var palette;
     var nodeMemoryBar;
-    
+
     var inMemoryDeletion = false;
     // var pocketDestroyTimer = null;
-    
+
     var isPocketTapped = false;
 
     var pocketFrameNames = {};
     var currentClosestObjectKey = null;
-    
+
     var aggregateFrames = {};
 
     var ONLY_CLOSEST_OBJECT = false;
@@ -273,25 +305,28 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         nodeMemoryBar = document.querySelector('.nodeMemoryBar');
 
         const pocketScrollContainer = document.getElementById('pocketScrollContainer');
-        pocketScrollContainer.addEventListener('touchmove', function(event) {
+        pocketScrollContainer.addEventListener('touchmove', function (event) {
             // Prevent normal scrolling since we have the scroll touch bar
             event.preventDefault();
         });
 
         addMenuButtonActions();
 
-        pocket.addEventListener('pointerup', function(evt) {
+        pocket.addEventListener('pointerup', function (evt) {
             isPocketTapped = false;
             lastPointerY = null;
             scrollReleaseVelocity = scrollVelocity;
             scrollReleaseTime = Date.now();
             scrollResistance = 1;
-            
+
             if (pointerDownOnElement) {
                 pointerDownOnElement.classList.remove('hoverPocketElement');
             }
-            
-            if (pointerDownOnElement && pointerDownOnElement.dataset.name === evt.target.dataset.name) {
+
+            if (
+                pointerDownOnElement &&
+                pointerDownOnElement.dataset.name === evt.target.dataset.name
+            ) {
                 selectedElement = evt.target;
                 selectElement(evt.target);
             }
@@ -300,7 +335,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         });
 
         // On touching an element-template, upload to currently visible object
-        pocket.addEventListener('pointerdown', function(evt) {
+        pocket.addEventListener('pointerdown', function (evt) {
             isPocketTapped = true;
             lastPointerY = evt.clientY;
 
@@ -314,22 +349,21 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 // Don't add frame from placeholder
                 return;
             }
-            
+
             // pointermove gesture must have started with a tap on the pocket
             if (!isPocketTapped) {
                 return;
             }
-            
-            if (selectedElement && selectedElement.dataset.name === dataset.name) {
 
+            if (selectedElement && selectedElement.dataset.name === dataset.name) {
                 createFrame(dataset.name, {
                     startPositionOffset: dataset.startPositionOffset,
                     width: dataset.width,
                     height: dataset.height,
                     pageX: evt.pageX,
-                    pageY: evt.pageY
+                    pageY: evt.pageY,
                 });
-                
+
                 deselectElement(evt.target);
                 selectedElement = null;
                 pocketHide();
@@ -343,19 +377,21 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             }
         });
 
-        pocket.addEventListener('pointermove', function(evt) {
-            if (!isPocketTapped || scrollbarPointerDown) { return; }
-            if (lastPointerY === null) { 
+        pocket.addEventListener('pointermove', function (evt) {
+            if (!isPocketTapped || scrollbarPointerDown) {
+                return;
+            }
+            if (lastPointerY === null) {
                 lastPointerY = evt.clientY; // shouldn't be necessary, but just in case
                 return;
             }
-            
+
             // scroll so that mouse's position on the screen matches it's last position
             let dY = -1 * (evt.clientY - lastPointerY);
-            
+
             let newVelocity = 1.2 * dY;
             // if (scrollVelocity === 0) {
-                scrollVelocity = newVelocity;
+            scrollVelocity = newVelocity;
             // } else {
             //     let alphaBlend = 0.8;
             //     scrollVelocity = alphaBlend * newVelocity + (1 - alphaBlend) * scrollVelocity;
@@ -364,7 +400,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             var scrollContainer = document.getElementById('pocketScrollContainer');
             scrollContainer.scrollTop = scrollContainer.scrollTop + dY;
             updateScrollbarToMatchContainerScrollTop(scrollContainer.scrollTop);
-            
+
             lastPointerY = evt.clientY;
 
             // cancel pointerDownOn when any scroll happens
@@ -372,10 +408,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 pointerDownOnElement.classList.remove('hoverPocketElement');
                 pointerDownOnElement = null;
             }
-            
         });
-        
-        pocket.addEventListener('pointercancel', function(_evt) {
+
+        pocket.addEventListener('pointercancel', function (_evt) {
             isPocketTapped = false;
             lastPointerY = null;
             scrollReleaseVelocity = scrollVelocity;
@@ -383,23 +418,29 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             scrollResistance = 1;
             pointerDownOnElement = null;
         });
-        
+
         function updateScroll() {
             try {
                 if (pocketShown() && scrollVelocity !== 0) {
-                    
                     if (!isPocketTapped) {
                         var scrollContainer = document.getElementById('pocketScrollContainer');
-                        
-                        scrollVelocity = scrollReleaseVelocity * scrollResistance * Math.cos((Date.now() - scrollReleaseTime) / (1000 + 100 * Math.pow(Math.abs(scrollReleaseVelocity), 0.5)));
-                        
+
+                        scrollVelocity =
+                            scrollReleaseVelocity *
+                            scrollResistance *
+                            Math.cos(
+                                (Date.now() - scrollReleaseTime) /
+                                    (1000 + 100 * Math.pow(Math.abs(scrollReleaseVelocity), 0.5))
+                            );
+
                         scrollContainer.scrollTop = scrollContainer.scrollTop + scrollVelocity;
                         // accelerationFactor = 0.8; // lose speed faster while held down
 
                         updateScrollbarToMatchContainerScrollTop(scrollContainer.scrollTop);
 
                         // sqrt(percentSlower) has very little effect until speed has dropped significantly already
-                        let accelerationFactor = 0.99 * Math.pow(Math.abs(scrollVelocity / scrollReleaseVelocity), 0.2);
+                        let accelerationFactor =
+                            0.99 * Math.pow(Math.abs(scrollVelocity / scrollReleaseVelocity), 0.2);
                         // the lower scrollVelocity gets, the more acceleration factor should drop
                         scrollResistance *= accelerationFactor;
                     }
@@ -408,31 +449,33 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
                     // scrollVelocity *= accelerationFactor;
                     // scrollVelocity = Math.sqrt(scrollVelocity);
-                    
+
                     // round to zero if low or swapped signs so it doesn't trail off indefinitely
-                    if (Math.abs(scrollVelocity) < 0.01 || (scrollVelocity * scrollReleaseVelocity < 0)) {
+                    if (
+                        Math.abs(scrollVelocity) < 0.01 ||
+                        scrollVelocity * scrollReleaseVelocity < 0
+                    ) {
                         scrollVelocity = 0;
                     }
                 }
             } catch (e) {
                 console.warn('error in updateScroll', e);
             }
-            
+
             requestAnimationFrame(updateScroll);
         }
         updateScroll(); // start the update loop
 
         // on desktop, hovering over a palette element pre-selects it, so you don't need to double-click
-        pocket.addEventListener('pointermove', function(evt) {
+        pocket.addEventListener('pointermove', function (evt) {
             if (!evt.target.classList.contains('element-template')) {
-
                 // deselect highlighted item
                 if (selectedElement) {
                     deselectElement(selectedElement);
                     selectedElement = null;
                     hideTargetObjectLabel();
                 }
-                
+
                 return;
             }
 
@@ -448,24 +491,24 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             selectedElement = evt.target;
             selectElement(evt.target);
         });
-        
+
         if (ONLY_CLOSEST_OBJECT) {
             realityEditor.gui.ar.draw.onClosestObjectChanged(onClosestObjectChanged_OnlyClosest); // TODO: delete / cleanup old attempts
         } else {
             // subscribes to the closestObjectChanged event in the draw module, and triggers the pocket to refresh its UI
             realityEditor.gui.ar.draw.onClosestObjectChanged(onClosestObjectChanged); // TODO: this should actually trigger anytime the set of visibleObjects changes, not just the closest one
-            
+
             // also triggers pocket refresh whenever a new server with frames was detected
-            realityEditor.network.availableFrames.onServerFramesInfoUpdated(function() {
+            realityEditor.network.availableFrames.onServerFramesInfoUpdated(function () {
                 onClosestObjectChanged(currentClosestObjectKey, currentClosestObjectKey);
             });
         }
     }
-    
+
     const SHOW_NAME_LABEL = false;
     function selectElement(pocketElement) {
         pocketElement.classList.add('highlightedPocketElement');
-        
+
         if (SHOW_NAME_LABEL) {
             let label = pocketElement.querySelector('.palette-element-label');
             if (label) {
@@ -477,12 +520,14 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         showTargetObjectLabel();
         updateTargetObjectLabel(null, pocketElement.dataset.name);
     }
-    
+
     function deselectElement(pocketElement) {
-        if (!pocketElement) { return; }
+        if (!pocketElement) {
+            return;
+        }
 
         pocketElement.classList.remove('highlightedPocketElement');
-        
+
         if (SHOW_NAME_LABEL) {
             let label = pocketElement.querySelector('.palette-element-label');
             if (label) {
@@ -499,7 +544,10 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      */
     function rebuildAggregateFrames() {
         // see which frames this closest object supports
-        var availablePocketFrames = realityEditor.network.availableFrames.getFramesForAllVisibleObjects(Object.keys(realityEditor.gui.ar.draw.visibleObjects));
+        var availablePocketFrames =
+            realityEditor.network.availableFrames.getFramesForAllVisibleObjects(
+                Object.keys(realityEditor.gui.ar.draw.visibleObjects)
+            );
         // this is an array of [{actualIP: string, proxyIP: string, frames: {}}, ...], sorted by priority (distance)
 
         // we want to generate a set of frame info, with the frame name as each key
@@ -507,8 +555,10 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         // for each unique PROXY ip, in order, add all of their frames to an aggregate, tagged with proxy and actual IPs
         var processedProxyIPs = [];
-        availablePocketFrames.forEach(function(serverFrameInfo) {
-            if (processedProxyIPs.indexOf(serverFrameInfo.proxyIP) > -1) { return; }
+        availablePocketFrames.forEach(function (serverFrameInfo) {
+            if (processedProxyIPs.indexOf(serverFrameInfo.proxyIP) > -1) {
+                return;
+            }
 
             for (var frameName in serverFrameInfo.frames) {
                 if (typeof aggregateFrames[frameName] === 'undefined') {
@@ -521,7 +571,6 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
             processedProxyIPs.push(serverFrameInfo.proxyIP);
         });
-
     }
 
     /**
@@ -532,7 +581,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      */
     function onClosestObjectChanged(oldClosestObjectKey, newClosestObjectKey) {
         currentClosestObjectKey = newClosestObjectKey;
-        
+
         if (!currentClosestObjectKey) {
             return; // also gets triggered by onServerFramesInfoUpdated, and it's possible that the currentClosestObjectKey might be null
         }
@@ -544,7 +593,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         // }
 
         rebuildAggregateFrames();
-        
+
         // // first check what has changed
         // var previousPocketFrameNames = (pocketFrameNames[oldClosestObjectKey]) ? Object.keys(pocketFrameNames[oldClosestObjectKey]) : null;
         // var diff = realityEditor.device.utilities.diffArrays(previousPocketFrameNames, Object.keys(availablePocketFrames));
@@ -556,7 +605,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         // if (!diff.isEqual) { // TODO: add back this equality check so we don't unnecessarily rebuild the pocket
         // TODO: one equality check could be the icon src paths for new aggregateFrames vs the ones currently rendered
         // remove all old icons
-        Array.from(document.querySelector('.palette').children).forEach(function(child) {
+        Array.from(document.querySelector('.palette').children).forEach(function (child) {
             child.parentElement.removeChild(child);
         });
         // create all new icons
@@ -568,16 +617,17 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         finishStylingPocket();
         // }
 
-        if (selectedElement) { // re-select in case the closest object changed and the pocket was rebuilt
+        if (selectedElement) {
+            // re-select in case the closest object changed and the pocket was rebuilt
             let elementName = selectedElement.dataset.name;
-            
+
             deselectElement(selectedElement);
             selectedElement = null;
             hideTargetObjectLabel();
 
             // try to find the same selected element
             let elements = document.querySelectorAll('.element-template');
-            elements.forEach(function(elt) {
+            elements.forEach(function (elt) {
                 if (elt.dataset.name === elementName) {
                     selectedElement = elt;
                     selectElement(selectedElement);
@@ -585,40 +635,42 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             });
         }
     }
-    
+
     function updateTargetObjectLabel(closestObjectKey, frameType) {
         if (closestObjectKey && frameType) {
-            console.warn('specify either closestObjectKey or frameType, not both')
+            console.warn('specify either closestObjectKey or frameType, not both');
         }
-        
+
         if (frameType) {
-            closestObjectKey = realityEditor.network.availableFrames.getBestObjectInfoForFrame(frameType);
+            closestObjectKey =
+                realityEditor.network.availableFrames.getBestObjectInfoForFrame(frameType);
         }
-        
+
         // update the pocket target label
         let label = document.getElementById('pocketTargetObjectLabel');
         let object = realityEditor.getObject(closestObjectKey);
-        
-        let processedObjectName = object.name.indexOf('_WORLD_') === 0 ?
-            object.name.split('_WORLD_')[1] :
-            object.name;
-        
+
+        let processedObjectName =
+            object.name.indexOf('_WORLD_') === 0 ? object.name.split('_WORLD_')[1] : object.name;
+
         let objectType = object.name.indexOf('_WORLD_') === 0 ? 'world object' : 'object';
-        
-        let destinationHTMLString = 'the <u style="color: white">' + processedObjectName + '</u> ' + objectType;
-        
+
+        let destinationHTMLString =
+            'the <u style="color: white">' + processedObjectName + '</u> ' + objectType;
+
         if (closestObjectKey === realityEditor.worldObjects.getLocalWorldId()) {
             destinationHTMLString = 'your temporary workspace';
         }
-        
-        label.innerHTML = 'Add a <u style="color: white">' + frameType + '</u> tool to ' + destinationHTMLString;
+
+        label.innerHTML =
+            'Add a <u style="color: white">' + frameType + '</u> tool to ' + destinationHTMLString;
     }
-    
+
     function showTargetObjectLabel() {
         let label = document.getElementById('pocketTargetObjectLabel');
         label.style.display = '';
     }
-    
+
     function hideTargetObjectLabel() {
         let label = document.getElementById('pocketTargetObjectLabel');
         label.style.display = 'none';
@@ -635,11 +687,17 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         // see which frames this closest object supports
         // var closestServerIP = realityEditor.getObject(newClosestObjectKey).ip;
-        var availablePocketFrames = realityEditor.network.availableFrames.getFramesForPocket(currentClosestObjectKey);
+        var availablePocketFrames =
+            realityEditor.network.availableFrames.getFramesForPocket(currentClosestObjectKey);
 
         // first check what has changed
-        var previousPocketFrameNames = (pocketFrameNames[oldClosestObjectKey]) ? Object.keys(pocketFrameNames[oldClosestObjectKey]) : null;
-        var diff = realityEditor.device.utilities.diffArrays(previousPocketFrameNames, Object.keys(availablePocketFrames));
+        var previousPocketFrameNames = pocketFrameNames[oldClosestObjectKey]
+            ? Object.keys(pocketFrameNames[oldClosestObjectKey])
+            : null;
+        var diff = realityEditor.device.utilities.diffArrays(
+            previousPocketFrameNames,
+            Object.keys(availablePocketFrames)
+        );
 
         // then update the current pocket info
         pocketFrameNames[currentClosestObjectKey] = availablePocketFrames;
@@ -647,7 +705,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         // update UI to include the available frames only
         if (!diff.isEqual) {
             // remove all old icons
-            Array.from(document.querySelector('.palette').children).forEach(function(child) {
+            Array.from(document.querySelector('.palette').children).forEach(function (child) {
                 child.parentElement.removeChild(child);
             });
             // create all new icons
@@ -683,21 +741,24 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      */
     function getRealityElements() {
         if (ONLY_CLOSEST_OBJECT) {
-            return Object.keys(pocketFrameNames[currentClosestObjectKey]).map(function(frameName) { // turn dictionary into array
+            return Object.keys(pocketFrameNames[currentClosestObjectKey]).map(function (frameName) {
+                // turn dictionary into array
                 return pocketFrameNames[currentClosestObjectKey][frameName];
             });
-        
         } else {
             rebuildAggregateFrames();
-            return Object.keys(aggregateFrames).map(function(frameName) { // turn dictionary into array
-                return aggregateFrames[frameName];
-            }).filter(function(frameInfo) {
-                var noMetadata = typeof frameInfo.metadata === 'undefined';
-                if (noMetadata) {
-                    return true; // older versions without metadata should show up (backwards-compatible)
-                }
-                return frameInfo.metadata.enabled; // newer versions only show up if enabled
-            });
+            return Object.keys(aggregateFrames)
+                .map(function (frameName) {
+                    // turn dictionary into array
+                    return aggregateFrames[frameName];
+                })
+                .filter(function (frameInfo) {
+                    var noMetadata = typeof frameInfo.metadata === 'undefined';
+                    if (noMetadata) {
+                        return true; // older versions without metadata should show up (backwards-compatible)
+                    }
+                    return frameInfo.metadata.enabled; // newer versions only show up if enabled
+                });
         }
     }
 
@@ -706,23 +767,25 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      * Loads each icon and src from the correct server that should host that frame.
      */
     function createPocketUIPaletteForAggregateFrames() {
-
         var realityElements = getRealityElements();
 
         palette = document.querySelector('.palette');
         if (realityElements.length % 4 !== 0) {
             var numToAdd = 4 - (realityElements.length % 4);
             for (let i = 0; i < numToAdd; i++) {
-                realityElements.push({properties: null}); // add blanks to fill in row if needed
+                realityElements.push({ properties: null }); // add blanks to fill in row if needed
             }
         }
-        
+
         var closestObject = realityEditor.getObject(realityEditor.gui.ar.getClosestObject()[0]);
-        if (!closestObject) { return; }
+        if (!closestObject) {
+            return;
+        }
         var closestObjectIP = closestObject.ip;
 
-        document.getElementById('pocketScrollContainer').style.width = realityEditor.gui.pocket.getWidth() + 'px';
-        
+        document.getElementById('pocketScrollContainer').style.width =
+            realityEditor.gui.pocket.getWidth() + 'px';
+
         for (let i = 0; i < realityElements.length; i++) {
             if (!realityElements[i]) continue;
 
@@ -741,9 +804,17 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 container.dataset.src = '_PLACEHOLDER_';
             } else {
                 // var thisUrl = 'frames/' + element.name + '.html';
-                var thisUrl = realityEditor.network.getURL(realityElements[i].proxyIP, realityEditor.network.getPort(closestObject), '/frames/' + element.name + '/index.html');
+                var thisUrl = realityEditor.network.getURL(
+                    realityElements[i].proxyIP,
+                    realityEditor.network.getPort(closestObject),
+                    '/frames/' + element.name + '/index.html'
+                );
                 // var gifUrl = 'frames/pocketAnimations/' + element.name + '.gif';
-                var gifUrl = realityEditor.network.getURL(realityElements[i].proxyIP, realityEditor.network.getPort(closestObject), '/frames/' + element.name + '/icon.gif');
+                var gifUrl = realityEditor.network.getURL(
+                    realityElements[i].proxyIP,
+                    realityEditor.network.getPort(closestObject),
+                    '/frames/' + element.name + '/icon.gif'
+                );
                 container.dataset.src = thisUrl;
 
                 container.dataset.name = element.name;
@@ -751,7 +822,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 container.dataset.height = element.height;
                 container.dataset.nodes = JSON.stringify(element.nodes);
                 if (typeof element.startPositionOffset !== 'undefined') {
-                    container.dataset.startPositionOffset = JSON.stringify(element.startPositionOffset);
+                    container.dataset.startPositionOffset = JSON.stringify(
+                        element.startPositionOffset
+                    );
                 }
                 if (typeof element.requiredEnvelope !== 'undefined') {
                     container.dataset.requiredEnvelope = element.requiredEnvelope;
@@ -759,23 +832,28 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
                 var elt = document.createElement('div');
                 elt.classList.add('palette-element');
-                elt.style.backgroundImage = 'url(\'' + gifUrl + '\')';
+                elt.style.backgroundImage = "url('" + gifUrl + "')";
                 container.appendChild(elt);
 
                 if (SHOW_IP_LABELS) {
-                    
                     var ipLabel = document.createElement('div');
                     ipLabel.classList.add('palette-element-label');
-                    
+
                     if (!SIMPLE_IP_LABELS) {
                         ipLabel.innerText = realityElements[i].actualIP; // 'localhost';
                         if (realityElements[i].actualIP !== realityElements[i].proxyIP) {
-                            ipLabel.innerText = realityElements[i].actualIP + ' (' + realityElements[i].proxyIP + ')';
+                            ipLabel.innerText =
+                                realityElements[i].actualIP +
+                                ' (' +
+                                realityElements[i].proxyIP +
+                                ')';
                         }
                     }
 
                     if (realityElements[i].proxyIP !== closestObjectIP) {
-                        var worldObjects = realityEditor.worldObjects.getWorldObjectsByIP(realityElements[i].actualIP);
+                        var worldObjects = realityEditor.worldObjects.getWorldObjectsByIP(
+                            realityElements[i].actualIP
+                        );
                         if (worldObjects.length > 0) {
                             ipLabel.innerText = worldObjects[0].name;
                         }
@@ -792,9 +870,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         // save this so we can avoid re-building the pocket the next time, if nothing changes between now and then
         previousPocketChecksum = getChecksumForPocketElements(realityElements);
     }
-    
+
     function addFrameIconHoverListeners(frameIconContainer, _frameName) {
-        frameIconContainer.addEventListener('pointerenter', function(evt) {
+        frameIconContainer.addEventListener('pointerenter', function (evt) {
             // update closest object label
             // updateTargetObjectLabel(null, frameName);
 
@@ -803,11 +881,11 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             }
         });
 
-        frameIconContainer.addEventListener('pointerleave', function(evt) {
+        frameIconContainer.addEventListener('pointerleave', function (evt) {
             evt.target.classList.remove('hoverPocketElement');
         });
     }
-    
+
     // gets the width of the usable portion of the screen for the pocket
     function getWidth() {
         let guiButtonDiv = document.getElementById('guiButtonDiv');
@@ -820,36 +898,48 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         }
         return usableScreenWidth;
     }
-    
+
     // calculates how wide (and tall) each frame tile should be
     function getFrameIconWidth() {
-        if (!document.getElementById('pocketScrollBar') || document.getElementById('pocketScrollBar').getClientRects().length === 0) { return; }
+        if (
+            !document.getElementById('pocketScrollBar') ||
+            document.getElementById('pocketScrollBar').getClientRects().length === 0
+        ) {
+            return;
+        }
         // 37 is the margin between buttons and edge of screen, buttons and scrollbar, etc
-        let scrollBarWidth = (2 * 37) + document.getElementById('pocketScrollBar').getClientRects()[0].width;
+        let scrollBarWidth =
+            2 * 37 + document.getElementById('pocketScrollBar').getClientRects()[0].width;
         let margin = 3;
 
         let tilesPerRow = 4 + Math.max(0, Math.min(4, Math.round((getWidth() - 900) / 200))); // 5 on iOS device, more on bigger screens
-        let baseTileSize = (getWidth() - scrollBarWidth) / tilesPerRow - (margin * 2);  //* 0.18;
+        let baseTileSize = (getWidth() - scrollBarWidth) / tilesPerRow - margin * 2; //* 0.18;
 
-        let realScrollBarWidth = document.getElementById('pocketScrollBar').getClientRects()[0].width;
+        let realScrollBarWidth = document
+            .getElementById('pocketScrollBar')
+            .getClientRects()[0].width;
         let paletteWidth = realityEditor.gui.pocket.getWidth() - realScrollBarWidth;
         let numPerRow = Math.floor(paletteWidth / baseTileSize);
-        
-        let totalWidth = (baseTileSize + (margin * 2)) * numPerRow;
-        
+
+        let totalWidth = (baseTileSize + margin * 2) * numPerRow;
+
         return baseTileSize * (paletteWidth / totalWidth);
     }
-    
+
     function onWindowResized() {
-        if (!pocketShown()) { return; }
+        if (!pocketShown()) {
+            return;
+        }
         // update pocket scroll container size if needed
         let scrollBarWidth = document.getElementById('pocketScrollBar').getClientRects()[0].width;
         let paletteWidth = realityEditor.gui.pocket.getWidth() - scrollBarWidth;
         document.getElementById('pocketScrollContainer').style.width = paletteWidth + 'px';
-        
+
         // update the width of each tile
-        let elements = document.getElementById('pocketScrollContainer').querySelectorAll('.element-template');
-        elements.forEach(function(elt) {
+        let elements = document
+            .getElementById('pocketScrollContainer')
+            .querySelectorAll('.element-template');
+        elements.forEach(function (elt) {
             elt.style.width = getFrameIconWidth() + 'px';
             elt.style.height = getFrameIconWidth() + 'px'; // height = width
         });
@@ -857,9 +947,11 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         let margin = 3;
 
         // update the width of each memory container, knowing that there are exactly 4 of them
-        let memoryContainers = document.querySelector('.memoryBar').querySelectorAll('.memoryContainer');
-        memoryContainers.forEach(function(elt) {
-            elt.style.width = (paletteWidth / 4 - (2 * margin)) + 'px';
+        let memoryContainers = document
+            .querySelector('.memoryBar')
+            .querySelectorAll('.memoryContainer');
+        memoryContainers.forEach(function (elt) {
+            elt.style.width = paletteWidth / 4 - 2 * margin + 'px';
         });
 
         realityEditor.gui.pocket.createPocketScrollbar(); // update number of chapters to match scroll height
@@ -879,13 +971,12 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      * @deprecated - used to create pocket frame palette UI if ONLY_CLOSEST_OBJECT is enabled
      */
     function createPocketUIPaletteForAvailableFrames(closestObjectKey) {
-        
         // var realityElements = Object.keys(availablePocketFrames).map(function(frameName) {
         //     return availablePocketFrames[frameName];
         // });
-        
+
         var realityElements = getRealityElements();
-        
+
         palette = document.querySelector('.palette');
         if (realityElements.length % 4 !== 0) {
             var numToAdd = 4 - (realityElements.length % 4);
@@ -896,13 +987,13 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         for (let i = 0; i < realityElements.length; i++) {
             if (!realityElements[i]) continue;
-            
+
             var element = realityElements[i].properties;
             if (typeof element === 'undefined') {
                 console.warn('could not find properties of ', realityElements[i]);
                 continue;
             }
-            
+
             var container = document.createElement('div');
             container.classList.add('element-template');
             container.id = 'pocket-element';
@@ -913,9 +1004,15 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 container.dataset.src = '_PLACEHOLDER_';
             } else {
                 // var thisUrl = 'frames/' + element.name + '.html';
-                var thisUrl = realityEditor.network.availableFrames.getFrameSrc(closestObjectKey, element.name);
+                var thisUrl = realityEditor.network.availableFrames.getFrameSrc(
+                    closestObjectKey,
+                    element.name
+                );
                 // var gifUrl = 'frames/pocketAnimations/' + element.name + '.gif';
-                var gifUrl = realityEditor.network.availableFrames.getFrameIconSrc(closestObjectKey, element.name);
+                var gifUrl = realityEditor.network.availableFrames.getFrameIconSrc(
+                    closestObjectKey,
+                    element.name
+                );
                 container.dataset.src = thisUrl;
 
                 container.dataset.name = element.name;
@@ -923,7 +1020,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 container.dataset.height = element.height;
                 container.dataset.nodes = JSON.stringify(element.nodes);
                 if (typeof element.startPositionOffset !== 'undefined') {
-                    container.dataset.startPositionOffset = JSON.stringify(element.startPositionOffset);
+                    container.dataset.startPositionOffset = JSON.stringify(
+                        element.startPositionOffset
+                    );
                 }
                 if (typeof element.requiredEnvelope !== 'undefined') {
                     container.dataset.requiredEnvelope = element.requiredEnvelope;
@@ -931,9 +1030,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
                 var elt = document.createElement('div');
                 elt.classList.add('palette-element');
-                elt.style.backgroundImage = 'url(\'' + gifUrl + '\')';
+                elt.style.backgroundImage = "url('" + gifUrl + "')";
                 container.appendChild(elt);
-                
+
                 var ipLabel = document.createElement('div');
                 ipLabel.classList.add('palette-element-label');
                 ipLabel.innerText = realityEditor.getObject(closestObjectKey).ip; // 'localhost';
@@ -951,12 +1050,12 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
     function addTutorialFrame(objectKey) {
         try {
             createFrame('uiTutorial', {
-                startPositionOffset: JSON.stringify({x: 0, y: 0}),
+                startPositionOffset: JSON.stringify({ x: 0, y: 0 }),
                 width: '568',
                 height: '420',
                 pageX: window.innerWidth / 2,
                 pageY: window.innerHeight / 2,
-                objectKey: objectKey
+                objectKey: objectKey,
             });
         } catch (e) {
             // ensure that it fails safely if the corresponding server doesn't have a frame named uiTutorial
@@ -982,7 +1081,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
     function createFrame(name, options) {
         const utils = realityEditor.gui.ar.utilities;
 
-        const closestObjectKey = options.objectKey ? options.objectKey : realityEditor.network.availableFrames.getBestObjectInfoForFrame(name);
+        const closestObjectKey = options.objectKey
+            ? options.objectKey
+            : realityEditor.network.availableFrames.getBestObjectInfoForFrame(name);
         if (!closestObjectKey) return;
 
         const closestObject = realityEditor.getObject(closestObjectKey);
@@ -993,20 +1094,23 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         const frame = new Frame();
         frame.objectId = closestObjectKey;
 
-        // name the frame "gauge1xyz", "gauge2asd", "gauge3qwe", etc... 
-        let numberOfSameFrames = Object.keys(closestObject.frames).map(existingFrameKey => {
-            return closestObject.frames[existingFrameKey].src;
-        }).filter(src => {
-            return src === name;
-        }).length;
-        let frameUniqueName = name + (numberOfSameFrames+1) + realityEditor.device.utilities.uuidTime();
+        // name the frame "gauge1xyz", "gauge2asd", "gauge3qwe", etc...
+        let numberOfSameFrames = Object.keys(closestObject.frames)
+            .map((existingFrameKey) => {
+                return closestObject.frames[existingFrameKey].src;
+            })
+            .filter((src) => {
+                return src === name;
+            }).length;
+        let frameUniqueName =
+            name + (numberOfSameFrames + 1) + realityEditor.device.utilities.uuidTime();
 
         // set the essential properties
         frame.name = frameUniqueName;
         frame.uuid = frame.objectId + frameUniqueName;
         frame.location = 'global';
         frame.src = name;
-        
+
         // add the frame to the object
         closestObject.frames[frame.uuid] = frame;
 
@@ -1025,7 +1129,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             frame.frameSizeY = options.height;
             frame.height = options.height;
         }
-        
+
         // populate properties not contained on server (not in constructor)
         frame.begin = utils.newIdentityMatrix(); // TODO: try removing this
         frame.loaded = false;
@@ -1042,50 +1146,87 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         realityEditor.device.eventObject.object = closestObjectKey;
         realityEditor.device.eventObject.frame = frame.uuid;
         realityEditor.device.eventObject.node = null;
-        
+
         // tell the iframe that it was just created, not reloaded
         realityEditor.network.toBeInitialized[frame.uuid] = true;
-        
+
         if (options.initialMatrix) {
             frame.ar.matrix = options.initialMatrix;
         }
-        
+
         realityEditor.sceneGraph.addFrame(frame.objectId, frame.uuid, frame, frame.ar.matrix);
-        realityEditor.gui.ar.groundPlaneAnchors.sceneNodeAdded(frame.objectId, frame.uuid, frame, frame.ar.matrix);
-        realityEditor.network.postNewFrame(closestObject.ip, closestObjectKey, frame, options.onUploadComplete);
-        
+        realityEditor.gui.ar.groundPlaneAnchors.sceneNodeAdded(
+            frame.objectId,
+            frame.uuid,
+            frame,
+            frame.ar.matrix
+        );
+        realityEditor.network.postNewFrame(
+            closestObject.ip,
+            closestObjectKey,
+            frame,
+            options.onUploadComplete
+        );
+
         if (!options.noUserInteraction) {
             // allows you to drag the frame around as soon as it loads
-            realityEditor.gui.pocket.setPocketFrame(frame, {
-                pageX: options.pageX || 0,
-                pageY: options.pageY || 0
-            }, closestObjectKey);
+            realityEditor.gui.pocket.setPocketFrame(
+                frame,
+                {
+                    pageX: options.pageX || 0,
+                    pageY: options.pageY || 0,
+                },
+                closestObjectKey
+            );
         }
-        
+
         realityEditor.gui.pocket.callbackHandler.triggerCallbacks('frameAdded', {
             objectKey: closestObjectKey,
             frameKey: frame.uuid,
-            frameType: frame.src
+            frameType: frame.src,
         });
-        
+
         return frame;
     }
 
     function addMenuButtonActions() {
-        
         var ButtonNames = realityEditor.gui.buttons.ButtonNames;
 
         // add callbacks for menu buttons -> hide pocket
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.GUI, hidePocketOnButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.LOGIC, hidePocketOnButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.SETTING, hidePocketOnButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.LOGIC_SETTING, hidePocketOnButtonPressed);
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.GUI,
+            hidePocketOnButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.LOGIC,
+            hidePocketOnButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.SETTING,
+            hidePocketOnButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.LOGIC_SETTING,
+            hidePocketOnButtonPressed
+        );
 
         // add callbacks for pocket button actions
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.POCKET, pocketButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.LOGIC_POCKET, pocketButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.BIG_POCKET, bigPocketButtonPressed);
-        realityEditor.gui.buttons.registerCallbackForButton(ButtonNames.HALF_POCKET, halfPocketButtonPressed);
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.POCKET,
+            pocketButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.LOGIC_POCKET,
+            pocketButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.BIG_POCKET,
+            bigPocketButtonPressed
+        );
+        realityEditor.gui.buttons.registerCallbackForButton(
+            ButtonNames.HALF_POCKET,
+            halfPocketButtonPressed
+        );
 
         function hidePocketOnButtonPressed(params) {
             if (params.newButtonState === 'up') {
@@ -1096,50 +1237,51 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         function pocketButtonPressed(params) {
             if (params.newButtonState === 'up') {
-
                 document.activeElement.blur(); // reset focus in case our scrolling lost focus
-                
+
                 // show UI pocket by switching out of node view when the pocket button is tapped
                 var HACK_AUTO_SWITCH_TO_GUI = true;
                 if (HACK_AUTO_SWITCH_TO_GUI) {
                     if (globalStates.guiState === 'node') {
-                        realityEditor.gui.buttons.guiButtonUp({button: "gui", ignoreIsDown: true});
+                        realityEditor.gui.buttons.guiButtonUp({
+                            button: 'gui',
+                            ignoreIsDown: true,
+                        });
                     }
                 }
 
                 onPocketButtonUp();
 
-                if (globalStates.guiState !== "node" && globalStates.guiState !== "logic") {
+                if (globalStates.guiState !== 'node' && globalStates.guiState !== 'logic') {
                     return;
                 }
 
                 realityEditor.gui.pocket.pocketButtonAction();
-
             } else if (params.newButtonState === 'enter') {
-
                 realityEditor.gui.pocket.onPocketButtonEnter();
 
-                if (globalStates.guiState !== "node" && globalStates.guiState !== "logic") {
+                if (globalStates.guiState !== 'node' && globalStates.guiState !== 'logic') {
                     return;
                 }
 
-                if (pocketItem["pocket"].frames["pocket"].nodes[pocketItemId]) {
+                if (pocketItem['pocket'].frames['pocket'].nodes[pocketItemId]) {
                     // pocketItem["pocket"].objectVisible = false;
-                    realityEditor.gui.ar.draw.setObjectVisible(pocketItem["pocket"], false);
+                    realityEditor.gui.ar.draw.setObjectVisible(pocketItem['pocket'], false);
 
-                    this.gui.ar.draw.hideTransformed("pocket", pocketItemId, pocketItem["pocket"].frames["pocket"].nodes[pocketItemId], "logic"); // TODO: change arguments
-                    delete pocketItem["pocket"].frames["pocket"].nodes[pocketItemId];
+                    this.gui.ar.draw.hideTransformed(
+                        'pocket',
+                        pocketItemId,
+                        pocketItem['pocket'].frames['pocket'].nodes[pocketItemId],
+                        'logic'
+                    ); // TODO: change arguments
+                    delete pocketItem['pocket'].frames['pocket'].nodes[pocketItemId];
                 }
-
             } else if (params.newButtonState === 'leave') {
-
                 // this is where the virtual point creates object
 
                 if (realityEditor.gui.buttons.getButtonState(params.buttonName) === 'down') {
-                    
                     // create a logic node when dragging out from the button in node mode
-                    if (globalStates.guiState === "node") {
-                        
+                    if (globalStates.guiState === 'node') {
                         // we're using the same method as when we add a node from a memory, instead of using old pocket method. // TODO: make less hack of a solution
                         let addedElement = null;
                         try {
@@ -1150,25 +1292,36 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                         }
 
                         // set the name of the node by counting how many logic nodes the frame already has
-                        var closestFrame = realityEditor.getFrame(addedElement.objectKey, addedElement.frameKey);
+                        var closestFrame = realityEditor.getFrame(
+                            addedElement.objectKey,
+                            addedElement.frameKey
+                        );
                         var logicCount = Object.values(closestFrame.nodes).filter(function (node) {
-                            return node.type === 'logic'
+                            return node.type === 'logic';
                         }).length;
-                        addedElement.logicNode.name = "LOGIC" + logicCount;
+                        addedElement.logicNode.name = 'LOGIC' + logicCount;
 
                         // upload new name to server when you change it
                         var object = realityEditor.getObject(addedElement.objectKey);
-                        realityEditor.network.postNewNodeName(object.ip, addedElement.objectKey, addedElement.frameKey, addedElement.logicNode.uuid, addedElement.logicNode.name);
-                        
-                        realityEditor.gui.menus.switchToMenu("bigTrash", null, null);
-                    
+                        realityEditor.network.postNewNodeName(
+                            object.ip,
+                            addedElement.objectKey,
+                            addedElement.frameKey,
+                            addedElement.logicNode.uuid,
+                            addedElement.logicNode.name
+                        );
+
+                        realityEditor.gui.menus.switchToMenu('bigTrash', null, null);
                     } else if (globalStates.guiState === 'ui') {
                         // create an envelope frame when dragging out from the button in UI mode
                         var realityElements = getRealityElements();
-                        
-                        var envelopeData = realityElements.find(function(elt) { return elt.name === 'all-frame-envelope'; });
-                        var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
-                        
+
+                        var envelopeData = realityElements.find(function (elt) {
+                            return elt.name === 'all-frame-envelope';
+                        });
+                        var touchPosition =
+                            realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
+
                         if (envelopeData) {
                             let addedElement = createFrame(envelopeData.name, {
                                 startPositionOffset: envelopeData.startPositionOffset,
@@ -1177,26 +1330,28 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                                 pageX: touchPosition.x,
                                 pageY: touchPosition.y,
                             });
-                            
+
                             if (addedElement) {
                                 realityEditor.device.editingState.touchOffset = {
                                     x: 0,
-                                    y: 0
+                                    y: 0,
                                 };
-                                
+
                                 try {
-                                    realityEditor.device.beginTouchEditing(addedElement.objectId, addedElement.uuid, null);
+                                    realityEditor.device.beginTouchEditing(
+                                        addedElement.objectId,
+                                        addedElement.uuid,
+                                        null
+                                    );
                                 } catch (e) {
                                     console.warn('error with beginTouchEditing', e);
                                 }
-                                
-                                realityEditor.gui.menus.switchToMenu("bigTrash", null, null);
+
+                                realityEditor.gui.menus.switchToMenu('bigTrash', null, null);
                             }
                         }
                     }
-
                 }
-
             }
         }
 
@@ -1211,7 +1366,6 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 onHalfPocketButtonEnter();
             }
         }
-
     }
 
     function isPocketWanted() {
@@ -1227,7 +1381,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         if (inMemoryDeletion) {
             return false;
         }
-        return globalStates.guiState === "ui" || globalStates.guiState === "node";
+        return globalStates.guiState === 'ui' || globalStates.guiState === 'node';
     }
 
     function onPocketButtonEnter() {
@@ -1269,28 +1423,27 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         if (realityEditor.gui.memory.memoryCanCreate()) {
             // realityEditor.gui.memory.createMemory();
-            if (globalStates.guiState === "node") {
+            if (globalStates.guiState === 'node') {
                 globalStates.drawDotLine = false;
             }
         }
 
         toggleShown();
     }
-    
+
     function onHalfPocketButtonEnter() {
         // if (!isPocketWanted()) {
         //     return;
         // }
-        
+
         if (!pocketButtonIsHalf()) {
             return;
         }
-        
+
         // TODO: add any side effects here before showing pocket
         var editingVehicle = realityEditor.device.getEditingVehicle();
 
         if (editingVehicle && editingVehicle.type === 'logic') {
-            
             if (editingVehicle) {
                 overlayDiv.classList.add('overlayLogicNode');
 
@@ -1302,24 +1455,24 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 nameText.innerHTML = editingVehicle.name;
                 overlayDiv.innerHTML = '';
                 overlayDiv.appendChild(nameText);
-                
+
                 overlayDiv.storedLogicNode = editingVehicle;
             }
         }
-        
+
         if (pocketShown()) {
             // // TODO(ben): is there a better place to do this?
             overlayDiv.innerHTML = '';
             overlayDiv.classList.remove('overlayLogicNode');
         }
-        
+
         toggleShown();
     }
 
     function pocketButtonIsBig() {
         return realityEditor.gui.menus.getVisibility('bigPocket');
     }
-    
+
     function pocketButtonIsHalf() {
         return realityEditor.gui.menus.getVisibility('halfPocket');
     }
@@ -1331,18 +1484,18 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             pocketShow();
         }
     }
-    
+
     // external modules can register a function to apply different CSS classes to each pocket item container
     var pocketElementHighlightFilters = [];
-    
+
     function addElementHighlightFilter(callback) {
         pocketElementHighlightFilters.push(callback);
     }
-    
+
     function pocketShow() {
         pocket.classList.add('pocketShown');
         realityEditor.gui.menus.buttonOn(['pocket']);
-        if (globalStates.guiState === "node") {
+        if (globalStates.guiState === 'node') {
             palette.style.display = 'none';
             nodeMemoryBar.style.display = 'block';
         } else {
@@ -1351,25 +1504,25 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         }
         isPocketTapped = false;
         realityEditor.gui.memory.nodeMemories.resetEventHandlers();
-        
+
         var allPocketElements = Array.from(document.querySelector('.palette').children);
-        allPocketElements.forEach(function(pocketElement) {
+        allPocketElements.forEach(function (pocketElement) {
             pocketElement.classList.remove('highlightedPocketElement');
         });
-        
+
         if (pocketElementHighlightFilters.length > 0) {
-            
-            var pocketFrameNames = allPocketElements.map(function(div) { return div.dataset.name });
-            
-            pocketElementHighlightFilters.forEach(function(filterFunction) {
+            var pocketFrameNames = allPocketElements.map(function (div) {
+                return div.dataset.name;
+            });
+
+            pocketElementHighlightFilters.forEach(function (filterFunction) {
                 var framesToHighlight = filterFunction(pocketFrameNames);
 
-                allPocketElements.forEach(function(pocketElement) {
+                allPocketElements.forEach(function (pocketElement) {
                     if (framesToHighlight.indexOf(pocketElement.dataset.name) > -1) {
                         pocketElement.classList.add('highlightedPocketElement');
                     }
                 });
-
             });
         }
 
@@ -1379,7 +1532,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         if (shouldRebuildPocketUI) {
             // remove all old icons
-            Array.from(document.querySelector('.palette').children).forEach(function(child) {
+            Array.from(document.querySelector('.palette').children).forEach(function (child) {
                 child.parentElement.removeChild(child);
             });
             // create all new icons
@@ -1391,9 +1544,9 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         onWindowResized();
 
         finishStylingPocket();
-        
+
         hideTargetObjectLabel();
-        
+
         // scroll to top if holding memory
         if (overlayDiv.classList.contains('overlayMemory')) {
             var scrollContainer = document.getElementById('pocketScrollContainer');
@@ -1411,10 +1564,11 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         let paletteHeight = document.querySelector('.palette').getClientRects()[0].height;
         const pageHeight = window.innerHeight;
 
-        let maxScrollContainerScroll = ((paletteHeight + 130) - pageHeight);
-        let maxHandleScroll = scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
+        let maxScrollContainerScroll = paletteHeight + 130 - pageHeight;
+        let maxHandleScroll =
+            scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
 
-        let handleScrollTop = scrollTop * maxHandleScroll / maxScrollContainerScroll;
+        let handleScrollTop = (scrollTop * maxHandleScroll) / maxScrollContainerScroll;
         handle.style.top = Math.max(10, Math.min(maxHandleScroll, handleScrollTop)) + 'px';
     }
 
@@ -1424,13 +1578,14 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         let paletteHeight = document.querySelector('.palette').getClientRects()[0].height;
         const pageHeight = window.innerHeight;
 
-        let maximumScrollAmount = scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
+        let maximumScrollAmount =
+            scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
 
         let percentageBetween = (parseFloat(handle.style.top) - 10) / (maximumScrollAmount - 10);
 
         var scrollContainer = document.getElementById('pocketScrollContainer');
         // not sure why I have to add 130 to the paletteHeight for this to work, but otherwise it won't fully scroll to the bottom
-        let maxScrollContainerScroll = ((paletteHeight + 130) - pageHeight);
+        let maxScrollContainerScroll = paletteHeight + 130 - pageHeight;
         scrollContainer.scrollTop = percentageBetween * maxScrollContainerScroll;
     }
 
@@ -1455,7 +1610,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         const pageHeight = window.innerHeight;
 
         let numChapters = 1;
-        
+
         var scrollbar = document.getElementById('pocketScrollBar');
 
         if (scrollbar.children.length > 0) {
@@ -1469,24 +1624,27 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                 scrollbar.removeChild(scrollbar.lastChild);
             }
         }
-        
-        if (!document.querySelector('.palette') || document.querySelector('.palette').getClientRects().length === 0) {
+
+        if (
+            !document.querySelector('.palette') ||
+            document.querySelector('.palette').getClientRects().length === 0
+        ) {
             return;
         }
 
         let paletteHeight = document.querySelector('.palette').getClientRects()[0].height;
 
         var allSegmentButtons = [];
-        
+
         function hideAllSegmentSelections() {
-            allSegmentButtons.forEach(function(div){
+            allSegmentButtons.forEach(function (div) {
                 if (div.firstChild) {
                     div.firstChild.style.visibility = 'hidden';
                 }
                 div.classList.remove('pocketScrollBarSegmentTouched');
             });
         }
-        
+
         function selectSegment(segment) {
             if (segment.firstChild) {
                 segment.firstChild.style.visibility = 'visible';
@@ -1496,40 +1654,50 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
 
         function scrollPocketForTouch(e) {
             // don't scroll if holding a memory
-            if (overlayDiv.classList.contains('overlayMemory')) { return; }
-            
+            if (overlayDiv.classList.contains('overlayMemory')) {
+                return;
+            }
+
             let scrollbar = document.getElementById('pocketScrollBarSegment0');
             let handle = scrollbar.querySelector('.pocketScrollBarSegmentActive');
 
             let amountMoved = e.pageY - scrollbarPointerDownY;
-            let maximumScrollAmount = scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
-            handle.style.top = Math.max(10, Math.min(maximumScrollAmount, scrollbarHandleInitialOffset + amountMoved)) + 'px'; //(100 * percentageBetween) + 'px';
-            
+            let maximumScrollAmount =
+                scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
+            handle.style.top =
+                Math.max(
+                    10,
+                    Math.min(maximumScrollAmount, scrollbarHandleInitialOffset + amountMoved)
+                ) + 'px'; //(100 * percentageBetween) + 'px';
+
             setContainerScrollToScrollbarPosition();
         }
-        
+
         function jumpScrollbarToPosition(pageY) {
             // move center of scrollbar handle to pageY (constrained within bounds)
 
             // don't scroll if holding a memory
-            if (overlayDiv.classList.contains('overlayMemory')) { return; }
+            if (overlayDiv.classList.contains('overlayMemory')) {
+                return;
+            }
 
             let scrollbar = document.getElementById('pocketScrollBarSegment0');
             let handle = scrollbar.querySelector('.pocketScrollBarSegmentActive');
-            
+
             // for center to be on pageY, top needs to be at pageY - handleHeight/2
-            let calculatedTop = pageY - handle.getClientRects()[0].height/2 - 10;
-            let maximumScrollAmount = scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
+            let calculatedTop = pageY - handle.getClientRects()[0].height / 2 - 10;
+            let maximumScrollAmount =
+                scrollbar.getClientRects()[0].height - handle.getClientRects()[0].height - 10;
             handle.style.top = Math.max(10, Math.min(maximumScrollAmount, calculatedTop)) + 'px'; //(100 * percentageBetween) + 'px';
 
             setContainerScrollToScrollbarPosition();
         }
 
         var pocketPointerDown = false;
-        document.addEventListener('pointerdown', function(_e) {
+        document.addEventListener('pointerdown', function (_e) {
             pocketPointerDown = true;
         });
-        document.addEventListener('pointerup', function(_e) {
+        document.addEventListener('pointerup', function (_e) {
             pocketPointerDown = false;
             scrollbarPointerDown = false;
             highlightAvailableMemoryContainers(false); // always un-highlight when release pointer
@@ -1542,7 +1710,7 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             // segmentButton.style.height = (scrollbarHeight / numChapters - marginBetweenSegments) + 'px';
             // segmentButton.style.top = (scrollbarHeightDifference/2 - marginBetweenSegments/2) + (i * scrollbarHeight / numChapters) + 'px';
             segmentButton.style.top = '10px';
-            
+
             var segmentActiveDiv = document.createElement('div');
             segmentActiveDiv.className = 'pocketScrollBarSegmentActive';
             if (i > 0) {
@@ -1550,30 +1718,31 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
             }
             segmentButton.appendChild(segmentActiveDiv);
 
-            segmentActiveDiv.style.height = 'calc(' + (100 * pageHeight / paletteHeight) + '% - 20px)';
-            
+            segmentActiveDiv.style.height =
+                'calc(' + (100 * pageHeight) / paletteHeight + '% - 20px)';
+
             segmentButton.dataset.index = i;
-            
-            segmentButton.addEventListener('pointerdown', function(e) {
+
+            segmentButton.addEventListener('pointerdown', function (e) {
                 scrollbarPointerDown = true;
                 scrollbarPointerDownY = e.pageY;
-                
+
                 let tappedOnHandle = e.target.classList.contains('pocketScrollBarSegmentActive');
 
                 let scrollbar = document.getElementById('pocketScrollBarSegment0');
                 let handle = scrollbar.querySelector('.pocketScrollBarSegmentActive');
-                
+
                 if (tappedOnHandle) {
                     scrollbarHandleInitialOffset = parseFloat(handle.style.top) || 10;
                 } else {
                     jumpScrollbarToPosition(e.pageY);
                     scrollbarHandleInitialOffset = parseFloat(handle.style.top) || 10;
                 }
-                
+
                 hideAllSegmentSelections();
                 selectSegment(e.currentTarget);
                 scrollPocketForTouch(e);
-                
+
                 // deselect highlighted item
                 if (selectedElement) {
                     deselectElement(selectedElement);
@@ -1581,13 +1750,15 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                     hideTargetObjectLabel();
                 }
             });
-            segmentButton.addEventListener('pointerup', function(e) {
+            segmentButton.addEventListener('pointerup', function (e) {
                 hideAllSegmentSelections();
                 selectSegment(e.currentTarget);
                 e.currentTarget.classList.remove('pocketScrollBarSegmentTouched');
             });
-            segmentButton.addEventListener('pointerenter', function(e) {
-                if (!pocketPointerDown) { return; }
+            segmentButton.addEventListener('pointerenter', function (e) {
+                if (!pocketPointerDown) {
+                    return;
+                }
 
                 hideAllSegmentSelections();
                 selectSegment(e.currentTarget);
@@ -1599,18 +1770,22 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
                     hideTargetObjectLabel();
                 }
             });
-            segmentButton.addEventListener('pointerleave', function(e) {
-                if (!pocketPointerDown) { return; }
+            segmentButton.addEventListener('pointerleave', function (e) {
+                if (!pocketPointerDown) {
+                    return;
+                }
                 e.currentTarget.classList.remove('pocketScrollBarSegmentTouched');
             });
-            segmentButton.addEventListener('pointercancel', function(e) {
+            segmentButton.addEventListener('pointercancel', function (e) {
                 e.currentTarget.classList.remove('pocketScrollBarSegmentTouched');
             });
-            segmentButton.addEventListener('pointermove', function(e) {
-                if (!pocketPointerDown  || !scrollbarPointerDown) { return; }
+            segmentButton.addEventListener('pointermove', function (e) {
+                if (!pocketPointerDown || !scrollbarPointerDown) {
+                    return;
+                }
                 scrollPocketForTouch(e);
             });
-            segmentButton.addEventListener('gotpointercapture', function(evt) {
+            segmentButton.addEventListener('gotpointercapture', function (evt) {
                 evt.target.releasePointerCapture(evt.pointerId);
             });
             scrollbar.appendChild(segmentButton);
@@ -1622,15 +1797,24 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
      * Adds blue corners to each pocket icon container
      */
     function finishStylingPocket() {
-        Array.from(document.querySelectorAll('.palette-element')).forEach(function(paletteElement) {
-            // remove existing ones if needed, to ensure size is correct
-            var cornersFound = paletteElement.querySelector('.corners');
-            if (cornersFound) {
-                paletteElement.removeChild(cornersFound);
+        Array.from(document.querySelectorAll('.palette-element')).forEach(
+            function (paletteElement) {
+                // remove existing ones if needed, to ensure size is correct
+                var cornersFound = paletteElement.querySelector('.corners');
+                if (cornersFound) {
+                    paletteElement.removeChild(cornersFound);
+                }
+                // add new corners to each icon container
+                realityEditor.gui.moveabilityCorners.wrapDivWithCorners(
+                    paletteElement,
+                    0,
+                    true,
+                    null,
+                    null,
+                    1
+                );
             }
-            // add new corners to each icon container
-            realityEditor.gui.moveabilityCorners.wrapDivWithCorners(paletteElement, 0, true, null, null, 1);
-        });
+        );
 
         // style the memory containers if needed
         if (overlayDiv.classList.contains('overlayMemory')) {
@@ -1638,20 +1822,24 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
         } else {
             highlightAvailableMemoryContainers(false);
         }
-
     }
-    
+
     function highlightAvailableMemoryContainers(shouldHighlight) {
         let pocketDiv = document.querySelector('.pocket');
-        
+
         if (shouldHighlight) {
-            Array.from(pocketDiv.querySelectorAll('.memoryContainer')).filter(function(element) {
-                return !(element.classList.contains('nodeMemoryContainer') || element.dataset.objectId);
-            }).forEach(function(element) {
-                element.classList.add('availableContainer');
-            });
+            Array.from(pocketDiv.querySelectorAll('.memoryContainer'))
+                .filter(function (element) {
+                    return !(
+                        element.classList.contains('nodeMemoryContainer') ||
+                        element.dataset.objectId
+                    );
+                })
+                .forEach(function (element) {
+                    element.classList.add('availableContainer');
+                });
         } else {
-            Array.from(pocketDiv.querySelectorAll('.memoryContainer')).forEach(function(element) {
+            Array.from(pocketDiv.querySelectorAll('.memoryContainer')).forEach(function (element) {
                 element.classList.remove('availableContainer');
             });
         }
@@ -1662,16 +1850,16 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
     exports.pocketShown = pocketShown;
     exports.pocketShow = pocketShow;
     exports.pocketHide = pocketHide;
-    
+
     exports.onPocketButtonEnter = onPocketButtonEnter;
     exports.onPocketButtonUp = onPocketButtonUp;
     exports.onBigPocketButtonEnter = onBigPocketButtonEnter;
     exports.onHalfPocketButtonEnter = onHalfPocketButtonEnter;
 
     exports.addElementHighlightFilter = addElementHighlightFilter;
-    
+
     exports.getRealityElements = getRealityElements;
-    
+
     exports.createFrame = createFrame;
     exports.addTutorialFrame = addTutorialFrame;
 
@@ -1681,5 +1869,4 @@ realityEditor.gui.pocket.createLogicNode = function(logicNodeMemory) {
     exports.getWidth = getWidth;
     exports.onWindowResized = onWindowResized;
     exports.createPocketScrollbar = createPocketScrollbar;
-    
-}(realityEditor.gui.pocket));
+})(realityEditor.gui.pocket);

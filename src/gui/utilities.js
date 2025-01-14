@@ -52,7 +52,7 @@
  * Contains utility functions related to the onscreen graphics, such as line calculations and image preloading.
  */
 
-createNameSpace("realityEditor.gui.utilities");
+createNameSpace('realityEditor.gui.utilities');
 
 /**
  * Checks if the line (x11,y11) -> (x12,y12) intersects with the line (x21,y21) -> (x22,y22)
@@ -68,26 +68,41 @@ createNameSpace("realityEditor.gui.utilities");
  * @param {number} h - height of canvas (ignores intersections outside of canvas
  * @return {boolean}
  */
-realityEditor.gui.utilities.checkLineCross = function (x11, y11, x12, y12, x21, y21, x22, y22, w, h) {
-	var l1 = this.lineEq(x11, y11, x12, y12),
-		l2 = this.lineEq(x21, y21, x22, y22);
+realityEditor.gui.utilities.checkLineCross = function (
+    x11,
+    y11,
+    x12,
+    y12,
+    x21,
+    y21,
+    x22,
+    y22,
+    w,
+    h
+) {
+    var l1 = this.lineEq(x11, y11, x12, y12),
+        l2 = this.lineEq(x21, y21, x22, y22);
 
-	var interX = this.calculateX(l1, l2); //calculate the intersection X value
-	if (interX > w || interX < 0) {
-		return false; //false if intersection of lines is output of canvas
-	}
-	var interY = this.calculateY(l1, interX);
-	// cout("interX, interY",interX, interY);
+    var interX = this.calculateX(l1, l2); //calculate the intersection X value
+    if (interX > w || interX < 0) {
+        return false; //false if intersection of lines is output of canvas
+    }
+    var interY = this.calculateY(l1, interX);
+    // cout("interX, interY",interX, interY);
 
-	if (!interY || !interX) {
-		return false;
-	}
-	if (interY > h || interY < 0) {
-		return false; //false if intersection of lines is output of canvas
-	}
-	//  cout("point on line --- checking on segment now");
-	return (this.checkBetween(x11, x12, interX) && this.checkBetween(y11, y12, interY)
-	&& this.checkBetween(x21, x22, interX) && this.checkBetween(y21, y22, interY));
+    if (!interY || !interX) {
+        return false;
+    }
+    if (interY > h || interY < 0) {
+        return false; //false if intersection of lines is output of canvas
+    }
+    //  cout("point on line --- checking on segment now");
+    return (
+        this.checkBetween(x11, x12, interX) &&
+        this.checkBetween(y11, y12, interY) &&
+        this.checkBetween(x21, x22, interX) &&
+        this.checkBetween(y21, y22, interY)
+    );
 };
 
 /**
@@ -101,12 +116,11 @@ realityEditor.gui.utilities.checkLineCross = function (x11, y11, x12, y12, x21, 
  * @return {Array.<number>} - length 2 array. first entry is m (slope), seconds is b (y-intercept)
  */
 realityEditor.gui.utilities.lineEq = function (x1, y1, x2, y2) {
-	var m = this.slopeCalc(x1, y1, x2, y2);
-	// if(m == 'vertical'){
-	//     return ['vertical', 'vertical'];
-	// }
-	return [m, -1 * m * x1 + y1];
-
+    var m = this.slopeCalc(x1, y1, x2, y2);
+    // if(m == 'vertical'){
+    //     return ['vertical', 'vertical'];
+    // }
+    return [m, -1 * m * x1 + y1];
 };
 
 /**
@@ -119,10 +133,10 @@ realityEditor.gui.utilities.lineEq = function (x1, y1, x2, y2) {
  * @return {number}
  */
 realityEditor.gui.utilities.slopeCalc = function (x1, y1, x2, y2) {
-	if ((x1 - x2) === 0) {
-		return 9999; //handle cases when slope is infinity
-	}
-	return (y1 - y2) / (x1 - x2);
+    if (x1 - x2 === 0) {
+        return 9999; //handle cases when slope is infinity
+    }
+    return (y1 - y2) / (x1 - x2);
 };
 
 /**
@@ -132,17 +146,17 @@ realityEditor.gui.utilities.slopeCalc = function (x1, y1, x2, y2) {
  * @return {number} - the x value of their intersection
  */
 realityEditor.gui.utilities.calculateX = function (seg1, seg2) {
-	return (seg2[1] - seg1[1]) / (seg1[0] - seg2[0]);
+    return (seg2[1] - seg1[1]) / (seg1[0] - seg2[0]);
 };
 
 /**
- * calculate y given x and the line equation 
+ * calculate y given x and the line equation
  * @param {Array.<number>} seg1 - [slope of line 1, y-intercept of line 1]
  * @param {number} x
  * @return {number} - returns (y = mx + b)
  */
 realityEditor.gui.utilities.calculateY = function (seg1, x) {
-	return seg1[0] * x + seg1[1];
+    return seg1[0] * x + seg1[1];
 };
 
 /**
@@ -155,16 +169,16 @@ realityEditor.gui.utilities.calculateY = function (seg1, x) {
  * @return {boolean}
  */
 realityEditor.gui.utilities.checkBetween = function (e1, e2, p) {
-	var marg2 = 2;
+    var marg2 = 2;
 
-	if (e1 - marg2 <= p && p <= e2 + marg2) {
-		return true;
-	}
-	if (e2 - marg2 <= p && p <= e1 + marg2) {
-		return true;
-	}
+    if (e1 - marg2 <= p && p <= e2 + marg2) {
+        return true;
+    }
+    if (e2 - marg2 <= p && p <= e1 + marg2) {
+        return true;
+    }
 
-	return false;
+    return false;
 };
 
 /**
@@ -173,14 +187,14 @@ realityEditor.gui.utilities.checkBetween = function (e1, e2, p) {
  * Any number of additional string parameters can be passed in as file paths that should be loaded
  * @param {Array.<string>} array
  */
-realityEditor.gui.utilities.preload = function(array) {
+realityEditor.gui.utilities.preload = function (array) {
     var args = Array.from(arguments);
     for (var i = 0; i < arguments.length - 1; i++) {
         array[i] = new Image();
         array[i].src = args[i + 1];
     }
 
-    cout("preload");
+    cout('preload');
 };
 
 /**
@@ -190,14 +204,14 @@ realityEditor.gui.utilities.preload = function(array) {
  * @param {number} pageY
  * @return {{x: number, y: number}} matching coordinates within the elt's frame of reference
  */
-realityEditor.gui.utilities.convertPointFromPageToNode = function(elt, pageX, pageY) {
+realityEditor.gui.utilities.convertPointFromPageToNode = function (elt, pageX, pageY) {
     var eltRect = elt.getClientRects()[0];
-    var nodeX = (pageX - eltRect.left) / eltRect.width * parseFloat(elt.style.width);
-    var nodeY = (pageY - eltRect.top) / eltRect.height * parseFloat(elt.style.height);
+    var nodeX = ((pageX - eltRect.left) / eltRect.width) * parseFloat(elt.style.width);
+    var nodeY = ((pageY - eltRect.top) / eltRect.height) * parseFloat(elt.style.height);
     return {
         x: nodeX,
-        y: nodeY
-    }
+        y: nodeY,
+    };
 };
 
 /**
@@ -206,10 +220,10 @@ realityEditor.gui.utilities.convertPointFromPageToNode = function(elt, pageX, pa
  * @param {string} objectKey
  * @return {{width: number, height: number}}
  */
-realityEditor.gui.utilities.getTargetSize = function(objectKey) {
+realityEditor.gui.utilities.getTargetSize = function (objectKey) {
     let targetSize = {
         width: 0.3,
-        height: 0.3
+        height: 0.3,
     };
 
     let object = realityEditor.getObject(objectKey);
@@ -238,10 +252,10 @@ realityEditor.gui.utilities.getTargetSize = function(objectKey) {
  * @param {Function} translationFn - called to apply translation
  * @param {object} options - used for Web Animations API
  */
-realityEditor.gui.utilities.animateTranslations = function(elements, translationFn, options) {
-    const starts = elements.map(element => element.getBoundingClientRect());
+realityEditor.gui.utilities.animateTranslations = function (elements, translationFn, options) {
+    const starts = elements.map((element) => element.getBoundingClientRect());
     translationFn();
-    const ends = elements.map(element => element.getBoundingClientRect());
+    const ends = elements.map((element) => element.getBoundingClientRect());
 
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i];
@@ -251,14 +265,21 @@ realityEditor.gui.utilities.animateTranslations = function(elements, translation
         const dx = start.left - end.left;
         const dy = start.top - end.top;
 
-        element.animate([
-            {
-                transform: `translate(${dx}px, ${dy}px)`,
-            }, {
-                transform: `none`,
-            }
-        ], Object.assign({
-            fill: 'both', // Transform should persist afterwards and be applied before
-        }, options));
+        element.animate(
+            [
+                {
+                    transform: `translate(${dx}px, ${dy}px)`,
+                },
+                {
+                    transform: `none`,
+                },
+            ],
+            Object.assign(
+                {
+                    fill: 'both', // Transform should persist afterwards and be applied before
+                },
+                options
+            )
+        );
     }
 };

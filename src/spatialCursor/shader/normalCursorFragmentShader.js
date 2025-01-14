@@ -1,6 +1,6 @@
-createNameSpace("realityEditor.spatialCursor.shader.normalCursorFragmentShader");
+createNameSpace('realityEditor.spatialCursor.shader.normalCursorFragmentShader');
 
-(function(exports) {
+(function (exports) {
     const normalCursorFragmentShaderCode = `
         uniform float time;
         varying vec2 vUv;

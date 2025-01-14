@@ -7,7 +7,11 @@
     visibility: visible;
     border: 2px solid cyan;
     background-color: rgba(0, 255, 255, 0.3);
-    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-family:
+        Helvetica Neue,
+        Helvetica,
+        Arial,
+        sans-serif;
     /*font-size: 24px;*/
     color: cyan;
     user-select: none;
@@ -37,7 +41,11 @@
     margin-left: -2px;
     margin-top: -1px;
     background-color: rgba(0, 255, 255, 0.2);
-    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-family:
+        Helvetica Neue,
+        Helvetica,
+        Arial,
+        sans-serif;
     color: cyan;
     user-select: none;
     -webkit-user-select: none;
@@ -66,5 +74,5 @@
 }
 
 .dropdownSelected {
-    background-color: rgba(0, 255, 255, 0.7)        !important;
+    background-color: rgba(0, 255, 255, 0.7) !important;
 }

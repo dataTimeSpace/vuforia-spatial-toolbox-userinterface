@@ -1,24 +1,19 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
-import {Timeline} from './timeline.js';
-import {DraggableMenu} from '../utilities/DraggableMenu.js';
-import {TableView} from '../utilities/TableView.js';
-import {TagSystem, TagCategory, Tag} from '../utilities/TagSystem.js';
-import {
-    RegionCard,
-    RegionCardState,
-} from './regionCard.js';
-import {HumanPoseAnalyzer} from '../humanPose/HumanPoseAnalyzer.js';
-import {
-    postPersistRequest,
-} from './utils.js';
-import {ValueAddWasteTimeManager} from './ValueAddWasteTimeManager.js';
-import {makeTextInput} from '../utilities/makeTextInput.js';
-import {MURI_SCORES, MURI_CONFIG} from '../humanPose/MuriScore.js';
-import {HUMAN_TRACKING_FPS} from '../humanPose/constants.js';
-import {ImportStepsButton} from './ImportStepsButton.js';
+import { Timeline } from './timeline.js';
+import { DraggableMenu } from '../utilities/DraggableMenu.js';
+import { TableView } from '../utilities/TableView.js';
+import { TagSystem, TagCategory, Tag } from '../utilities/TagSystem.js';
+import { RegionCard, RegionCardState } from './regionCard.js';
+import { HumanPoseAnalyzer } from '../humanPose/HumanPoseAnalyzer.js';
+import { postPersistRequest } from './utils.js';
+import { ValueAddWasteTimeManager } from './ValueAddWasteTimeManager.js';
+import { makeTextInput } from '../utilities/makeTextInput.js';
+import { MURI_SCORES, MURI_CONFIG } from '../humanPose/MuriScore.js';
+import { HUMAN_TRACKING_FPS } from '../humanPose/constants.js';
+import { ImportStepsButton } from './ImportStepsButton.js';
 // import {CreateStepSensorsButton} from './CreateStepSensorsButton.js';
-import {Windchill} from './Windchill.js';
+import { Windchill } from './Windchill.js';
 
 const RecordingState = {
     empty: 'empty',
@@ -103,71 +98,65 @@ export class MotionStudy {
     }
 
     createTagSystemMenu() {
-        this.tagSystemMenu = new DraggableMenu(
-            'analytics-tag-system-root',
-            'Tag System',
-            {
-                sections: [
-                    {
-                        id: 'analytics-tag-system-category-section',
-                        title: 'Categories',
-                        items: [
-                            {
-                                type: 'textInput',
-                                id: 'analytics-tag-system-add-category-text-input',
-                                label: 'Category Name',
-                                placeholder: 'New category name...',
-                            },
-                            {
-                                type: 'button',
-                                id: 'analytics-tag-system-add-category-button',
-                                label: '+ Add Category',
-                            },
-                            {
-                                type: 'select',
-                                id: 'analytics-tag-system-category-select',
-                                label: 'Select Category',
-                                options: this.tagSystem.categories.map(
-                                    (category) => category.name,
-                                ),
-                            },
-                            {
-                                type: 'button',
-                                id: 'analytics-tag-system-delete-category-button',
-                                label: '- Delete Category',
-                            },
-                        ],
-                    },
-                    {
-                        id: 'analytics-tag-system-tag-section',
-                        title: 'Tags', // Override with Tags ([Category Name])
-                        items: [
-                            {
-                                type: 'textInput',
-                                id: 'analytics-tag-system-add-tag-text-input',
-                                label: 'Tag Name',
-                                placeholder: 'New tag name...',
-                            },
-                            {
-                                type: 'button',
-                                id: 'analytics-tag-system-add-tag-button',
-                                label: '+ Add Tag',
-                            },
-                            {
-                                type: 'div',
-                                id: 'analytics-tag-system-tag-container',
-                            },
-                        ],
-                    },
-                ],
-            },
-        );
+        this.tagSystemMenu = new DraggableMenu('analytics-tag-system-root', 'Tag System', {
+            sections: [
+                {
+                    id: 'analytics-tag-system-category-section',
+                    title: 'Categories',
+                    items: [
+                        {
+                            type: 'textInput',
+                            id: 'analytics-tag-system-add-category-text-input',
+                            label: 'Category Name',
+                            placeholder: 'New category name...',
+                        },
+                        {
+                            type: 'button',
+                            id: 'analytics-tag-system-add-category-button',
+                            label: '+ Add Category',
+                        },
+                        {
+                            type: 'select',
+                            id: 'analytics-tag-system-category-select',
+                            label: 'Select Category',
+                            options: this.tagSystem.categories.map((category) => category.name),
+                        },
+                        {
+                            type: 'button',
+                            id: 'analytics-tag-system-delete-category-button',
+                            label: '- Delete Category',
+                        },
+                    ],
+                },
+                {
+                    id: 'analytics-tag-system-tag-section',
+                    title: 'Tags', // Override with Tags ([Category Name])
+                    items: [
+                        {
+                            type: 'textInput',
+                            id: 'analytics-tag-system-add-tag-text-input',
+                            label: 'Tag Name',
+                            placeholder: 'New tag name...',
+                        },
+                        {
+                            type: 'button',
+                            id: 'analytics-tag-system-add-tag-button',
+                            label: '+ Add Tag',
+                        },
+                        {
+                            type: 'div',
+                            id: 'analytics-tag-system-tag-container',
+                        },
+                    ],
+                },
+            ],
+        });
 
         const addCategoryInput = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-add-category-text-input',
+            '#analytics-tag-system-add-category-text-input'
         );
         const addCategoryButton = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-add-category-button',
+            '#analytics-tag-system-add-category-button'
         );
         addCategoryButton.addEventListener('click', () => {
             if (addCategoryInput.value.trim()) {
@@ -180,30 +169,26 @@ export class MotionStudy {
             }
         });
         const categorySelect = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-category-select',
+            '#analytics-tag-system-category-select'
         );
         categorySelect.addEventListener('change', (e) => {
-            this.tagSystemMenuState.selectedCategory =
-                this.tagSystem.categories.find(
-                    (category) => category.name === e.target.value,
-                );
+            this.tagSystemMenuState.selectedCategory = this.tagSystem.categories.find(
+                (category) => category.name === e.target.value
+            );
             this.updateTagSystemMenu();
         });
         const deleteCategoryButton = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-delete-category-button',
+            '#analytics-tag-system-delete-category-button'
         );
         deleteCategoryButton.addEventListener('click', () => {
             if (this.tagSystemMenuState.selectedCategory) {
                 if (
                     confirm(
-                        `Are you sure you want to delete the category '${this.tagSystemMenuState.selectedCategory.name}'?`,
+                        `Are you sure you want to delete the category '${this.tagSystemMenuState.selectedCategory.name}'?`
                     )
                 ) {
-                    this.tagSystem.removeCategory(
-                        this.tagSystemMenuState.selectedCategory,
-                    );
-                    this.tagSystemMenuState.selectedCategory =
-                        this.tagSystem.categories[0];
+                    this.tagSystem.removeCategory(this.tagSystemMenuState.selectedCategory);
+                    this.tagSystemMenuState.selectedCategory = this.tagSystem.categories[0];
                     this.updateTagSystemMenu();
                     this.writeMotionStudyData();
                 }
@@ -211,10 +196,10 @@ export class MotionStudy {
         });
 
         const addTagInput = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-add-tag-text-input',
+            '#analytics-tag-system-add-tag-text-input'
         );
         const addTagButton = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-add-tag-button',
+            '#analytics-tag-system-add-tag-button'
         );
         addTagButton.addEventListener('click', () => {
             if (addTagInput.value.trim()) {
@@ -239,35 +224,29 @@ export class MotionStudy {
 
     updateTagSystemMenu() {
         const categorySelect = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-category-select',
+            '#analytics-tag-system-category-select'
         );
         categorySelect.innerHTML = this.tagSystem.categories
-            .map(
-                (category) =>
-                    `<option value='${category.name}'>${category.name}</option>`,
-            )
+            .map((category) => `<option value='${category.name}'>${category.name}</option>`)
             .join('');
 
         const tagContainer = this.tagSystemMenu.body.querySelector(
-            '#analytics-tag-system-tag-container',
+            '#analytics-tag-system-tag-container'
         );
         tagContainer.innerHTML = '';
 
         this.tagSystemMenu.body
             .querySelector('#analytics-tag-system-tag-section')
-            .querySelector('.draggable-menu-section-title').innerText = this
-            .tagSystemMenuState.selectedCategory
+            .querySelector('.draggable-menu-section-title').innerText = this.tagSystemMenuState
+            .selectedCategory
             ? `${this.tagSystemMenuState.selectedCategory.name} Tags`
             : 'Tags';
 
         if (this.tagSystemMenuState.selectedCategory) {
-            categorySelect.value =
-                this.tagSystemMenuState.selectedCategory.name;
+            categorySelect.value = this.tagSystemMenuState.selectedCategory.name;
 
             const tagColumnLabels = document.createElement('div');
-            tagColumnLabels.classList.add(
-                'analytics-tag-system-tag-column-labels',
-            );
+            tagColumnLabels.classList.add('analytics-tag-system-tag-column-labels');
             tagColumnLabels.innerHTML = `<div>Tag</div>
 <div class='analytics-tag-system-tag-right'>
     <div>Text</div>
@@ -285,7 +264,7 @@ export class MotionStudy {
     <button class='analytics-tag-system-delete-tag-button'>&times;</button>
 </div>`;
                 const textColorPicker = tagElement.querySelector(
-                    '.analytics-tag-system-tag-text-color-picker',
+                    '.analytics-tag-system-tag-text-color-picker'
                 );
                 textColorPicker.addEventListener('change', (e) => {
                     tag.colors.text = e.target.value;
@@ -294,7 +273,7 @@ export class MotionStudy {
                 });
 
                 const backgroundColorPicker = tagElement.querySelector(
-                    '.analytics-tag-system-tag-background-color-picker',
+                    '.analytics-tag-system-tag-background-color-picker'
                 );
                 backgroundColorPicker.addEventListener('change', (e) => {
                     tag.colors.background = e.target.value;
@@ -303,14 +282,10 @@ export class MotionStudy {
                 });
 
                 const deleteTagButton = tagElement.querySelector(
-                    '.analytics-tag-system-delete-tag-button',
+                    '.analytics-tag-system-delete-tag-button'
                 );
                 deleteTagButton.addEventListener('click', () => {
-                    if (
-                        confirm(
-                            `Are you sure you want to delete the tag '${tag.name}'?`,
-                        )
-                    ) {
+                    if (confirm(`Are you sure you want to delete the tag '${tag.name}'?`)) {
                         this.tagSystemMenuState.selectedCategory.removeTag(tag);
                         this.updateTagSystemMenu();
                         this.writeMotionStudyData();
@@ -348,7 +323,9 @@ export class MotionStudy {
         //     poses.map(pose => pose.)
         //     this.humanPoseAnalyzer.muriLens.getTableViewValue(joint)
         // })
-        let exportLink = this.tableViewMenu.root.querySelector('.draggable-menu-additional-controls');
+        let exportLink = this.tableViewMenu.root.querySelector(
+            '.draggable-menu-additional-controls'
+        );
         exportLink.onclick = (e) => {
             console.log(this.tableView.table.rows);
             e.stopPropagation();
@@ -356,26 +333,37 @@ export class MotionStudy {
 
         this.tableViewMenu.body.innerHTML = ''; // Remove old table view if it exists
         const lens = this.humanPoseAnalyzer.activeLens;
-        const jointNameMap = value => value.split('_').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
+        const jointNameMap = (value) =>
+            value
+                .split('_')
+                .map((word) => word[0].toUpperCase() + word.slice(1))
+                .join(' ');
         const jointNames = lens.getTableViewJoints().map(jointNameMap);
-        const invertJointNameMap = value => lens.getTableViewJoints().find(name => jointNameMap(name) === value);
+        const invertJointNameMap = (value) =>
+            lens.getTableViewJoints().find((name) => jointNameMap(name) === value);
         const data = [];
         const regionCards = this.pinnedRegionCards;
-        const stepNames = regionCards.map(card => card.getLabel());
+        const stepNames = regionCards.map((card) => card.getLabel());
         if (regionCards.length === 0) {
-            this.tableViewMenu.body.innerHTML = '<p>Please record ≥1 step to see the table view.</p>'
+            this.tableViewMenu.body.innerHTML =
+                '<p>Please record ≥1 step to see the table view.</p>';
             return;
         }
-        regionCards.forEach(step => {
+        regionCards.forEach((step) => {
             let dataRow = [];
-            const poses = this.humanPoseAnalyzer.getPosesInTimeInterval(step.startTime, step.endTime);
+            const poses = this.humanPoseAnalyzer.getPosesInTimeInterval(
+                step.startTime,
+                step.endTime
+            );
             if (poses.length === 0) {
-                dataRow = Array.from({length: jointNames.length}).map(() => 0);
+                dataRow = Array.from({ length: jointNames.length }).map(() => 0);
             } else {
                 poses.forEach((pose, i) => {
                     const jointValues = Object.values(pose.joints);
                     jointNames.forEach((jointName, j) => {
-                        const joint = jointValues.find(joint => jointNameMap(joint.name) === jointName);
+                        const joint = jointValues.find(
+                            (joint) => jointNameMap(joint.name) === jointName
+                        );
                         if (i === 0) {
                             dataRow.push(lens.getTableViewValue(joint));
                         } else {
@@ -395,12 +383,14 @@ export class MotionStudy {
                 return lens.getTableViewColorForValue(value, invertJointNameMap(columnName));
             },
             headerImages: lens.getTableViewImages(),
-            persistId: `${this.frame}-${lens.name}`
+            persistId: `${this.frame}-${lens.name}`,
         });
-        this.tableView.onSelection(selection => {
-            const selectedRows = Array.from(new Set(selection.map(cell => cell.row)));
-            const selectedColumns = Array.from(new Set(selection.map(cell => cell.column)));
-            const regionCards = this.pinnedRegionCards.filter(card => selectedRows.includes(card.getLabel()));
+        this.tableView.onSelection((selection) => {
+            const selectedRows = Array.from(new Set(selection.map((cell) => cell.row)));
+            const selectedColumns = Array.from(new Set(selection.map((cell) => cell.column)));
+            const regionCards = this.pinnedRegionCards.filter((card) =>
+                selectedRows.includes(card.getLabel())
+            );
 
             if (selectedColumns.length === 1) {
                 const jointName = invertJointNameMap(selectedColumns[0]);
@@ -412,29 +402,43 @@ export class MotionStudy {
             }
 
             if (selectedRows.length === 1) {
-                const card = regionCards.find(card => card.getLabel() === selectedRows[0]);
+                const card = regionCards.find((card) => card.getLabel() === selectedRows[0]);
                 this.setActiveRegionCard(card);
-                this.setHighlightRegion({
-                    startTime: card.startTime,
-                    endTime: card.endTime,
-                    label: card.getLabel()
-                }, false);
+                this.setHighlightRegion(
+                    {
+                        startTime: card.startTime,
+                        endTime: card.endTime,
+                        label: card.getLabel(),
+                    },
+                    false
+                );
             } else {
                 this.setActiveRegionCard(null);
             }
 
             if (selection.length === 0) {
-                this.setHighlightRegion({startTime: Number.MIN_VALUE, endTime: Number.MAX_VALUE}, false);
+                this.setHighlightRegion(
+                    { startTime: Number.MIN_VALUE, endTime: Number.MAX_VALUE },
+                    false
+                );
             } else {
-                const startTime = regionCards.reduce((prev, curr) => Math.min(prev, curr.startTime), Number.MAX_VALUE);
-                const endTime = regionCards.reduce((prev, curr) => Math.max(prev, curr.endTime), Number.MIN_VALUE);
-                this.setHighlightRegion({startTime, endTime}, false);
+                const startTime = regionCards.reduce(
+                    (prev, curr) => Math.min(prev, curr.startTime),
+                    Number.MAX_VALUE
+                );
+                const endTime = regionCards.reduce(
+                    (prev, curr) => Math.max(prev, curr.endTime),
+                    Number.MIN_VALUE
+                );
+                this.setHighlightRegion({ startTime, endTime }, false);
             }
         });
 
         const setInteractable = () => {
-            this.tableView.setInteractable(this.tableViewMenu.showing && this.tableViewMenu.maximized)
-        }
+            this.tableView.setInteractable(
+                this.tableViewMenu.showing && this.tableViewMenu.maximized
+            );
+        };
         this.tableViewMenu.on('show', () => setInteractable());
         this.tableViewMenu.on('maximize', () => setInteractable());
         this.tableViewMenu.on('hide', () => setInteractable());
@@ -570,7 +574,10 @@ export class MotionStudy {
 
         this.exportLinkPinnedRegionCards = document.createElement('a');
         this.exportLinkPinnedRegionCards.classList.add('analytics-export-link');
-        this.exportLinkPinnedRegionCards.setAttribute('download', 'spatial analytics timeline region cards.csv');
+        this.exportLinkPinnedRegionCards.setAttribute(
+            'download',
+            'spatial analytics timeline region cards.csv'
+        );
         this.exportLinkPinnedRegionCards.textContent = 'Export Cards';
 
         this.exportLinkPoseData = document.createElement('a');
@@ -630,13 +637,17 @@ export class MotionStudy {
             return true;
         }
 
-        if (this.lastDisplayRegion.startTime > 0 &&
-            patch.creationTime < this.lastDisplayRegion.startTime) {
+        if (
+            this.lastDisplayRegion.startTime > 0 &&
+            patch.creationTime < this.lastDisplayRegion.startTime
+        ) {
             return false;
         }
 
-        if (this.lastDisplayRegion.endTime > 0 &&
-            patch.creationTime > this.lastDisplayRegion.endTime) {
+        if (
+            this.lastDisplayRegion.endTime > 0 &&
+            patch.creationTime > this.lastDisplayRegion.endTime
+        ) {
             return false;
         }
 
@@ -653,7 +664,9 @@ export class MotionStudy {
             return;
         }
 
-        const patches = Object.values(desktopRenderer.getCameraVisPatches() || {}).filter(this.patchFilter);
+        const patches = Object.values(desktopRenderer.getCameraVisPatches() || {}).filter(
+            this.patchFilter
+        );
 
         for (const patch of patches) {
             patch.show();
@@ -721,8 +734,10 @@ export class MotionStudy {
         }
 
         if (this.lastDisplayRegion) {
-            if (Math.abs(this.lastDisplayRegion.startTime - region.startTime) < 1 &&
-                Math.abs(this.lastDisplayRegion.endTime - region.endTime) < 1) {
+            if (
+                Math.abs(this.lastDisplayRegion.startTime - region.startTime) < 1 &&
+                Math.abs(this.lastDisplayRegion.endTime - region.endTime) < 1
+            ) {
                 return;
             }
         }
@@ -844,8 +859,10 @@ export class MotionStudy {
             } else {
                 let newPosesStartTime = poses[0].timestamp;
                 let newPosesEndTime = poses.at(-1).timestamp;
-                if (Math.abs(this.stepLabel.startTime - newPosesStartTime) > 200 ||
-                    Math.abs(this.stepLabel.endTime - newPosesEndTime) > 200) {
+                if (
+                    Math.abs(this.stepLabel.startTime - newPosesStartTime) > 200 ||
+                    Math.abs(this.stepLabel.endTime - newPosesEndTime) > 200
+                ) {
                     this.stepLabel.setPoses(poses, startTime, endTime);
                 }
             }
@@ -907,14 +924,17 @@ export class MotionStudy {
 
         this.lastHydratedData = data;
 
-        const videoUrlsAreValid = data.videoUrls &&
+        const videoUrlsAreValid =
+            data.videoUrls &&
             data.videoUrls.color &&
             data.videoUrls.rvl &&
             data.videoUrls.color.split('/').at(-1).length > '.mp4'.length &&
             data.videoUrls.rvl.split('/').at(-1).length > '.dat'.length;
         if (!this.videoPlayer && videoUrlsAreValid) {
-
-            this.videoPlayer = new realityEditor.gui.ar.videoPlayback.VideoPlayer('video' + this.frame, data.videoUrls);
+            this.videoPlayer = new realityEditor.gui.ar.videoPlayback.VideoPlayer(
+                'video' + this.frame,
+                data.videoUrls
+            );
             let matches = /\/rec(\d+)/.exec(data.videoUrls.color);
             if (matches && matches[1]) {
                 this.videoStartTime = parseFloat(matches[1]);
@@ -946,13 +966,15 @@ export class MotionStudy {
 
         if (data.tagSystem) {
             this.tagSystem.deserialize(data.tagSystem);
-            this.tagSystemMenuState.selectedCategory = this.tagSystemMenuState.selectedCategory ?? this.tagSystem.categories[0];
+            this.tagSystemMenuState.selectedCategory =
+                this.tagSystemMenuState.selectedCategory ?? this.tagSystem.categories[0];
             this.updateTagSystemMenu();
         }
 
         if (data.valueAddWasteTime) {
             this.valueAddWasteTimeManager.fromJSON(data.valueAddWasteTime);
-            let valueAddWasteTimeLens = this.humanPoseAnalyzer.getLensByName('Value Add/Waste Time');
+            let valueAddWasteTimeLens =
+                this.humanPoseAnalyzer.getLensByName('Value Add/Waste Time');
             if (valueAddWasteTimeLens) {
                 this.humanPoseAnalyzer.reprocessLens(valueAddWasteTimeLens);
             }
@@ -978,10 +1000,12 @@ export class MotionStudy {
                 regionCard.setLabel(desc.label);
             }
 
-            if (desc.label &&
+            if (
+                desc.label &&
                 desc.label.startsWith('Step ') &&
                 !isNaN(desc.label.slice(5)) &&
-                !isNaN(parseInt(desc.label.slice(5)))) {
+                !isNaN(parseInt(desc.label.slice(5)))
+            ) {
                 const stepNumber = parseInt(desc.label.slice(5));
                 if (stepNumber >= this.nextStepNumber) {
                     this.nextStepNumber = stepNumber + 1;
@@ -996,7 +1020,7 @@ export class MotionStudy {
             this.addRegionCard(regionCard);
         }
 
-        this.pinnedRegionCards = this.pinnedRegionCards.filter(pinnedRegionCard => {
+        this.pinnedRegionCards = this.pinnedRegionCards.filter((pinnedRegionCard) => {
             if (pinnedRegionCard.updated) {
                 return true;
             }
@@ -1007,7 +1031,7 @@ export class MotionStudy {
         this.sortPinnedRegionCards();
 
         if (data.plan && data.plan.id !== this.plan?.id) {
-            this.windchill.getProcessPlans(data.plan.name).then(plans => {
+            this.windchill.getProcessPlans(data.plan.name).then((plans) => {
                 this.setProcessPlan(plans[0]);
             });
         }
@@ -1063,7 +1087,7 @@ export class MotionStudy {
             if (sameTimes) {
                 // New region card already exists in the list, remove it but
                 // harvest it for data
-                regionCard.remove()
+                regionCard.remove();
 
                 pinnedRegionCard.updated = true;
 
@@ -1161,7 +1185,10 @@ export class MotionStudy {
                 insertBeforeThisIndex = j;
             }
             if (insertBeforeThisCard) {
-                this.pinnedRegionCardsContainer.insertBefore(bubblingCard.element, insertBeforeThisCard.element);
+                this.pinnedRegionCardsContainer.insertBefore(
+                    bubblingCard.element,
+                    insertBeforeThisCard.element
+                );
                 // Remove bubblingCard from its current index
                 this.pinnedRegionCards.splice(i, 1);
                 // Insert it into the list at its new index
@@ -1186,7 +1213,7 @@ export class MotionStudy {
             regionCard.updateWindchillSection();
         }
 
-        let allCards = this.pinnedRegionCards.map(regionCard => {
+        let allCards = this.pinnedRegionCards.map((regionCard) => {
             return {
                 startTime: regionCard.startTime,
                 endTime: regionCard.endTime,
@@ -1205,27 +1232,31 @@ export class MotionStudy {
             if (frameKey !== this.frame) {
                 continue;
             }
-            const motionStudyData = Object.assign(
-                {},
-                this.lastHydratedData || {},
-                {
-                    plan: this.plan && {
-                        id: this.plan.id,
-                        name: this.plan.name,
-                    },
-                    regionCards: allCards,
-                    valueAddWasteTime: this.valueAddWasteTimeManager.toJSON(),
-                    tagSystem: this.tagSystem.serialize(),
+            const motionStudyData = Object.assign({}, this.lastHydratedData || {}, {
+                plan: this.plan && {
+                    id: this.plan.id,
+                    name: this.plan.name,
                 },
-            );
+                regionCards: allCards,
+                valueAddWasteTime: this.valueAddWasteTimeManager.toJSON(),
+                tagSystem: this.tagSystem.serialize(),
+            });
             if (this.getTitle()) {
                 motionStudyData.title = this.getTitle();
             }
-            realityEditor.network.realtime.writePublicData(objectKey, frameKey, frameKey + 'storage', 'analyticsData', motionStudyData);
+            realityEditor.network.realtime.writePublicData(
+                objectKey,
+                frameKey,
+                frameKey + 'storage',
+                'analyticsData',
+                motionStudyData
+            );
 
-            if ((this.recordingState === RecordingState.done ||
-                this.recordingState === RecordingState.saving) &&
-                this.plan) {
+            if (
+                (this.recordingState === RecordingState.done ||
+                    this.recordingState === RecordingState.saving) &&
+                this.plan
+            ) {
                 this.windchill.writeProcessPlanData(this.plan, this.pinnedRegionCards);
             }
         }
@@ -1268,7 +1299,8 @@ export class MotionStudy {
             cardSummary += `took ${duration} to complete, `;
             if (card.step) {
                 let prefix = `was planned in `;
-                if (card.step.laborTimeSeconds > 0.5) { // Interesting non-zero planned time
+                if (card.step.laborTimeSeconds > 0.5) {
+                    // Interesting non-zero planned time
                     prefix = `was planned to take ${card.step.laborTimeSeconds} seconds in `;
                 }
                 let stepDesc = prefix + `WindChill operation id "${card.step.id}", `;
@@ -1280,7 +1312,7 @@ export class MotionStudy {
             } else {
                 cardSummary += 'and has ';
                 if (rebaAvg < 4) {
-                    cardSummary += 'a safe '
+                    cardSummary += 'a safe ';
                 } else if (rebaAvg < 8) {
                     cardSummary += 'a potentially unsafe ';
                 } else {
@@ -1300,7 +1332,7 @@ export class MotionStudy {
     getSummarizedTimelineState() {
         const allPoses = this.getPosesInTimeIntervalWithFallback(
             this.lastDisplayRegion.startTime,
-            this.lastDisplayRegion.endTime,
+            this.lastDisplayRegion.endTime
         );
         if (allPoses.length === 0) {
             return;
@@ -1314,10 +1346,12 @@ export class MotionStudy {
             return a.time - b.time;
         });
         const startTime = this.lastDisplayRegion.startTime;
-        return events.map(event => {
-            let dir = event.enter ? 'entered' : 'left';
-            return ` - ${Math.round((event.time - startTime) / 1000)} seconds: the person ${dir} ${event.sensor}`;
-        }).join('\n');
+        return events
+            .map((event) => {
+                let dir = event.enter ? 'entered' : 'left';
+                return ` - ${Math.round((event.time - startTime) / 1000)} seconds: the person ${dir} ${event.sensor}`;
+            })
+            .join('\n');
     }
 
     getSensorEvents(sensorFrame, poses) {
@@ -1366,7 +1400,7 @@ export class MotionStudy {
     }
 
     unpinRegionCard(regionCard) {
-        this.pinnedRegionCards = this.pinnedRegionCards.filter(prc => {
+        this.pinnedRegionCards = this.pinnedRegionCards.filter((prc) => {
             return prc !== regionCard;
         });
         this.updateExportLinks();
@@ -1383,8 +1417,10 @@ export class MotionStudy {
         if (regionCards.length === 0) {
             return {};
         }
-        if (!regionCards[0].hasOwnProperty('graphSummaryValues') ||
-            !regionCards[0].graphSummaryValues.hasOwnProperty('REBA')) {
+        if (
+            !regionCards[0].hasOwnProperty('graphSummaryValues') ||
+            !regionCards[0].graphSummaryValues.hasOwnProperty('REBA')
+        ) {
             console.error('first region card missing summary values');
             return {};
         }
@@ -1395,20 +1431,20 @@ export class MotionStudy {
             endTime: regionCards[0].endTime,
             durationMs: 0,
             distanceMm: 0,
-            graphSummaryValues: {}
+            graphSummaryValues: {},
         };
 
-        ['Accel', 'REBA', 'MURI'].forEach(name => {
+        ['Accel', 'REBA', 'MURI'].forEach((name) => {
             result.graphSummaryValues[name] = {
                 average: 0,
                 minimum: regionCards[0].graphSummaryValues[name].minimum,
                 maximum: regionCards[0].graphSummaryValues[name].maximum,
                 sum: 0,
-                count: 0
+                count: 0,
             };
         });
 
-        Object.values(MURI_SCORES).forEach(scoreName => {
+        Object.values(MURI_SCORES).forEach((scoreName) => {
             let name = 'MURI ' + scoreName;
             result.graphSummaryValues[name] = {
                 average: 0,
@@ -1418,7 +1454,7 @@ export class MotionStudy {
                 count: 0,
                 levelCounts: new Array(MURI_CONFIG.scoreWeights.length).fill(0),
                 levelDurations: new Array(MURI_CONFIG.scoreWeights.length + 1).fill(0),
-                levelDurationPercentages: new Array(MURI_CONFIG.scoreWeights.length + 1).fill(0)
+                levelDurationPercentages: new Array(MURI_CONFIG.scoreWeights.length + 1).fill(0),
             };
         });
 
@@ -1437,24 +1473,40 @@ export class MotionStudy {
             result.durationMs += regionCard.durationMs;
             result.distanceMm += regionCard.distanceMm;
 
-            ['Accel', 'REBA', 'MURI'].forEach(name => {
-                if (regionCard.graphSummaryValues[name].minimum < result.graphSummaryValues[name].minimum) {
-                    result.graphSummaryValues[name].minimum = regionCard.graphSummaryValues[name].minimum;
+            ['Accel', 'REBA', 'MURI'].forEach((name) => {
+                if (
+                    regionCard.graphSummaryValues[name].minimum <
+                    result.graphSummaryValues[name].minimum
+                ) {
+                    result.graphSummaryValues[name].minimum =
+                        regionCard.graphSummaryValues[name].minimum;
                 }
-                if (regionCard.graphSummaryValues[name].maximum > result.graphSummaryValues[name].maximum) {
-                    result.graphSummaryValues[name].maximum = regionCard.graphSummaryValues[name].maximum;
+                if (
+                    regionCard.graphSummaryValues[name].maximum >
+                    result.graphSummaryValues[name].maximum
+                ) {
+                    result.graphSummaryValues[name].maximum =
+                        regionCard.graphSummaryValues[name].maximum;
                 }
                 result.graphSummaryValues[name].sum += regionCard.graphSummaryValues[name].sum;
                 result.graphSummaryValues[name].count += regionCard.graphSummaryValues[name].count;
             });
 
-            Object.values(MURI_SCORES).forEach(scoreName => {
+            Object.values(MURI_SCORES).forEach((scoreName) => {
                 let key = 'MURI ' + scoreName;
-                if (regionCard.graphSummaryValues[key].minimum < result.graphSummaryValues[key].minimum) {
-                    result.graphSummaryValues[key].minimum = regionCard.graphSummaryValues[key].minimum;
+                if (
+                    regionCard.graphSummaryValues[key].minimum <
+                    result.graphSummaryValues[key].minimum
+                ) {
+                    result.graphSummaryValues[key].minimum =
+                        regionCard.graphSummaryValues[key].minimum;
                 }
-                if (regionCard.graphSummaryValues[key].maximum > result.graphSummaryValues[key].maximum) {
-                    result.graphSummaryValues[key].maximum = regionCard.graphSummaryValues[key].maximum;
+                if (
+                    regionCard.graphSummaryValues[key].maximum >
+                    result.graphSummaryValues[key].maximum
+                ) {
+                    result.graphSummaryValues[key].maximum =
+                        regionCard.graphSummaryValues[key].maximum;
                 }
                 result.graphSummaryValues[key].sum += regionCard.graphSummaryValues[key].sum;
                 result.graphSummaryValues[key].count += regionCard.graphSummaryValues[key].count;
@@ -1466,20 +1518,23 @@ export class MotionStudy {
         }
 
         // compute averages
-        ['Accel', 'REBA', 'MURI'].forEach(name => {
-            result.graphSummaryValues[name].average = result.graphSummaryValues[name].sum / result.graphSummaryValues[name].count;
+        ['Accel', 'REBA', 'MURI'].forEach((name) => {
+            result.graphSummaryValues[name].average =
+                result.graphSummaryValues[name].sum / result.graphSummaryValues[name].count;
         });
 
-        // compute averages and convert individual level counts to time durations and their percentages 
+        // compute averages and convert individual level counts to time durations and their percentages
         const singlePoseStandardTime = 1000 / HUMAN_TRACKING_FPS; // in ms
-        Object.values(MURI_SCORES).forEach(scoreName => {
+        Object.values(MURI_SCORES).forEach((scoreName) => {
             let key = 'MURI ' + scoreName;
-            result.graphSummaryValues[key].average = result.graphSummaryValues[key].sum / result.graphSummaryValues[key].count;
+            result.graphSummaryValues[key].average =
+                result.graphSummaryValues[key].sum / result.graphSummaryValues[key].count;
 
             // for more explanation, see RegionCard.getSummaryValuesExtended
             let levelDurationSum = 0;
             for (let i = 0; i < result.graphSummaryValues[key].levelCounts.length; i++) {
-                result.graphSummaryValues[key].levelDurations[i] = result.graphSummaryValues[key].levelCounts[i] * singlePoseStandardTime;
+                result.graphSummaryValues[key].levelDurations[i] =
+                    result.graphSummaryValues[key].levelCounts[i] * singlePoseStandardTime;
                 levelDurationSum += result.graphSummaryValues[key].levelDurations[i];
             }
             if (levelDurationSum > result.durationMs) {
@@ -1488,15 +1543,18 @@ export class MotionStudy {
                 result.graphSummaryValues[key].levelDurations.forEach((duration, index, arr) => {
                     arr[index] = (duration / levelDurationSum) * result.durationMs;
                 });
-            }
-            else {
+            } else {
                 // calculate duration when the value is unknown
-                result.graphSummaryValues[key].levelDurations[result.graphSummaryValues[key].levelDurations.length - 1] = result.durationMs - levelDurationSum;
+                result.graphSummaryValues[key].levelDurations[
+                    result.graphSummaryValues[key].levelDurations.length - 1
+                ] = result.durationMs - levelDurationSum;
             }
 
             result.graphSummaryValues[key].levelDurationPercentages.forEach((count, index, arr) => {
-                arr[index] = (result.graphSummaryValues[key].levelDurations[index] / result.durationMs) * 100;
-            }); 
+                arr[index] =
+                    (result.graphSummaryValues[key].levelDurations[index] / result.durationMs) *
+                    100;
+            });
         });
 
         return result;
@@ -1513,7 +1571,7 @@ export class MotionStudy {
         // compute total stats over all region cards
         // make a pseudo region card
         let totalCard = this.aggregateRegionCardSummaryValues(this.pinnedRegionCards);
-        totalCard.getLabel = function() {
+        totalCard.getLabel = function () {
             return 'All steps';
         };
         totalCard.poses = [1]; // dummy member
@@ -1522,33 +1580,50 @@ export class MotionStudy {
 
         let header = [
             'label',
-            'start', 'end', 'duration seconds', 'distance meters',
-            'accel avg', 'accel min', 'accel max',
-            'reba avg', 'reba min', 'reba max', 'reba sum', 'reba count',
-            'muri avg', 'muri min', 'muri max', 'muri sum', 'muri count',
-            'value time seconds', 'waste time seconds', 'other time seconds',
-        ]
+            'start',
+            'end',
+            'duration seconds',
+            'distance meters',
+            'accel avg',
+            'accel min',
+            'accel max',
+            'reba avg',
+            'reba min',
+            'reba max',
+            'reba sum',
+            'reba count',
+            'muri avg',
+            'muri min',
+            'muri max',
+            'muri sum',
+            'muri count',
+            'value time seconds',
+            'waste time seconds',
+            'other time seconds',
+        ];
 
         let sortedScoreWeights = MURI_CONFIG.scoreWeights.toSorted((a, b) => a - b);
 
-        Object.values(MURI_SCORES).forEach(scoreName => {
-            let titleTexts = ['muri ' + scoreName + ' avg',
-                          'muri ' + scoreName + ' sum',
-                          'muri ' + scoreName + ' count'];
+        Object.values(MURI_SCORES).forEach((scoreName) => {
+            let titleTexts = [
+                'muri ' + scoreName + ' avg',
+                'muri ' + scoreName + ' sum',
+                'muri ' + scoreName + ' count',
+            ];
             // sample counts for score levels
-            sortedScoreWeights.forEach(weight => {
-                titleTexts.push('muri ' + scoreName + ' level' + weight + ' count')
+            sortedScoreWeights.forEach((weight) => {
+                titleTexts.push('muri ' + scoreName + ' level' + weight + ' count');
             });
             // time duration for score levels
-            sortedScoreWeights.forEach(weight => {
-                titleTexts.push('muri ' + scoreName + ' level' + weight + ' duration')
+            sortedScoreWeights.forEach((weight) => {
+                titleTexts.push('muri ' + scoreName + ' level' + weight + ' duration');
             });
-            titleTexts.push('muri ' + scoreName + ' unknown duration')
+            titleTexts.push('muri ' + scoreName + ' unknown duration');
             // time % for score levels
-            sortedScoreWeights.forEach(weight => {
-                titleTexts.push('muri ' + scoreName + ' level' + weight + ' %')
+            sortedScoreWeights.forEach((weight) => {
+                titleTexts.push('muri ' + scoreName + ' level' + weight + ' %');
             });
-            titleTexts.push('muri ' + scoreName + ' unknown %')
+            titleTexts.push('muri ' + scoreName + ' unknown %');
 
             header.push(...titleTexts);
         });
@@ -1564,11 +1639,13 @@ export class MotionStudy {
             const vawtValues = [0, 0, regionCard.durationMs / 1000];
             const vawtSummary = regionCard.getValueAddWasteTimeSummary();
             if (vawtSummary) {
-                vawtValues[0] = vawtSummary.valueTimeMs / 1000,
-                vawtValues[1] = vawtSummary.wasteTimeMs / 1000,
-                vawtValues[2] = (regionCard.durationMs
-                    - vawtSummary.valueTimeMs
-                    - vawtSummary.wasteTimeMs) / 1000;
+                (vawtValues[0] = vawtSummary.valueTimeMs / 1000),
+                    (vawtValues[1] = vawtSummary.wasteTimeMs / 1000),
+                    (vawtValues[2] =
+                        (regionCard.durationMs -
+                            vawtSummary.valueTimeMs -
+                            vawtSummary.wasteTimeMs) /
+                        1000);
             }
 
             let values = [
@@ -1594,17 +1671,25 @@ export class MotionStudy {
                 ...vawtValues,
             ];
 
-            Object.values(MURI_SCORES).forEach(scoreName => {
+            Object.values(MURI_SCORES).forEach((scoreName) => {
                 let key = 'MURI ' + scoreName;
-                let selectedValuesForKey = [regionCard.graphSummaryValues[key].average, regionCard.graphSummaryValues[key].sum, regionCard.graphSummaryValues[key].count];
+                let selectedValuesForKey = [
+                    regionCard.graphSummaryValues[key].average,
+                    regionCard.graphSummaryValues[key].sum,
+                    regionCard.graphSummaryValues[key].count,
+                ];
                 selectedValuesForKey.push(...regionCard.graphSummaryValues[key].levelCounts);
-                let levelDurationsSec = regionCard.graphSummaryValues[key].levelDurations.map(val => val / 1000);
+                let levelDurationsSec = regionCard.graphSummaryValues[key].levelDurations.map(
+                    (val) => val / 1000
+                );
                 selectedValuesForKey.push(...levelDurationsSec);
-                selectedValuesForKey.push(...regionCard.graphSummaryValues[key].levelDurationPercentages);
+                selectedValuesForKey.push(
+                    ...regionCard.graphSummaryValues[key].levelDurationPercentages
+                );
                 values.push(...selectedValuesForKey);
             });
 
-            values = values.map(v => {
+            values = values.map((v) => {
                 if (typeof v === 'number') {
                     return v.toFixed(3);
                 }
@@ -1614,11 +1699,15 @@ export class MotionStudy {
             lines.push(values);
         }
 
-        
-
-        let dataUrl = 'data:text/plain;charset=UTF-8,' + encodeURIComponent(lines.map(line => {
-            return line.join(',');
-        }).join('\n'));
+        let dataUrl =
+            'data:text/plain;charset=UTF-8,' +
+            encodeURIComponent(
+                lines
+                    .map((line) => {
+                        return line.join(',');
+                    })
+                    .join('\n')
+            );
 
         this.exportLinkPinnedRegionCards.href = dataUrl;
         // window.open(dataUrl, '_blank');
@@ -1643,7 +1732,7 @@ export class MotionStudy {
             let filteredPose = {
                 joints: {},
                 timestamp: pose.timestamp,
-                metadata: {}
+                metadata: {},
             };
 
             for (const jointKey of Object.keys(pose.joints)) {
@@ -1664,7 +1753,7 @@ export class MotionStudy {
             // export muri related data
             filteredPose.metadata.ergonomics = pose.metadata.ergonomics;
             filteredPose.metadata.muriScores = pose.metadata.muriScores;
-            filteredPose.metadata.overallMuriScore = pose.metadata.overallMuriScore; 
+            filteredPose.metadata.overallMuriScore = pose.metadata.overallMuriScore;
 
             poseStrings.push(JSON.stringify(filteredPose));
             poseStrings.push(',');
@@ -1672,7 +1761,7 @@ export class MotionStudy {
         poseStrings.pop();
         poseStrings.push(']');
 
-        const blob = new Blob(poseStrings, {type: 'application/json'});
+        const blob = new Blob(poseStrings, { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         this.exportLinkPoseData.href = url;
     }
@@ -1743,7 +1832,7 @@ export class MotionStudy {
     markWasteTime(startTime, endTime) {
         this.valueAddWasteTimeManager.markWasteTime(startTime, endTime);
         this.humanPoseAnalyzer.reprocessLens(this.humanPoseAnalyzer.valueAddWasteTimeLens);
-        this.pinnedRegionCards.forEach(card => {
+        this.pinnedRegionCards.forEach((card) => {
             card.updateValueAddWasteTimeUi();
         });
         this.writeMotionStudyData();
@@ -1756,14 +1845,14 @@ export class MotionStudy {
     markValueAdd(startTime, endTime) {
         this.valueAddWasteTimeManager.markValueAdd(startTime, endTime);
         this.humanPoseAnalyzer.reprocessLens(this.humanPoseAnalyzer.valueAddWasteTimeLens);
-        this.pinnedRegionCards.forEach(card => {
+        this.pinnedRegionCards.forEach((card) => {
             card.updateValueAddWasteTimeUi();
         });
         this.writeMotionStudyData();
     }
 
     updateRegionCards() {
-        this.pinnedRegionCards.forEach(card => {
+        this.pinnedRegionCards.forEach((card) => {
             card.updateLensStatistics();
         });
         if (this.timeline.regionCard) {

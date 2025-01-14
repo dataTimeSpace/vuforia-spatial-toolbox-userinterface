@@ -55,8 +55,7 @@ createNameSpace('realityEditor.device.layout');
  * @todo currently just adjusts for iPhoneX shape, but eventually all screen changes should be moved here
  */
 
-(function(exports) {
-
+(function (exports) {
     // layout constants, regardless of screen size
     let MENU_HEIGHT = 320;
     let TRASH_WIDTH = 60;
@@ -77,21 +76,24 @@ createNameSpace('realityEditor.device.layout');
     let toolSubscriptions = {};
 
     let callbacks = {
-        onWindowResized: []
-    }
+        onWindowResized: [],
+    };
 
     function initService() {
         /**
          * Listen for messages that set up the subscription for spatialInterface.onWindowResized(({width, height})=>{}) tool API
          */
-        realityEditor.network.addPostMessageHandler('sendWindowResize', (eventData, fullMessageContent) => {
-            toolSubscriptions[fullMessageContent.frame] = true;
-        });
+        realityEditor.network.addPostMessageHandler(
+            'sendWindowResize',
+            (eventData, fullMessageContent) => {
+                toolSubscriptions[fullMessageContent.frame] = true;
+            }
+        );
 
         // Instead of using `window.addEventListener('resize', ...)`, we use a ResizeObserver, because the window
         // `resize` event doesn't trigger under some circumstances when the document suddenly changes size
         // (for example, if you open Developer Tools panel, or if while on the stage in Teams you open/close the chat)
-        const resizeObserver = new ResizeObserver(entries => {
+        const resizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
                 windowResizeHandler(entry.contentRect.width, entry.contentRect.height);
             }
@@ -145,22 +147,22 @@ createNameSpace('realityEditor.device.layout');
             });
 
             // trigger other modules that have subscribed using realityEditor.device.layout.onWindowResized(...)
-            callbacks.onWindowResized.forEach(callback => {
+            callbacks.onWindowResized.forEach((callback) => {
                 callback({
                     width: window.innerWidth,
-                    height: window.innerHeight
+                    height: window.innerHeight,
                 });
             });
 
             // post a onWindowResized message into each tool that has subscribed to spatialInterface.onWindowResized(...)
-            Object.keys(toolSubscriptions).forEach(frameKey => {
+            Object.keys(toolSubscriptions).forEach((frameKey) => {
                 let iframe = document.getElementById('iframe' + frameKey);
                 if (!iframe) return;
                 let eventData = {
                     onWindowResized: {
                         width: window.innerWidth,
-                        height: window.innerHeight
-                    }
+                        height: window.innerHeight,
+                    },
                 };
                 iframe.contentWindow.postMessage(JSON.stringify(eventData), '*');
             });
@@ -203,23 +205,28 @@ createNameSpace('realityEditor.device.layout');
         let scaleFactor = (window.innerWidth - rightEdgeOffset) / window.innerWidth;
 
         // menu buttons
-        document.querySelector('#UIButtons').style.width = window.innerWidth - rightEdgeOffset + 'px';
+        document.querySelector('#UIButtons').style.width =
+            window.innerWidth - rightEdgeOffset + 'px';
         document.querySelector('#UIButtons').style.right = rightEdgeOffset + 'px';
 
         // pocket
         if (!TEMP_DISABLE_MEMORIES) {
             document.querySelector('.memoryBar').style.transformOrigin = 'left top';
-            document.querySelector('.memoryBar').style.transform = 'scale(' + scaleFactor * 0.99 + ')'; // 0.99 factor makes sure it fits
+            document.querySelector('.memoryBar').style.transform =
+                'scale(' + scaleFactor * 0.99 + ')'; // 0.99 factor makes sure it fits
         }
-        document.querySelector('#pocketScrollBar').style.right = (window.innerWidth - realityEditor.gui.pocket.getWidth()) + 'px'; //75 + rightEdgeOffset + 'px';
+        document.querySelector('#pocketScrollBar').style.right =
+            window.innerWidth - realityEditor.gui.pocket.getWidth() + 'px'; //75 + rightEdgeOffset + 'px';
         document.querySelector('.palette').style.width = '100%';
         document.querySelector('.palette').style.transformOrigin = 'left top';
         document.querySelector('.palette').style.transform = 'scale(' + scaleFactor * 0.99 + ')';
         document.querySelector('.nodeMemoryBar').style.transformOrigin = 'left top';
-        document.querySelector('.nodeMemoryBar').style.transform = 'scale(' + scaleFactor * 0.99 + ')';
+        document.querySelector('.nodeMemoryBar').style.transform =
+            'scale(' + scaleFactor * 0.99 + ')';
 
         // settings
-        document.querySelector('#settingsIframe').style.width = document.body.offsetWidth - rightEdgeOffset + 'px';
+        document.querySelector('#settingsIframe').style.width =
+            document.body.offsetWidth - rightEdgeOffset + 'px';
         let edgeDiv = document.getElementById('settingsEdgeDiv');
         if (!edgeDiv) {
             edgeDiv = document.createElement('div');
@@ -252,17 +259,30 @@ createNameSpace('realityEditor.device.layout');
 
         // if we have access to the device name, calculate edge based on this info
         if (knownDeviceName && !realityEditor.gui.settings.toggleStates['demoAspectRatio']) {
-            
-            if (knownDeviceName === 'iPhone10,3' || knownDeviceName === 'iPhone10,6' || knownDeviceName === 'iPhone11,8') {
+            if (
+                knownDeviceName === 'iPhone10,3' ||
+                knownDeviceName === 'iPhone10,6' ||
+                knownDeviceName === 'iPhone11,8'
+            ) {
                 return 74;
-            } else if (knownDeviceName === 'iPhone14,2' || knownDeviceName === 'iPhone14,3' || knownDeviceName === 'iPhone14,4' || knownDeviceName === 'iPhone14,5' ||
-                        knownDeviceName === 'iPhone13,2' || knownDeviceName === 'iPhone13,3' || knownDeviceName === 'iPhone13,4' ||
-                        knownDeviceName === 'iPhone12,1' || knownDeviceName === 'iPhone12,3' || knownDeviceName === 'iPhone12,5' ||
-                        knownDeviceName === 'iPhone11,2' || knownDeviceName === 'iPhone11,4' || knownDeviceName === 'iPhone11,6') {
+            } else if (
+                knownDeviceName === 'iPhone14,2' ||
+                knownDeviceName === 'iPhone14,3' ||
+                knownDeviceName === 'iPhone14,4' ||
+                knownDeviceName === 'iPhone14,5' ||
+                knownDeviceName === 'iPhone13,2' ||
+                knownDeviceName === 'iPhone13,3' ||
+                knownDeviceName === 'iPhone13,4' ||
+                knownDeviceName === 'iPhone12,1' ||
+                knownDeviceName === 'iPhone12,3' ||
+                knownDeviceName === 'iPhone12,5' ||
+                knownDeviceName === 'iPhone11,2' ||
+                knownDeviceName === 'iPhone11,4' ||
+                knownDeviceName === 'iPhone11,6'
+            ) {
                 return 37;
             }
             return 0;
-
         } else {
             // otherwise, we can be fairly accurate by looking at  have specific offsets
             if (window.innerWidth === 856 && window.innerHeight === 375) {
@@ -279,7 +299,7 @@ createNameSpace('realityEditor.device.layout');
             x: x,
             y: y,
             width: width,
-            height: height
+            height: height,
         };
     }
 
@@ -288,7 +308,7 @@ createNameSpace('realityEditor.device.layout');
      * @return {number}
      */
     function getTrashThresholdX() {
-        return (globalStates.height - TRASH_WIDTH - rightEdgeOffset);
+        return globalStates.height - TRASH_WIDTH - rightEdgeOffset;
     }
 
     /**
@@ -299,14 +319,14 @@ createNameSpace('realityEditor.device.layout');
      * @todo - on portrait mode detected, make big changes to pocket, menus, button rotations, crafting, etc
      */
     function onOrientationChanged(orientationString) {
-        if (orientationString === 'landscapeRight') { // default
+        if (orientationString === 'landscapeRight') {
+            // default
             globalStates.deviceOrientationRight = true;
             realityEditor.gui.ar.updateProjectionMatrix(false);
-          
-        } else if (orientationString === 'landscapeLeft') { // flipped
+        } else if (orientationString === 'landscapeLeft') {
+            // flipped
             globalStates.deviceOrientationRight = false;
             realityEditor.gui.ar.updateProjectionMatrix(true);
-  
         }
 
         currentOrientation = orientationString;
@@ -328,7 +348,8 @@ createNameSpace('realityEditor.device.layout');
     exports.onOrientationChanged = onOrientationChanged;
     exports.adjustForDevice = adjustForDevice;
     exports.setTrashZoneRect = setTrashZoneRect;
-    exports.getCustomTrashZone = () => { return customTrashZone; }
+    exports.getCustomTrashZone = () => {
+        return customTrashZone;
+    };
     exports.onWindowResized = onWindowResized;
-
 })(realityEditor.device.layout);

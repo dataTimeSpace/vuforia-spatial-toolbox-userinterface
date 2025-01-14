@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.moduleCallbacks");
+createNameSpace('realityEditor.moduleCallbacks');
 
 /**
  * @fileOverview realityEditor.moduleCallbacks.js
@@ -29,8 +29,7 @@ createNameSpace("realityEditor.moduleCallbacks");
  * this.callbackHandler.triggerCallbacks('frameAdded', {objectKey: closestObjectKey, frameKey: frameID, frameType: frame.src});
  */
 
-(function(exports) {
-    
+(function (exports) {
     /**
      * class to handle callback registration and triggering, which can be instantiated for each module that needs it
      * @param {string} moduleName - currently just used for debugging purposes
@@ -46,7 +45,7 @@ createNameSpace("realityEditor.moduleCallbacks");
          *  triggered when that function is called.
          * @type {Object.<string, Array.<function>>}
          */
-        this.callbacks = {}
+        this.callbacks = {};
     }
 
     /**
@@ -54,7 +53,7 @@ createNameSpace("realityEditor.moduleCallbacks");
      * @param {string} functionName
      * @param {function} callback
      */
-    CallbackHandler.prototype.registerCallback = function(functionName, callback) {
+    CallbackHandler.prototype.registerCallback = function (functionName, callback) {
         if (typeof this.callbacks[functionName] === 'undefined') {
             this.callbacks[functionName] = [];
         }
@@ -67,15 +66,14 @@ createNameSpace("realityEditor.moduleCallbacks");
      * @param {string} functionName
      * @param {object|undefined} params
      */
-    CallbackHandler.prototype.triggerCallbacks = function(functionName, params) {
+    CallbackHandler.prototype.triggerCallbacks = function (functionName, params) {
         if (typeof this.callbacks[functionName] === 'undefined') return;
 
         // iterates over all registered callbacks to trigger events in various modules
-        this.callbacks[functionName].forEach(function(callback) {
+        this.callbacks[functionName].forEach(function (callback) {
             callback(params);
         });
     };
-    
-    exports.CallbackHandler = CallbackHandler;
 
+    exports.CallbackHandler = CallbackHandler;
 })(realityEditor.moduleCallbacks);

@@ -47,7 +47,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-createNameSpace("realityEditor.device");
+createNameSpace('realityEditor.device');
 
 /**
  * @fileOverview realityEditor.device.index.js
@@ -61,7 +61,7 @@ createNameSpace("realityEditor.device");
  * @property {number} startX
  * @property {number} startY
  * @property {number} moveToleranceSquared
- * @property {Function} timeoutFunction 
+ * @property {Function} timeoutFunction
  */
 
 /**
@@ -121,7 +121,7 @@ realityEditor.device.editingState = {
     unconstrainedDisabled: false,
     preDisabledUnconstrained: undefined,
     pinchToScaleDisabled: false,
-    syntheticPinchInfo: null
+    syntheticPinchInfo: null,
 };
 
 /**
@@ -133,7 +133,9 @@ realityEditor.device.previousPointerMove = null;
 /**
  * @type {CallbackHandler}
  */
-realityEditor.device.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('device/index');
+realityEditor.device.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler(
+    'device/index'
+);
 
 realityEditor.device.raycastIndex = 0; // Used to ensure raycast requests don't override each other
 realityEditor.device.raycastCallbacks = new Map();
@@ -143,7 +145,7 @@ realityEditor.device.raycastCallbacks = new Map();
  * @param {string} functionName
  * @param {function} callback
  */
-realityEditor.device.registerCallback = function(functionName, callback) {
+realityEditor.device.registerCallback = function (functionName, callback) {
     if (!this.callbackHandler) {
         this.callbackHandler = new realityEditor.moduleCallbacks.CallbackHandler('device/index');
     }
@@ -153,7 +155,7 @@ realityEditor.device.registerCallback = function(functionName, callback) {
 /**
  * Initialize the device module by registering callbacks to other modules
  */
-realityEditor.device.initService = function() {
+realityEditor.device.initService = function () {
     realityEditor.network.addPostMessageHandler('raycastResult', handleRaycastResult);
 
     realityEditor.gui.buttons.registerCallbackForButton('gui', resetEditingOnButtonUp);
@@ -161,7 +163,7 @@ realityEditor.device.initService = function() {
     realityEditor.gui.buttons.registerCallbackForButton('setting', resetEditingOnButtonUp);
 
     function handleRaycastResult(eventData, fullMessageContent) {
-        const {object, frame, index} = fullMessageContent;
+        const { object, frame, index } = fullMessageContent;
         const key = object + frame + index;
         const callback = realityEditor.device.raycastCallbacks.get(key);
         if (callback) {
@@ -181,20 +183,21 @@ realityEditor.device.initService = function() {
  * Sets the global editingMode and updates the svg overlay visibility for frames and nodes.
  * @param {boolean} newEditingMode
  */
-realityEditor.device.setEditingMode = function(newEditingMode) {
+realityEditor.device.setEditingMode = function (newEditingMode) {
     globalStates.editingMode = newEditingMode;
-    
+
     // also turn off unconstrained
     if (!newEditingMode) {
         globalStates.unconstrainedPositioning = false;
     }
-    
+
     // TODO: how will svg overlays update when toggle between frames and nodes?
-    
+
     // var newDisplay = newEditingMode ? 'inline' : 'none';
-    realityEditor.forEachFrameInAllObjects(function(objectKey, frameKey) {
+    realityEditor.forEachFrameInAllObjects(function (objectKey, frameKey) {
         var svg = document.getElementById('svg' + frameKey);
-        if (svg && globalStates.guiState === "ui") {  // don't show green outline for frames if in node view
+        if (svg && globalStates.guiState === 'ui') {
+            // don't show green outline for frames if in node view
             // svg.style.display = newDisplay;
             if (newEditingMode) {
                 svg.classList.add('visibleEditingSVG');
@@ -204,31 +207,40 @@ realityEditor.device.setEditingMode = function(newEditingMode) {
                 globalDOMCache[frameKey].querySelector('.corners').style.visibility = 'hidden';
             }
         }
-        realityEditor.forEachNodeInFrame(objectKey, frameKey, function(objectKey, frameKey, nodeKey) {
-            svg = document.getElementById('svg' + nodeKey);
-            if (svg) {
-                // svg.style.display = newDisplay;
-                if (newEditingMode) {
-                    svg.classList.add('visibleEditingSVG');
-                    globalDOMCache[nodeKey].querySelector('.corners').style.visibility = 'visible';
-                } else {
-                    svg.classList.remove('visibleEditingSVG');
-                    globalDOMCache[nodeKey].querySelector('.corners').style.visibility = 'hidden';
+        realityEditor.forEachNodeInFrame(
+            objectKey,
+            frameKey,
+            function (objectKey, frameKey, nodeKey) {
+                svg = document.getElementById('svg' + nodeKey);
+                if (svg) {
+                    // svg.style.display = newDisplay;
+                    if (newEditingMode) {
+                        svg.classList.add('visibleEditingSVG');
+                        globalDOMCache[nodeKey].querySelector('.corners').style.visibility =
+                            'visible';
+                    } else {
+                        svg.classList.remove('visibleEditingSVG');
+                        globalDOMCache[nodeKey].querySelector('.corners').style.visibility =
+                            'hidden';
+                    }
                 }
             }
-        });
+        );
     });
 
-    this.callbackHandler.triggerCallbacks('setEditingMode', {newEditingMode: newEditingMode});
-    
+    this.callbackHandler.triggerCallbacks('setEditingMode', { newEditingMode: newEditingMode });
 };
 
 /**
  * Returns the frame or node that is currently being edited, if one exists.
  * @return {Frame|Node|null}
  */
-realityEditor.device.getEditingVehicle = function() {
-    return realityEditor.getVehicle(this.editingState.object, this.editingState.frame, this.editingState.node);
+realityEditor.device.getEditingVehicle = function () {
+    return realityEditor.getVehicle(
+        this.editingState.object,
+        this.editingState.frame,
+        this.editingState.node
+    );
 };
 
 /**
@@ -236,8 +248,13 @@ realityEditor.device.getEditingVehicle = function() {
  * @param {Frame|Node} vehicle
  * @return {boolean}
  */
-realityEditor.device.isEditingUnconstrained = function(vehicle) {
-    if (vehicle === this.getEditingVehicle() && (realityEditor.device.editingState.unconstrained || globalStates.unconstrainedPositioning) && !realityEditor.device.editingState.unconstrainedDisabled) {
+realityEditor.device.isEditingUnconstrained = function (vehicle) {
+    if (
+        vehicle === this.getEditingVehicle() &&
+        (realityEditor.device.editingState.unconstrained ||
+            globalStates.unconstrainedPositioning) &&
+        !realityEditor.device.editingState.unconstrainedDisabled
+    ) {
         // staticCopy frames cannot be unconstrained edited
         if (typeof vehicle.staticCopy !== 'undefined') {
             if (vehicle.staticCopy) {
@@ -254,8 +271,7 @@ realityEditor.device.isEditingUnconstrained = function(vehicle) {
  * Finds the closest frame to the camera and moves the pocket node from the pocketItem storage to that frame.
  * @param {Logic} pocketNode
  */
-realityEditor.device.addPocketNodeToClosestFrame = function(pocketNode) {
-
+realityEditor.device.addPocketNodeToClosestFrame = function (pocketNode) {
     // find the closest frame
     var closestKeys = realityEditor.gui.ar.getClosestFrame();
     var closestObjectKey = closestKeys[0];
@@ -263,7 +279,6 @@ realityEditor.device.addPocketNodeToClosestFrame = function(pocketNode) {
 
     // TODO: look up why it can't equal 2... it might not be correct anymore
     if (closestFrameKey && pocketNode.screenZ && pocketNode.screenZ !== 2) {
-        
         // update the pocket node with values from its new parent frame
         pocketNode.objectId = closestObjectKey;
         pocketNode.frameId = closestFrameKey;
@@ -271,42 +286,62 @@ realityEditor.device.addPocketNodeToClosestFrame = function(pocketNode) {
         // set the name of the node by counting how many logic nodes the frame already has
         var closestFrame = realityEditor.getFrame(closestObjectKey, closestFrameKey);
         var logicCount = Object.values(closestFrame.nodes).filter(function (node) {
-            return node.type === 'logic'
+            return node.type === 'logic';
         }).length;
-        pocketNode.name = "LOGIC" + logicCount;
-        
+        pocketNode.name = 'LOGIC' + logicCount;
+
         // make sure that logic nodes only stick to 2.0 server version
         if (realityEditor.network.testVersion(closestObjectKey) > 165) {
-
             // add the node to that frame
             closestFrame.nodes[pocketItemId] = pocketNode;
 
             // post the new object/frame/node keys into the existing iframe
-            var pocketNodeIframe = document.getElementById("iframe" + pocketItemId);
+            var pocketNodeIframe = document.getElementById('iframe' + pocketItemId);
             if (pocketNodeIframe && pocketNodeIframe.loaded) {
-                realityEditor.network.onElementLoad(closestObjectKey, closestFrameKey, pocketItemId);
+                realityEditor.network.onElementLoad(
+                    closestObjectKey,
+                    closestFrameKey,
+                    pocketItemId
+                );
             }
 
             globalDOMCache[pocketItemId].objectId = closestObjectKey;
             globalDOMCache[pocketItemId].frameId = closestFrameKey;
 
-            globalDOMCache['iframe' + pocketItemId].setAttribute("data-object-key", closestObjectKey);
-            globalDOMCache['iframe' + pocketItemId].setAttribute("data-frame-key", closestFrameKey);
-            globalDOMCache['iframe' + pocketItemId].setAttribute("onload", 'realityEditor.network.onElementLoad("' + closestObjectKey + '","' + closestFrameKey + '","' + pocketItemId + '")');
+            globalDOMCache['iframe' + pocketItemId].setAttribute(
+                'data-object-key',
+                closestObjectKey
+            );
+            globalDOMCache['iframe' + pocketItemId].setAttribute('data-frame-key', closestFrameKey);
+            globalDOMCache['iframe' + pocketItemId].setAttribute(
+                'onload',
+                'realityEditor.network.onElementLoad("' +
+                    closestObjectKey +
+                    '","' +
+                    closestFrameKey +
+                    '","' +
+                    pocketItemId +
+                    '")'
+            );
 
             // post new object, frame, node, name into the logicNode iframe
             realityEditor.network.onElementLoad(closestObjectKey, closestFrameKey, pocketItemId);
-            
+
             // upload it to the server
-            realityEditor.network.postNewLogicNode(objects[closestObjectKey].ip, closestObjectKey, closestFrameKey, pocketItemId, pocketNode);
+            realityEditor.network.postNewLogicNode(
+                objects[closestObjectKey].ip,
+                closestObjectKey,
+                closestFrameKey,
+                pocketItemId,
+                pocketNode
+            );
 
             // realityEditor.network.postNewNodeName(objects[closestObjectKey].ip, closestObjectKey, closestFrameKey, pocketItemId, pocketNode.name);
         }
-
     }
 
     realityEditor.gui.ar.draw.hideTransformed(pocketItemId, pocketNode, globalDOMCache, cout);
-    delete pocketItem["pocket"].frames["pocket"].nodes[pocketItemId];
+    delete pocketItem['pocket'].frames['pocket'].nodes[pocketItemId];
 };
 
 /**
@@ -316,9 +351,9 @@ realityEditor.device.addPocketNodeToClosestFrame = function(pocketNode) {
  * 3. we're waiting for the touchEditing timer to either finish or be cleared by moving/releasing
  * @return {boolean}
  */
-realityEditor.device.shouldPostEventsIntoIframe = function() {
+realityEditor.device.shouldPostEventsIntoIframe = function () {
     var editingVehicle = this.getEditingVehicle();
-    return !(globalStates.editingMode || editingVehicle /*|| this.touchEditingTimer */); // TODO: pointerup never gets posted if this last isnt commented out... was it doing anything?
+    return !((globalStates.editingMode || editingVehicle) /*|| this.touchEditingTimer */); // TODO: pointerup never gets posted if this last isnt commented out... was it doing anything?
 };
 
 /**
@@ -327,34 +362,41 @@ realityEditor.device.shouldPostEventsIntoIframe = function() {
  * @param {number} screenY
  * @return {Promise<{z: number, point: {x: number, y: number, z: number}, direction: Vector3}>}
  */
-realityEditor.device.getFrameRaycast = async function(screenX, screenY) {
+realityEditor.device.getFrameRaycast = async function (screenX, screenY) {
     const entries = [];
     realityEditor.forEachFrameInAllObjects((object, frame) => {
         entries.push({
             object,
-            frame
+            frame,
         });
     });
     let currentIndex = realityEditor.device.raycastIndex;
     realityEditor.device.raycastIndex += 1;
-    const frameRaycastPromises = entries.map(entry => {
+    const frameRaycastPromises = entries.map((entry) => {
         return new Promise((resolve, reject) => {
-            const {object, frame} = entry;
+            const { object, frame } = entry;
             const iframe = document.getElementById('iframe' + frame);
-            const newCoords = webkitConvertPointFromPageToNode(iframe, new WebKitPoint(screenX, screenY));
-            if (!iframe || !iframe.contentWindow) { // Avatars don't have iframes
+            const newCoords = webkitConvertPointFromPageToNode(
+                iframe,
+                new WebKitPoint(screenX, screenY)
+            );
+            if (!iframe || !iframe.contentWindow) {
+                // Avatars don't have iframes
                 resolve(null);
                 return;
             }
-            iframe.contentWindow.postMessage(JSON.stringify({
-                raycastRequest: {
-                    coords: {
-                        x: newCoords.x,
-                        y: newCoords.y
+            iframe.contentWindow.postMessage(
+                JSON.stringify({
+                    raycastRequest: {
+                        coords: {
+                            x: newCoords.x,
+                            y: newCoords.y,
+                        },
+                        index: currentIndex,
                     },
-                    index: currentIndex
-                }
-            }), '*');
+                }),
+                '*'
+            );
             let resolved = false;
 
             const key = object + frame + currentIndex;
@@ -372,24 +414,33 @@ realityEditor.device.getFrameRaycast = async function(screenX, screenY) {
                     resolve(result);
                 }
             });
-        })
+        });
     });
-    const raycastResults = (await Promise.allSettled(frameRaycastPromises)).filter(res => res.status === 'fulfilled').map(res => res.value)
+    const raycastResults = (await Promise.allSettled(frameRaycastPromises))
+        .filter((res) => res.status === 'fulfilled')
+        .map((res) => res.value);
     const cameraPosition = realityEditor.gui.threejsScene.getCameraPosition();
     const groundPlaneMatrix = realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix;
     const inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
     realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, groundPlaneMatrix);
     inverseGroundPlaneMatrix.invert();
-    const groundPlaneYOffset = new realityEditor.gui.threejsScene.THREE.Vector3().setFromMatrixPosition(inverseGroundPlaneMatrix).y;
+    const groundPlaneYOffset =
+        new realityEditor.gui.threejsScene.THREE.Vector3().setFromMatrixPosition(
+            inverseGroundPlaneMatrix
+        ).y;
     cameraPosition.y -= groundPlaneYOffset;
     const ray = realityEditor.gui.threejsScene.getScreenRay(screenX, screenY);
     let minToolZ = Number.POSITIVE_INFINITY;
     let closestFrameRaycast = null;
-    raycastResults.forEach(result => {
+    raycastResults.forEach((result) => {
         if (result === null) {
             return;
         }
-        const z = Math.sqrt(Math.pow(cameraPosition.x - result.x, 2) + Math.pow(cameraPosition.y - result.y, 2) + Math.pow(cameraPosition.z - result.z, 2));
+        const z = Math.sqrt(
+            Math.pow(cameraPosition.x - result.x, 2) +
+                Math.pow(cameraPosition.y - result.y, 2) +
+                Math.pow(cameraPosition.z - result.z, 2)
+        );
         if (z < minToolZ) {
             minToolZ = z;
             closestFrameRaycast = result;
@@ -397,10 +448,21 @@ realityEditor.device.getFrameRaycast = async function(screenX, screenY) {
     });
     return {
         z: minToolZ,
-        point: closestFrameRaycast === null ? null : new realityEditor.gui.threejsScene.THREE.Vector3(closestFrameRaycast.x, closestFrameRaycast.y, closestFrameRaycast.z),
-        direction: new realityEditor.gui.threejsScene.THREE.Vector3(ray.direction.x, ray.direction.y, ray.direction.z)
+        point:
+            closestFrameRaycast === null
+                ? null
+                : new realityEditor.gui.threejsScene.THREE.Vector3(
+                      closestFrameRaycast.x,
+                      closestFrameRaycast.y,
+                      closestFrameRaycast.z
+                  ),
+        direction: new realityEditor.gui.threejsScene.THREE.Vector3(
+            ray.direction.x,
+            ray.direction.y,
+            ray.direction.z
+        ),
     };
-}
+};
 
 /**
  * Post a fake PointerEvent into the provided frame or node's iframe.
@@ -408,10 +470,15 @@ realityEditor.device.getFrameRaycast = async function(screenX, screenY) {
  * @param {string} frameKey
  * @param {string|undefined} nodeKey
  */
-realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeKey) {
+realityEditor.device.postEventIntoIframe = async function (event, frameKey, nodeKey) {
     var iframe = document.getElementById('iframe' + (nodeKey || frameKey));
-    var newCoords = webkitConvertPointFromPageToNode(iframe, new WebKitPoint(event.pageX, event.pageY));
-    if (!newCoords) { return }
+    var newCoords = webkitConvertPointFromPageToNode(
+        iframe,
+        new WebKitPoint(event.pageX, event.pageY)
+    );
+    if (!newCoords) {
+        return;
+    }
 
     let projectedZ;
     let worldIntersectPoint;
@@ -422,25 +489,35 @@ realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeK
     }
 
     if (this.cachedWorldObject && !this.cachedOcclusionObject) {
-        this.cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(this.cachedWorldObject.objectId);
+        this.cachedOcclusionObject = realityEditor.gui.threejsScene.getObjectForWorldRaycasts(
+            this.cachedWorldObject.objectId
+        );
         if (this.cachedOcclusionObject) {
             this.cachedOcclusionObject.updateMatrixWorld();
         }
     }
 
     // if there's a ground plane or an area target mesh, compute the projectedZ, worldIntersectPoint, and threejsIntersectPoint
-    if ((this.cachedWorldObject && this.cachedOcclusionObject) || realityEditor.gui.threejsScene.isGroundPlanePositionSet()) {
+    if (
+        (this.cachedWorldObject && this.cachedOcclusionObject) ||
+        realityEditor.gui.threejsScene.isGroundPlanePositionSet()
+    ) {
         let objectsToCheck = [];
         if (this.cachedOcclusionObject) {
             objectsToCheck.push(this.cachedOcclusionObject);
         }
         // pass correct coordinate into tools even if there's no world mesh, if we raycast against the groundplane
         if (realityEditor.gui.threejsScene.isGroundPlanePositionSet()) {
-            objectsToCheck.push(realityEditor.gui.threejsScene.getGroundPlaneCollider().getInternalObject());
+            objectsToCheck.push(
+                realityEditor.gui.threejsScene.getGroundPlaneCollider().getInternalObject()
+            );
         }
 
         if (realityEditor.spatialCursor.isGSActive()) {
-            let result = await realityEditor.spatialCursor.getRaycastCoordinates(event.pageX, event.pageY);
+            let result = await realityEditor.spatialCursor.getRaycastCoordinates(
+                event.pageX,
+                event.pageY
+            );
             worldIntersectPoint = {
                 x: result.point.x,
                 y: result.point.y,
@@ -450,16 +527,24 @@ realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeK
             };
             projectedZ = result.distance;
         } else {
-
-            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(event.pageX, event.pageY, objectsToCheck);
+            let raycastIntersects = realityEditor.gui.threejsScene.getRaycastIntersects(
+                event.pageX,
+                event.pageY,
+                objectsToCheck
+            );
             if (raycastIntersects.length > 0) {
                 projectedZ = raycastIntersects[0].distance;
 
                 // multiply intersect, which is in ROOT coordinates, by the relative world matrix (ground plane) to ROOT
                 let inverseGroundPlaneMatrix = new realityEditor.gui.threejsScene.THREE.Matrix4();
-                realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, realityEditor.sceneGraph.getGroundPlaneModelViewMatrix())
+                realityEditor.gui.threejsScene.setMatrixFromArray(
+                    inverseGroundPlaneMatrix,
+                    realityEditor.sceneGraph.getGroundPlaneModelViewMatrix()
+                );
                 inverseGroundPlaneMatrix.invert();
-                let intersect1 = raycastIntersects[0].point.clone().applyMatrix4(inverseGroundPlaneMatrix);
+                let intersect1 = raycastIntersects[0].point
+                    .clone()
+                    .applyMatrix4(inverseGroundPlaneMatrix);
 
                 // transpose of the inverse of the ground-plane model-view matrix
                 let trInvGroundPlaneMat = inverseGroundPlaneMatrix.clone().transpose();
@@ -469,15 +554,26 @@ realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeK
                     y: intersect1.y,
                     z: intersect1.z,
                     // NOTE: to transform a normal, you must multiply by the transpose of the inverse of the model-view matrix
-                    normalVector: raycastIntersects[0].face.normal.clone().applyMatrix4(trInvGroundPlaneMat).normalize(),
+                    normalVector: raycastIntersects[0].face.normal
+                        .clone()
+                        .applyMatrix4(trInvGroundPlaneMat)
+                        .normalize(),
                     // the ray direction is just a vector, so we don't need the transpose matrix
-                    rayDirection: raycastIntersects[0].rayDirection.clone().applyMatrix4(inverseGroundPlaneMatrix).normalize()
+                    rayDirection: raycastIntersects[0].rayDirection
+                        .clone()
+                        .applyMatrix4(inverseGroundPlaneMatrix)
+                        .normalize(),
                 };
 
                 // compared to worldIntersectPoint, threejsSceneIntersectPoint returns the intersect point in three js container object coordinates
-                realityEditor.gui.threejsScene.setMatrixFromArray(inverseGroundPlaneMatrix, realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix)
+                realityEditor.gui.threejsScene.setMatrixFromArray(
+                    inverseGroundPlaneMatrix,
+                    realityEditor.sceneGraph.getGroundPlaneNode().worldMatrix
+                );
                 inverseGroundPlaneMatrix.invert();
-                let intersect2 = raycastIntersects[0].point.clone().applyMatrix4(inverseGroundPlaneMatrix);
+                let intersect2 = raycastIntersects[0].point
+                    .clone()
+                    .applyMatrix4(inverseGroundPlaneMatrix);
 
                 threejsIntersectPoint = {
                     x: intersect2.x,
@@ -500,8 +596,8 @@ realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeK
         button: event.button,
         buttons: event.buttons,
         x: newCoords.x,
-        y: newCoords.y
-    }
+        y: newCoords.y,
+    };
     if (closestFrameRaycast) {
         if (typeof projectedZ !== 'undefined') {
             if (minToolZ < projectedZ) {
@@ -535,19 +631,22 @@ realityEditor.device.postEventIntoIframe = async function(event, frameKey, nodeK
             eventData.worldIntersectPoint = worldIntersectPoint;
         }
     }
-    
+
     if (typeof threejsIntersectPoint !== 'undefined') {
         eventData.threejsIntersectPoint = threejsIntersectPoint;
     }
-    iframe.contentWindow.postMessage(JSON.stringify({
-        event: eventData
-    }), '*');
+    iframe.contentWindow.postMessage(
+        JSON.stringify({
+            event: eventData,
+        }),
+        '*'
+    );
 };
 
 /**
  * Stop and reset the touchEditingTimer if it's in progress.
  */
-realityEditor.device.clearTouchTimer = function() {
+realityEditor.device.clearTouchTimer = function () {
     if (this.touchEditingTimer) {
         clearTimeout(this.touchEditingTimer.timeoutFunction);
         this.touchEditingTimer = null;
@@ -557,7 +656,7 @@ realityEditor.device.clearTouchTimer = function() {
 /**
  * Reset all state related to the link being created.
  */
-realityEditor.device.resetGlobalProgram = function() {
+realityEditor.device.resetGlobalProgram = function () {
     globalProgram.objectA = false;
     globalProgram.frameA = false;
     globalProgram.nodeA = false;
@@ -572,21 +671,29 @@ realityEditor.device.resetGlobalProgram = function() {
 /**
  * Reset full editing state so that no object is set as being edited.
  */
-realityEditor.device.resetEditingState = function() {
+realityEditor.device.resetEditingState = function () {
     this.sendEditingStateToFrameContents(this.editingState.frame, false); // TODO: move to a callback
 
     // gets triggered before state gets reset, so that subscribed modules can respond based on what is about to be reset
     this.callbackHandler.triggerCallbacks('resetEditingState');
-    
+
     // properly write the vehicle position to the server if it's been moved relative to another parent
     if (this.getEditingVehicle() && this.isEditingUnconstrained(this.getEditingVehicle())) {
         let activeVehicle = this.getEditingVehicle();
-        let vehicleParentId = realityEditor.isVehicleAFrame(activeVehicle) ? activeVehicle.objectId : activeVehicle.frameId;
+        let vehicleParentId = realityEditor.isVehicleAFrame(activeVehicle)
+            ? activeVehicle.objectId
+            : activeVehicle.frameId;
         let sceneNode = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid);
         if (sceneNode.parent && sceneNode.parent.id !== vehicleParentId) {
-            let parentId = realityEditor.isVehicleAFrame(activeVehicle) ? activeVehicle.objectId : activeVehicle.frameId;
+            let parentId = realityEditor.isVehicleAFrame(activeVehicle)
+                ? activeVehicle.objectId
+                : activeVehicle.frameId;
             realityEditor.sceneGraph.changeParent(sceneNode, parentId, true);
-            realityEditor.gui.ar.positioning.setPositionDataMatrix(this.getEditingVehicle(), sceneNode.localMatrix, false);
+            realityEditor.gui.ar.positioning.setPositionDataMatrix(
+                this.getEditingVehicle(),
+                sceneNode.localMatrix,
+                false
+            );
             sceneNode.needsUploadToServer = true;
         }
     }
@@ -614,11 +721,11 @@ realityEditor.device.resetEditingState = function() {
  * Sets up the PointerEvent and TouchEvent listeners for the entire document.
  * (now includes events that used to take effect on the background canvas)
  */
-realityEditor.device.addDocumentTouchListeners = function() {
+realityEditor.device.addDocumentTouchListeners = function () {
     document.addEventListener('pointerdown', this.onDocumentPointerDown.bind(this));
     document.addEventListener('pointermove', this.onDocumentPointerMove.bind(this));
     document.addEventListener('pointerup', this.onDocumentPointerUp.bind(this));
-    
+
     if (realityEditor.device.environment.requiresMouseEvents()) {
         document.addEventListener('mousedown', this.onDocumentMultiTouchStart.bind(this));
         document.addEventListener('mousemove', this.onDocumentMultiTouchMove.bind(this));
@@ -637,13 +744,12 @@ realityEditor.device.addDocumentTouchListeners = function() {
  * @param {HTMLElement} overlayDomElement
  * @param {Frame|Node} activeVehicle
  */
-realityEditor.device.addTouchListenersForElement = function(overlayDomElement, activeVehicle) {
-
+realityEditor.device.addTouchListenersForElement = function (overlayDomElement, activeVehicle) {
     // use PointerEvents for movement events except for dragging
     overlayDomElement.addEventListener('pointerdown', this.onElementTouchDown.bind(this));
     overlayDomElement.addEventListener('pointermove', this.onElementTouchMove.bind(this));
     overlayDomElement.addEventListener('pointerup', this.onElementTouchUp.bind(this));
-    overlayDomElement.addEventListener('gotpointercapture', function(evt) {
+    overlayDomElement.addEventListener('gotpointercapture', function (evt) {
         evt.target.releasePointerCapture(evt.pointerId);
     });
 
@@ -656,7 +762,7 @@ realityEditor.device.addTouchListenersForElement = function(overlayDomElement, a
         overlayDomElement.addEventListener('touchend', this.onElementMultiTouchEnd.bind(this));
         overlayDomElement.addEventListener('touchcancel', this.onElementMultiTouchEnd.bind(this));
     }
-    
+
     // give enter and leave events to nodes for when you draw links between them
     if (activeVehicle.type !== 'ui') {
         overlayDomElement.addEventListener('pointerenter', this.onElementTouchEnter.bind(this));
@@ -670,38 +776,35 @@ realityEditor.device.addTouchListenersForElement = function(overlayDomElement, a
  * @param {string} frameKey
  * @param {string|undefined} nodeKey
  */
-realityEditor.device.beginTouchEditing = function(objectKey, frameKey, nodeKey) {
-    
+realityEditor.device.beginTouchEditing = function (objectKey, frameKey, nodeKey) {
     var activeVehicle = realityEditor.getVehicle(objectKey, frameKey, nodeKey);
 
     // if you're already editing another object (or can't find this one) don't let you start editing this one
-    if (this.editingState.object || !activeVehicle) { return; }
+    if (this.editingState.object || !activeVehicle) {
+        return;
+    }
 
     this.editingState.object = objectKey;
     this.editingState.frame = frameKey;
 
-    if (globalStates.guiState === "node") {
+    if (globalStates.guiState === 'node') {
         this.editingState.node = nodeKey;
-        
+
         // reset link creation state
         this.resetGlobalProgram();
 
         // show the trash and pocket
-        if (activeVehicle.type === "logic") {
-            realityEditor.gui.menus.switchToMenu("trashOrSave"); // TODO: use this to enable logic node pocket again
+        if (activeVehicle.type === 'logic') {
+            realityEditor.gui.menus.switchToMenu('trashOrSave'); // TODO: use this to enable logic node pocket again
             // realityEditor.gui.menus.switchToMenu("bigTrash");
-
         }
-
-    } else if (globalStates.guiState === "ui") {
-        
-        if (activeVehicle.location === "global") {
+    } else if (globalStates.guiState === 'ui') {
+        if (activeVehicle.location === 'global') {
             // show the trash if this is a reusable frame
-            realityEditor.gui.menus.switchToMenu("bigTrash");            
+            realityEditor.gui.menus.switchToMenu('bigTrash');
         }
-
     }
-    
+
     var activeObject = realityEditor.getObject(this.editingState.object);
     if (activeObject.isWorldObject) {
         // check if only world objects are visible
@@ -712,13 +815,17 @@ realityEditor.device.beginTouchEditing = function(objectKey, frameKey, nodeKey) 
             globalStates.inTransitionFrame = frameKey;
         }
     }
-    
+
     realityEditor.gui.ar.draw.matrix.copyStillFromMatrixSwitch = true;
     // store this so we can undo the move if needed (e.g. image target disappears)
-    realityEditor.device.editingState.startingMatrix = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).localMatrix;
-    realityEditor.device.editingState.startingTransform = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).getTransformMatrix();
+    realityEditor.device.editingState.startingMatrix = realityEditor.sceneGraph.getSceneNodeById(
+        activeVehicle.uuid
+    ).localMatrix;
+    realityEditor.device.editingState.startingTransform = realityEditor.sceneGraph
+        .getSceneNodeById(activeVehicle.uuid)
+        .getTransformMatrix();
 
-    globalDOMCache[(nodeKey || frameKey)].querySelector('.corners').style.visibility = 'visible';
+    globalDOMCache[nodeKey || frameKey].querySelector('.corners').style.visibility = 'visible';
 
     realityEditor.gui.ar.positioning.coverFull2DTools(true);
 
@@ -732,24 +839,26 @@ realityEditor.device.beginTouchEditing = function(objectKey, frameKey, nodeKey) 
  * @param frameKey
  * @param frameIsMoving
  */
-realityEditor.device.sendEditingStateToFrameContents = function(frameKey, frameIsMoving) {
+realityEditor.device.sendEditingStateToFrameContents = function (frameKey, frameIsMoving) {
     if (!frameKey) return;
     var iframe = document.getElementById('iframe' + frameKey);
     if (!iframe) return;
-    
-    iframe.contentWindow.postMessage(JSON.stringify({
-        frameIsMoving: frameIsMoving
-    }), '*');
+
+    iframe.contentWindow.postMessage(
+        JSON.stringify({
+            frameIsMoving: frameIsMoving,
+        }),
+        '*'
+    );
 };
 
 /**
  * Stop disabling unconstrained mode (gets disabled when you are changing the distance visibility threshold)
  */
-realityEditor.device.enableUnconstrained = function() {
-    
+realityEditor.device.enableUnconstrained = function () {
     // only do this once, otherwise it will undo the effects of saving the previous value
     if (this.editingState.unconstrainedDisabled) {
-        if (typeof this.editingState.preDisabledUnconstrained !== "undefined") {
+        if (typeof this.editingState.preDisabledUnconstrained !== 'undefined') {
             this.editingState.unconstrained = this.editingState.preDisabledUnconstrained;
             delete this.editingState.preDisabledUnconstrained; // get only works once per set
         } else {
@@ -764,7 +873,7 @@ realityEditor.device.enableUnconstrained = function() {
  * Disable unconstrained editing mode so that the frame/node doesn't move when you pull the phone away from it
  * (Useful when you want to adjust the distance visibility threshold of the frame by walking away from it)
  */
-realityEditor.device.disableUnconstrained = function() {
+realityEditor.device.disableUnconstrained = function () {
     this.editingState.unconstrainedDisabled = true;
     this.editingState.preDisabledUnconstrained = this.editingState.unconstrained;
     this.editingState.unconstrained = false;
@@ -773,7 +882,7 @@ realityEditor.device.disableUnconstrained = function() {
 /**
  * Re-enable pinch to scale (gets disabled when you are changing the distance visibility threshold)
  */
-realityEditor.device.enablePinchToScale = function() {
+realityEditor.device.enablePinchToScale = function () {
     this.editingState.pinchToScaleDisabled = false;
 };
 
@@ -781,7 +890,7 @@ realityEditor.device.enablePinchToScale = function() {
  * Disable pinch to scale
  * @todo: is this necessary anymore? This was added because we added a new 3-finger pinch gesture to adjust distance visibility threshold, but we removed that pinch gesture now so it might be ok for this to always be enabled?
  */
-realityEditor.device.disablePinchToScale = function() {
+realityEditor.device.disablePinchToScale = function () {
     this.editingState.pinchToScaleDisabled = true;
 };
 
@@ -794,19 +903,19 @@ realityEditor.device.manualCameraControlFlags = new Set();
 /**
  * @param {string} flagName - the name of the module/reason that the pointer is claimed by
  */
-realityEditor.device.setFlagForPointerOccupiedByCamera = function(flagName) {
+realityEditor.device.setFlagForPointerOccupiedByCamera = function (flagName) {
     realityEditor.device.manualCameraControlFlags.add(flagName);
 };
 /**
  * @param {string} flagName - provide the same name used in setFlagForPointerOccupiedByCamera, to release the pointer
  */
-realityEditor.device.clearFlagForPointerOccupiedByCamera = function(flagName) {
+realityEditor.device.clearFlagForPointerOccupiedByCamera = function (flagName) {
     realityEditor.device.manualCameraControlFlags.delete(flagName);
 };
 /**
  * @return {boolean}
  */
-realityEditor.device.isPointerOccupiedByCameraControl = function() {
+realityEditor.device.isPointerOccupiedByCameraControl = function () {
     return realityEditor.device.manualCameraControlFlags.size > 0;
 };
 
@@ -814,15 +923,17 @@ realityEditor.device.isPointerOccupiedByCameraControl = function() {
  * @return {boolean} If the event is intended to control the camera and not the
  *   AR elements, avatar pointer beams, or other pointer interactions
  */
-realityEditor.device.isMouseEventCameraControl = function(event) {
+realityEditor.device.isMouseEventCameraControl = function (event) {
     // first check if anything is manually taking claim over the pointer events
     if (realityEditor.device.isPointerOccupiedByCameraControl()) {
         return true;
     }
     // If mouse events are enabled ignore right clicks and middle clicks
     // otherwise the pointer is presumed to not be being used for camera controls
-    return realityEditor.device.environment.requiresMouseEvents() &&
-        (event.button === 2 || event.button === 1);
+    return (
+        realityEditor.device.environment.requiresMouseEvents() &&
+        (event.button === 2 || event.button === 1)
+    );
 };
 
 /**
@@ -830,19 +941,19 @@ realityEditor.device.isMouseEventCameraControl = function(event) {
  * Also set point A of the globalProgram so we can start creating a link if this is a node.
  * @param {PointerEvent} event
  */
-realityEditor.device.onElementTouchDown = function(event) {
+realityEditor.device.onElementTouchDown = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     var target = event.currentTarget;
     var activeVehicle = realityEditor.getVehicle(target.objectId, target.frameId, target.nodeId);
-    
+
     // how long it takes to move the element:
     // instant if editing mode on, 400ms if not (or touchMoveDelay if specially configured for that element)
     var moveDelay = this.defaultMoveDelay;
     // take a lot longer to move nodes, otherwise it's hard to draw links
-    if (globalStates.guiState === "node") {
+    if (globalStates.guiState === 'node') {
         moveDelay = this.defaultMoveDelay * 3;
     }
     if (globalStates.editingMode) {
@@ -850,13 +961,13 @@ realityEditor.device.onElementTouchDown = function(event) {
     } else if (activeVehicle.moveDelay) {
         moveDelay = activeVehicle.moveDelay; // This gets set from the JavaScript API
     }
-    
+
     // set point A of the link you are starting to create
-    if (globalStates.guiState === "node" && !globalProgram.objectA) {
+    if (globalStates.guiState === 'node' && !globalProgram.objectA) {
         globalProgram.objectA = target.objectId;
         globalProgram.frameA = target.frameId;
         globalProgram.nodeA = target.nodeId;
-        globalProgram.logicA = activeVehicle.type === "logic" ? 0 : false;
+        globalProgram.logicA = activeVehicle.type === 'logic' ? 0 : false;
     }
 
     // Post event into iframe
@@ -867,7 +978,6 @@ realityEditor.device.onElementTouchDown = function(event) {
     // after a certain amount of time, start editing this element
     if (moveDelay >= 0) {
         var timeoutFunction = setTimeout(function () {
-
             var touchPosition = realityEditor.gui.ar.positioning.getMostRecentTouchPosition();
 
             // send a pointercancel event into the frame so it doesn't get stuck thinking you're clicking in it
@@ -876,24 +986,28 @@ realityEditor.device.onElementTouchDown = function(event) {
                 pageY: touchPosition.y || 0,
                 type: 'pointercancel',
                 pointerId: event.pointerId,
-                pointerType: event.pointerType
+                pointerType: event.pointerType,
             };
-            realityEditor.device.postEventIntoIframe(syntheticPointerCancelEvent, target.frameId, target.nodeId);
-            
+            realityEditor.device.postEventIntoIframe(
+                syntheticPointerCancelEvent,
+                target.frameId,
+                target.nodeId
+            );
+
             realityEditor.device.beginTouchEditing(target.objectId, target.frameId, target.nodeId);
         }, moveDelay);
     }
-    
+
     this.touchEditingTimer = {
         startX: event.pageX,
         startY: event.pageY,
-        moveToleranceSquared: (activeVehicle.type === "logic" ? 900 : 100), // make logic nodes easier to move
-        timeoutFunction: timeoutFunction
+        moveToleranceSquared: activeVehicle.type === 'logic' ? 900 : 100, // make logic nodes easier to move
+        timeoutFunction: timeoutFunction,
     };
 
-    this.previousPointerMove = {x: event.pageX, y: event.pageY};
+    this.previousPointerMove = { x: event.pageX, y: event.pageY };
 
-    cout("onElementTouchDown");
+    cout('onElementTouchDown');
 };
 
 // Tracks pointer move events with no buttons pressed to limit their frequency
@@ -906,86 +1020,105 @@ realityEditor.device.moveLiftedMsLimit = 100;
  * 2. if move more than a certain threshold, cancel touchTimer
  * @param {PointerEvent} event
  */
-realityEditor.device.onElementTouchMove = function(event) {
+realityEditor.device.onElementTouchMove = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
         return;
     }
     if (event.button === -1) {
-        if (Date.now() - realityEditor.device.moveLiftedLast < realityEditor.device.moveLiftedMsLimit) {
+        if (
+            Date.now() - realityEditor.device.moveLiftedLast <
+            realityEditor.device.moveLiftedMsLimit
+        ) {
             return;
         }
         realityEditor.device.moveLiftedLast = Date.now();
     }
 
-    if (this.previousPointerMove && this.previousPointerMove.x === event.pageX && this.previousPointerMove.y === event.pageY) {
+    if (
+        this.previousPointerMove &&
+        this.previousPointerMove.x === event.pageX &&
+        this.previousPointerMove.y === event.pageY
+    ) {
         return; // ensure that we ignore supposed "move" events if position didn't change
     }
 
     var target = event.currentTarget;
-    
+
     // cancel the touch hold timer if you move more than a negligible amount
     if (this.touchEditingTimer) {
-        
         var dx = event.pageX - this.touchEditingTimer.startX;
         var dy = event.pageY - this.touchEditingTimer.startY;
         if (dx * dx + dy * dy > this.touchEditingTimer.moveToleranceSquared) {
             this.clearTouchTimer();
         }
-    
     }
-    
+
     if (this.shouldPostEventsIntoIframe()) {
         this.postEventIntoIframe(event, target.frameId, target.nodeId);
     }
 
-    this.previousPointerMove = {x: event.pageX, y: event.pageY};
+    this.previousPointerMove = { x: event.pageX, y: event.pageY };
 
-    cout("onElementTouchMove");
+    cout('onElementTouchMove');
 };
-
 
 /**
  * When touch enters a node that didn't originate in it,
  * Show visual feedback based on whether you are allowed to create a link to this new node
  * @param {PointerEvent} event
  */
-realityEditor.device.onElementTouchEnter = function(event) {
+realityEditor.device.onElementTouchEnter = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     var target = event.currentTarget;
-    
+
     // show visual feedback for nodes unless you are dragging something around
-    if (target.type !== "ui" && !this.getEditingVehicle()) {
+    if (target.type !== 'ui' && !this.getEditingVehicle()) {
         var contentForFeedback;
 
         // if exactly one of objectA and objectB is the localWorldObject of the phone, prevent the link from being made
         var localWorldObjectKey = realityEditor.worldObjects.getLocalWorldId();
-        var isBetweenLocalWorldAndOtherServer = (globalProgram.objectA === localWorldObjectKey && target.objectId !== localWorldObjectKey) ||
-            (globalProgram.objectA !== localWorldObjectKey && target.objectId === localWorldObjectKey);
+        var isBetweenLocalWorldAndOtherServer =
+            (globalProgram.objectA === localWorldObjectKey &&
+                target.objectId !== localWorldObjectKey) ||
+            (globalProgram.objectA !== localWorldObjectKey &&
+                target.objectId === localWorldObjectKey);
 
         // when over the same node you started with
         if (globalProgram.nodeA === target.nodeId || globalProgram.nodeA === false) {
             contentForFeedback = 3; // TODO: replace ints with a human-readable enum/encoding
             overlayDiv.classList.add('overlayAction');
-
-        } else if (realityEditor.network.checkForNetworkLoop(globalProgram.objectA, globalProgram.frameA, globalProgram.nodeA, globalProgram.logicA, target.objectId, target.frameId, target.nodeId, 0) && !isBetweenLocalWorldAndOtherServer) {
+        } else if (
+            realityEditor.network.checkForNetworkLoop(
+                globalProgram.objectA,
+                globalProgram.frameA,
+                globalProgram.nodeA,
+                globalProgram.logicA,
+                target.objectId,
+                target.frameId,
+                target.nodeId,
+                0
+            ) &&
+            !isBetweenLocalWorldAndOtherServer
+        ) {
             contentForFeedback = 2;
             overlayDiv.classList.add('overlayPositive');
-
         } else {
             contentForFeedback = 0;
             overlayDiv.classList.add('overlayNegative');
         }
 
-        if (globalDOMCache["iframe" + target.nodeId]) {
-            globalDOMCache["iframe" + target.nodeId].contentWindow.postMessage(
-                JSON.stringify( { uiActionFeedback: contentForFeedback }) , "*");
+        if (globalDOMCache['iframe' + target.nodeId]) {
+            globalDOMCache['iframe' + target.nodeId].contentWindow.postMessage(
+                JSON.stringify({ uiActionFeedback: contentForFeedback }),
+                '*'
+            );
         }
     }
 
-    cout("onElementTouchEnter");
+    cout('onElementTouchEnter');
 };
 
 /**
@@ -993,19 +1126,18 @@ realityEditor.device.onElementTouchEnter = function(event) {
  * Stop the touchTimer and reset the visual feedback for that node
  * @param {PointerEvent} event
  */
-realityEditor.device.onElementTouchOut = function(event) {
+realityEditor.device.onElementTouchOut = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     var target = event.currentTarget;
-    if (target.type !== "ui") {
-
+    if (target.type !== 'ui') {
         // stop node hold timer // TODO: handle node move same as frame by calculating dist^2 > threshold
         this.clearTouchTimer();
 
         // if (this.editingState.node) {
-        //     realityEditor.gui.menus.buttonOn([]); // endTrash // TODO: need a new method to end trash programmatically ??? 
+        //     realityEditor.gui.menus.buttonOn([]); // endTrash // TODO: need a new method to end trash programmatically ???
         // }
 
         globalProgram.logicSelector = 4; // 4 means default link (not one of the colored ports)
@@ -1015,13 +1147,15 @@ realityEditor.device.onElementTouchOut = function(event) {
         overlayDiv.classList.remove('overlayNegative');
         overlayDiv.classList.remove('overlayAction');
 
-        if (globalDOMCache["iframe" + target.nodeId]) {
-            globalDOMCache["iframe" + target.nodeId].contentWindow.postMessage(
-                JSON.stringify( { uiActionFeedback: 1 }) , "*");
+        if (globalDOMCache['iframe' + target.nodeId]) {
+            globalDOMCache['iframe' + target.nodeId].contentWindow.postMessage(
+                JSON.stringify({ uiActionFeedback: 1 }),
+                '*'
+            );
         }
     }
 
-    cout("onElementTouchOut");
+    cout('onElementTouchOut');
 };
 
 /**
@@ -1033,9 +1167,9 @@ realityEditor.device.onElementTouchOut = function(event) {
  * 5. delete resuable frame dragged onto trash
  * @param {PointerEvent} event
  */
-realityEditor.device.onElementTouchUp = function(event) {
+realityEditor.device.onElementTouchUp = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     const target = event.currentTarget;
@@ -1044,63 +1178,74 @@ realityEditor.device.onElementTouchUp = function(event) {
         this.postEventIntoIframe(event, target.frameId, target.nodeId);
 
         if (!target.nodeId) {
-            this.toolInteractionCallbacks.forEach(function(callback) {
+            this.toolInteractionCallbacks.forEach(function (callback) {
                 callback(target.objectId, target.frameId, 'touchUp');
             });
         }
     }
 
     // var didDisplayCrafting = false;
-    if (globalStates.guiState === "node") {
-
+    if (globalStates.guiState === 'node') {
         if (globalProgram.objectA) {
-
             // open the crafting board if you tapped on a logic node
-            if (target.nodeId === globalProgram.nodeA && target.type === "logic" && !globalStates.editingMode && !this.getEditingVehicle()) {
-                realityEditor.gui.crafting.craftingBoardVisible(target.objectId, target.frameId, target.nodeId);
+            if (
+                target.nodeId === globalProgram.nodeA &&
+                target.type === 'logic' &&
+                !globalStates.editingMode &&
+                !this.getEditingVehicle()
+            ) {
+                realityEditor.gui.crafting.craftingBoardVisible(
+                    target.objectId,
+                    target.frameId,
+                    target.nodeId
+                );
                 // didDisplayCrafting = true;
             }
 
             globalProgram.objectB = target.objectId;
             globalProgram.frameB = target.frameId;
             globalProgram.nodeB = target.nodeId;
-            
-            if (target.type !== "logic") {
+
+            if (target.type !== 'logic') {
                 globalProgram.logicB = false;
             }
 
             realityEditor.network.postLinkToServer(globalProgram);
 
             this.resetGlobalProgram();
-
         }
-
     }
 
     // force the canvas to re-render
     globalCanvas.hasContent = true;
 
-    cout("onElementTouchUp");
+    cout('onElementTouchUp');
 };
 
 /**
  * Once a frame has been decided to be deleted, this fully deletes it
- * removing links to and from it, removing it from the DOM and objects data structure, and clearing related state 
+ * removing links to and from it, removing it from the DOM and objects data structure, and clearing related state
  * @param {Frame} frameToDelete
  * @param {string} objectKeyToDelete
  * @param {string} frameKeyToDelete
  */
-realityEditor.device.deleteFrame = function(frameToDelete, objectKeyToDelete, frameKeyToDelete) {
-        
+realityEditor.device.deleteFrame = function (frameToDelete, objectKeyToDelete, frameKeyToDelete) {
     // delete links to and from the frame
-    realityEditor.forEachFrameInAllObjects(function(objectKey, frameKey) {
+    realityEditor.forEachFrameInAllObjects(function (objectKey, frameKey) {
         var thisFrame = realityEditor.getFrame(objectKey, frameKey);
-        Object.keys(thisFrame.links).forEach(function(linkKey) {
+        Object.keys(thisFrame.links).forEach(function (linkKey) {
             var thisLink = thisFrame.links[linkKey];
-            if (((thisLink.objectA === objectKeyToDelete) && (thisLink.frameA === frameKeyToDelete)) ||
-                ((thisLink.objectB === objectKeyToDelete) && (thisLink.frameB === frameKeyToDelete))) {
+            if (
+                (thisLink.objectA === objectKeyToDelete && thisLink.frameA === frameKeyToDelete) ||
+                (thisLink.objectB === objectKeyToDelete && thisLink.frameB === frameKeyToDelete)
+            ) {
                 delete thisFrame.links[linkKey];
-                realityEditor.network.deleteLinkFromObject(objects[objectKey].ip, objectKey, frameKey, linkKey);
+                realityEditor.network.deleteLinkFromObject(
+                    objects[objectKey].ip,
+                    objectKey,
+                    frameKey,
+                    linkKey
+                );
             }
         });
     });
@@ -1108,7 +1253,11 @@ realityEditor.device.deleteFrame = function(frameToDelete, objectKeyToDelete, fr
     // remove it from the DOM
     realityEditor.gui.ar.draw.killElement(frameKeyToDelete, frameToDelete, globalDOMCache);
     // delete it from the server
-    realityEditor.network.deleteFrameFromObject(objects[objectKeyToDelete].ip, objectKeyToDelete, frameKeyToDelete);
+    realityEditor.network.deleteFrameFromObject(
+        objects[objectKeyToDelete].ip,
+        objectKeyToDelete,
+        frameKeyToDelete
+    );
 
     globalStates.inTransitionObject = null;
     globalStates.inTransitionFrame = null;
@@ -1122,92 +1271,108 @@ realityEditor.device.deleteFrame = function(frameToDelete, objectKeyToDelete, fr
  * 3. drop inTransition frame onto closest object
  * @param {TouchEvent} event
  */
-realityEditor.device.onElementMultiTouchEnd = function(event) {
-    
+realityEditor.device.onElementMultiTouchEnd = function (event) {
     var activeVehicle = this.getEditingVehicle();
-    
+
     var isOverTrash = false;
     if (this.isPointerInTrashZone(event.pageX, event.pageY)) {
-        if (globalStates.guiState === "ui" && activeVehicle && activeVehicle.location === "global") {
+        if (
+            globalStates.guiState === 'ui' &&
+            activeVehicle &&
+            activeVehicle.location === 'global'
+        ) {
             isOverTrash = true;
-        } else if (activeVehicle && activeVehicle.type === "logic") {
+        } else if (activeVehicle && activeVehicle.type === 'logic') {
             isOverTrash = true;
         }
     }
-    
+
     if (isOverTrash) return;
-    
+
     if (activeVehicle && !isOverTrash) {
-        var ignoreMatrix = !(this.editingState.unconstrained || globalStates.unconstrainedPositioning);
+        var ignoreMatrix = !(
+            this.editingState.unconstrained || globalStates.unconstrainedPositioning
+        );
         realityEditor.network.postVehiclePosition(activeVehicle, ignoreMatrix);
     }
-    
+
     // drop frame onto closest object if we have pulled one away from a previous object
     if (globalStates.inTransitionObject && globalStates.inTransitionFrame) {
-
         // allow scaling with multiple fingers without dropping the frame in motion
-        var touchesOnActiveVehicle = this.currentScreenTouches.map(function(elt){ return elt.targetId; }).filter(function(touchTarget) {
-            return (touchTarget === this.editingState.frame || touchTarget === this.editingState.node || touchTarget === "pocket-element");
-        }.bind(this));
+        var touchesOnActiveVehicle = this.currentScreenTouches
+            .map(function (elt) {
+                return elt.targetId;
+            })
+            .filter(
+                function (touchTarget) {
+                    return (
+                        touchTarget === this.editingState.frame ||
+                        touchTarget === this.editingState.node ||
+                        touchTarget === 'pocket-element'
+                    );
+                }.bind(this)
+            );
         if (touchesOnActiveVehicle.length > 1) {
             return;
         }
 
-        var frameBeingMoved = realityEditor.getFrame(globalStates.inTransitionObject, globalStates.inTransitionFrame);
+        var frameBeingMoved = realityEditor.getFrame(
+            globalStates.inTransitionObject,
+            globalStates.inTransitionFrame
+        );
 
-        var closestObjectKey = realityEditor.network.availableFrames.getBestObjectInfoForFrame(frameBeingMoved.src);
-        
+        var closestObjectKey = realityEditor.network.availableFrames.getBestObjectInfoForFrame(
+            frameBeingMoved.src
+        );
+
         // TODO: when moving a frame from an object to the world, that the world doesn't support... you shouldnt be able to do that... right now it breaks
         // var closestObjectKey = realityEditor.gui.ar.getClosestObject()[0];
 
         if (closestObjectKey) {
-
             if (closestObjectKey !== globalStates.inTransitionObject) {
                 console.log('there is an object to drop this frame onto');
 
                 var newFrameKey = closestObjectKey + frameBeingMoved.name;
 
-                realityEditor.gui.ar.draw.moveTransitionFrameToObject(globalStates.inTransitionObject, globalStates.inTransitionFrame, closestObjectKey, newFrameKey);
+                realityEditor.gui.ar.draw.moveTransitionFrameToObject(
+                    globalStates.inTransitionObject,
+                    globalStates.inTransitionFrame,
+                    closestObjectKey,
+                    newFrameKey
+                );
 
                 var newFrame = realityEditor.getFrame(closestObjectKey, newFrameKey);
                 realityEditor.network.postVehiclePosition(newFrame);
             }
-
         } else {
-
             console.log('there are no visible objects - return this frame to its previous object');
             realityEditor.gui.ar.draw.returnTransitionFrameBackToSource();
-
         }
     }
-
 };
 
 /**
  * Show the touch overlay, and start drawing the dot line to cut links (in node guiState)
  * @param {PointerEvent} event
  */
-realityEditor.device.onDocumentPointerDown = function(event) {
+realityEditor.device.onDocumentPointerDown = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     globalStates.pointerPosition = [event.clientX, event.clientY];
 
     if (realityEditor.device.utilities.isEventHittingBackground(event)) {
-
-        if (globalStates.guiState === "node" && !globalStates.editingMode) {
-
+        if (globalStates.guiState === 'node' && !globalStates.editingMode) {
             if (!globalProgram.objectA) {
                 globalStates.drawDotLine = true;
                 globalStates.drawDotLineX = event.clientX;
                 globalStates.drawDotLineY = event.clientY;
             }
         }
-
     }
 
-    cout("onDocumentPointerDown");
+    cout('onDocumentPointerDown');
 };
 
 // TODO: add in functionality from onMultiTouchCanvasMove to onDocumentPointerMove
@@ -1218,9 +1383,9 @@ realityEditor.device.onDocumentPointerDown = function(event) {
  * Move the touch overlay and move the pocket node if one is being dragged in.
  * @param {PointerEvent} event
  */
-realityEditor.device.onDocumentPointerMove = function(event) {
+realityEditor.device.onDocumentPointerMove = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     event.preventDefault(); //TODO: why is this here but not in other document events?
@@ -1230,7 +1395,7 @@ realityEditor.device.onDocumentPointerMove = function(event) {
     // if we are dragging a node in using the pocket, moves that element to this position
     realityEditor.gui.pocket.setPocketPosition(event);
 
-    cout("onDocumentPointerMove");
+    cout('onDocumentPointerMove');
 };
 
 /**
@@ -1241,31 +1406,34 @@ realityEditor.device.onDocumentPointerMove = function(event) {
  * 4. Hide touch overlay, reset menu, and clear memory
  * @param {PointerEvent} event
  */
-realityEditor.device.onDocumentPointerUp = function(event) {
+realityEditor.device.onDocumentPointerUp = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     // add the pocket node to the closest frame
     if (realityEditor.gui.buttons.getButtonState('pocket') === 'down') {
-
         // hide the pocket node
-        realityEditor.gui.ar.draw.setObjectVisible(pocketItem["pocket"], false);
-        
-        var pocketNode = pocketItem["pocket"].frames["pocket"].nodes[pocketItemId];
+        realityEditor.gui.ar.draw.setObjectVisible(pocketItem['pocket'], false);
+
+        var pocketNode = pocketItem['pocket'].frames['pocket'].nodes[pocketItemId];
         if (pocketNode) {
             this.addPocketNodeToClosestFrame(pocketNode);
         }
     }
-    
-    if (globalStates.guiState === "node") {
 
+    if (globalStates.guiState === 'node') {
         // stop drawing current link
         this.resetGlobalProgram();
 
         // delete links
         if (globalStates.drawDotLine) {
-            realityEditor.gui.ar.lines.deleteLines(globalStates.drawDotLineX, globalStates.drawDotLineY, event.clientX, event.clientY);
+            realityEditor.gui.ar.lines.deleteLines(
+                globalStates.drawDotLineX,
+                globalStates.drawDotLineY,
+                event.clientX,
+                event.clientY
+            );
             globalStates.drawDotLine = false;
         }
     }
@@ -1279,7 +1447,7 @@ realityEditor.device.onDocumentPointerUp = function(event) {
             type: 'pointerup',
             pointerId: event.pointerId,
             pointerType: event.pointerType,
-            currentTarget: globalDOMCache[pocketFrame.vehicle.uuid]
+            currentTarget: globalDOMCache[pocketFrame.vehicle.uuid],
         };
         realityEditor.device.onElementTouchUp(syntheticPointerEvent);
     }
@@ -1292,13 +1460,13 @@ realityEditor.device.onDocumentPointerUp = function(event) {
     // clear state that may have been set during a touchdown or touchmove event
     this.clearTouchTimer();
     realityEditor.gui.ar.positioning.initialScaleData = null;
-    
+
     // force redraw the background canvas to remove links
     globalCanvas.hasContent = true;
 
     // hide and reset the overlay divs
-    [overlayDiv, overlayDiv2].forEach(overlay => {
-        overlay.style.display = "none";
+    [overlayDiv, overlayDiv2].forEach((overlay) => {
+        overlay.style.display = 'none';
         overlay.classList.remove('overlayMemory');
         overlay.classList.remove('overlayLogicNode');
         overlay.classList.remove('overlayAction');
@@ -1309,7 +1477,7 @@ realityEditor.device.onDocumentPointerUp = function(event) {
     });
 
     // if not in crafting board, reset menu back to main
-    if (globalStates.guiState !== "logic" && this.currentScreenTouches.length === 1) {
+    if (globalStates.guiState !== 'logic' && this.currentScreenTouches.length === 1) {
         var didDisplayGroundplane = realityEditor.gui.settings.toggleStates.visualizeGroundPlane;
         if (didDisplayGroundplane) {
             realityEditor.gui.menus.switchToMenu('groundPlane');
@@ -1321,17 +1489,21 @@ realityEditor.device.onDocumentPointerUp = function(event) {
     // clear the memory being saved in the touch overlay
     if (overlayDiv.style.backgroundImage !== '' && overlayDiv.style.backgroundImage !== 'none') {
         overlayDiv.style.backgroundImage = 'none';
-        realityEditor.app.appFunctionCall("clearMemory");
+        realityEditor.app.appFunctionCall('clearMemory');
     }
-    
-    cout("onDocumentPointerUp");
+
+    cout('onDocumentPointerUp');
 };
 
-realityEditor.device.isPointerInTrashZone = function(x, y) {
+realityEditor.device.isPointerInTrashZone = function (x, y) {
     let customTrashZone = realityEditor.device.layout.getCustomTrashZone();
     if (customTrashZone) {
-        return (x > customTrashZone.x && x < (customTrashZone.x + customTrashZone.width) &&
-            y > customTrashZone.y && y < (customTrashZone.y + customTrashZone.height));
+        return (
+            x > customTrashZone.x &&
+            x < customTrashZone.x + customTrashZone.width &&
+            y > customTrashZone.y &&
+            y < customTrashZone.y + customTrashZone.height
+        );
     } else {
         return x > realityEditor.device.layout.getTrashThresholdX(); // by default, just uses right edge of screen
     }
@@ -1342,7 +1514,7 @@ realityEditor.device.isPointerInTrashZone = function(x, y) {
  * but you can pass in a specific vehicle if you want to delete that one
  * @param {Frame|Node} specifiedVehicle
  */
-realityEditor.device.tryToDeleteSelectedVehicle = function(specifiedVehicle) {
+realityEditor.device.tryToDeleteSelectedVehicle = function (specifiedVehicle) {
     let activeVehicle = specifiedVehicle || this.getEditingVehicle();
     if (!activeVehicle) return;
 
@@ -1350,12 +1522,12 @@ realityEditor.device.tryToDeleteSelectedVehicle = function(specifiedVehicle) {
     const additionalInfo = isFrame ? { frameType: activeVehicle.src } : {};
     const objectId = activeVehicle.objectId;
     const frameId = isFrame ? activeVehicle.uuid : activeVehicle.frameId;
-    const nodeId = (isFrame) ? null : activeVehicle.uuid;
+    const nodeId = isFrame ? null : activeVehicle.uuid;
     let didDelete = false;
 
     if (isFrame && activeVehicle.location === 'global') {
         // delete frame after a slight delay so that DOM changes don't mess with touch event propagation
-        setTimeout(function() {
+        setTimeout(function () {
             realityEditor.device.deleteFrame(activeVehicle, objectId, frameId);
         }, 10);
         didDelete = true;
@@ -1363,21 +1535,37 @@ realityEditor.device.tryToDeleteSelectedVehicle = function(specifiedVehicle) {
 
     if (nodeId && activeVehicle.type === 'logic') {
         // delete links to and from the node
-        realityEditor.forEachFrameInAllObjects(function(objectKey, frameKey) {
+        realityEditor.forEachFrameInAllObjects(function (objectKey, frameKey) {
             let thisFrame = realityEditor.getFrame(objectKey, frameKey);
-            Object.keys(thisFrame.links).forEach(linkKey => {
+            Object.keys(thisFrame.links).forEach((linkKey) => {
                 let thisLink = thisFrame.links[linkKey];
-                if (((thisLink.objectA === objectId) && (thisLink.frameA === frameId) && (thisLink.nodeA === nodeId)) ||
-                    ((thisLink.objectB === objectId) && (thisLink.frameB === frameId) && (thisLink.nodeB === nodeId))) {
+                if (
+                    (thisLink.objectA === objectId &&
+                        thisLink.frameA === frameId &&
+                        thisLink.nodeA === nodeId) ||
+                    (thisLink.objectB === objectId &&
+                        thisLink.frameB === frameId &&
+                        thisLink.nodeB === nodeId)
+                ) {
                     delete thisFrame.links[linkKey];
-                    realityEditor.network.deleteLinkFromObject(objects[objectKey].ip, objectKey, frameKey, linkKey);
+                    realityEditor.network.deleteLinkFromObject(
+                        objects[objectKey].ip,
+                        objectKey,
+                        frameKey,
+                        linkKey
+                    );
                 }
             });
         });
         // delete node after a slight delay so DOM changes don't mess with touch event propagation
         setTimeout(() => {
-            realityEditor.gui.ar.draw.deleteNode(objectId, frameId, nodeId); 
-            realityEditor.network.deleteNodeFromObject(objects[objectId].ip, objectId, frameId, nodeId);
+            realityEditor.gui.ar.draw.deleteNode(objectId, frameId, nodeId);
+            realityEditor.network.deleteNodeFromObject(
+                objects[objectId].ip,
+                objectId,
+                frameId,
+                nodeId
+            );
         }, 10);
         didDelete = true;
     }
@@ -1389,7 +1577,7 @@ realityEditor.device.tryToDeleteSelectedVehicle = function(specifiedVehicle) {
         objectKey: objectId,
         frameKey: frameId,
         nodeKey: nodeId,
-        additionalInfo: additionalInfo
+        additionalInfo: additionalInfo,
     });
 };
 
@@ -1416,7 +1604,7 @@ function modifyTouchEventIfDesktop(event) {
             screenX: event.screenX,
             screenY: event.screenY,
             target: event.target,
-            touchType: 'direct'
+            touchType: 'direct',
         };
     }
 }
@@ -1429,7 +1617,7 @@ function modifyTouchEventIfDesktop(event) {
  */
 realityEditor.device.onDocumentMultiTouchStart = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
 
     if (typeof event.touches !== 'undefined') {
@@ -1447,18 +1635,28 @@ realityEditor.device.onDocumentMultiTouchStart = function (event) {
 
     modifyTouchEventIfDesktop(event);
 
-    realityEditor.device.touchEventObject(event, "touchstart", realityEditor.device.touchInputs.screenTouchStart);
-    cout("onDocumentMultiTouchStart");
-    
-    Array.from(event.touches).forEach(function(touch) {
-        if (realityEditor.device.currentScreenTouches.map(function(elt) { return elt.identifier; }).indexOf(touch.identifier) === -1) {
+    realityEditor.device.touchEventObject(
+        event,
+        'touchstart',
+        realityEditor.device.touchInputs.screenTouchStart
+    );
+    cout('onDocumentMultiTouchStart');
+
+    Array.from(event.touches).forEach(function (touch) {
+        if (
+            realityEditor.device.currentScreenTouches
+                .map(function (elt) {
+                    return elt.identifier;
+                })
+                .indexOf(touch.identifier) === -1
+        ) {
             realityEditor.device.currentScreenTouches.push({
                 targetId: realityEditor.device.utilities.getVehicleIdFromTargetId(touch.target.id), //touch.target.id.replace(/^(svg)/,""),
                 identifier: touch.identifier,
                 position: {
                     x: touch.pageX,
-                    y: touch.pageY
-                }
+                    y: touch.pageY,
+                },
             });
         }
     });
@@ -1468,31 +1666,34 @@ realityEditor.device.onDocumentMultiTouchStart = function (event) {
         if (event.touches.length < 2) {
             var didTouchScreen = this.checkIfTouchWithinScreenBounds(event.pageX, event.pageY);
 
-            if (!didTouchScreen && realityEditor.gui.memory.memoryCanCreate()) { // && window.innerWidth - event.clientX > 65) {
+            if (!didTouchScreen && realityEditor.gui.memory.memoryCanCreate()) {
+                // && window.innerWidth - event.clientX > 65) {
 
                 if (!realityEditor.gui.settings.toggleStates.groupingEnabled) {
-                    
                     // try only doing it for double taps now....
-                    if (!this.isDoubleTap) { // on first tap
+                    if (!this.isDoubleTap) {
+                        // on first tap
                         this.isDoubleTap = true;
                         // if no follow up tap within time reset
-                        setTimeout(function() {
-                            this.isDoubleTap = false;
-                        }.bind(this), 300);
-                    } else { // registered double tap and create memory
+                        setTimeout(
+                            function () {
+                                this.isDoubleTap = false;
+                            }.bind(this),
+                            300
+                        );
+                    } else {
+                        // registered double tap and create memory
                         if (realityEditor.device.environment.variables.supportsMemoryCreation) {
-                            realityEditor.gui.menus.switchToMenu("bigPocket");
+                            realityEditor.gui.menus.switchToMenu('bigPocket');
                             realityEditor.gui.memory.createMemory();
                         }
                     }
-
                 }
-                
             }
         }
     }
 
-    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchStart', {event: event});
+    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchStart', { event: event });
 };
 
 /**
@@ -1502,70 +1703,85 @@ realityEditor.device.onDocumentMultiTouchStart = function (event) {
  */
 realityEditor.device.onDocumentMultiTouchMove = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
     modifyTouchEventIfDesktop(event);
 
     // if it's a mouse event, move the first touch overlay div
     if (typeof event.touches === 'undefined') {
-        overlayDiv.style.transform = 'translate3d(' + event.pageX + 'px,' + event.pageY + 'px, 1200px)';
+        overlayDiv.style.transform =
+            'translate3d(' + event.pageX + 'px,' + event.pageY + 'px, 1200px)';
     }
 
-    realityEditor.device.touchEventObject(event, "touchmove", realityEditor.device.touchInputs.screenTouchMove);
-    cout("onDocumentMultiTouchMove");
-    
-    Array.from(event.touches).forEach(function(touch, index) {
-        realityEditor.device.currentScreenTouches.filter(function(currentScreenTouch) {
-            return touch.identifier === currentScreenTouch.identifier;
-        }).forEach(function(currentScreenTouch) {
-            currentScreenTouch.position.x = touch.pageX;
-            currentScreenTouch.position.y = touch.pageY;
-        });
+    realityEditor.device.touchEventObject(
+        event,
+        'touchmove',
+        realityEditor.device.touchInputs.screenTouchMove
+    );
+    cout('onDocumentMultiTouchMove');
+
+    Array.from(event.touches).forEach(function (touch, index) {
+        realityEditor.device.currentScreenTouches
+            .filter(function (currentScreenTouch) {
+                return touch.identifier === currentScreenTouch.identifier;
+            })
+            .forEach(function (currentScreenTouch) {
+                currentScreenTouch.position.x = touch.pageX;
+                currentScreenTouch.position.y = touch.pageY;
+            });
 
         // if it's a touch event, move the touch overlay div for the corresponding finger
         if (index === 0) {
-            overlayDiv.style.transform = 'translate3d(' + touch.pageX + 'px,' + touch.pageY + 'px, 1200px)';
+            overlayDiv.style.transform =
+                'translate3d(' + touch.pageX + 'px,' + touch.pageY + 'px, 1200px)';
         } else if (index === 1) {
-            overlayDiv2.style.transform = 'translate3d(' + touch.pageX + 'px,' + touch.pageY + 'px, 1200px)';
+            overlayDiv2.style.transform =
+                'translate3d(' + touch.pageX + 'px,' + touch.pageY + 'px, 1200px)';
         }
     });
-    
-    var activeVehicle = this.getEditingVehicle();
-    
-    if (activeVehicle) {
 
+    var activeVehicle = this.getEditingVehicle();
+
+    if (activeVehicle) {
         let syntheticPinch = realityEditor.device.editingState.syntheticPinchInfo;
         // scale the element if you make a pinch gesture
-        if ((event.touches.length === 2 || syntheticPinch) && !realityEditor.device.editingState.pinchToScaleDisabled) {
-
-            if (syntheticPinch) { // happens for example on remote operator, holding a keyboard key rather than 2-finger pinch
+        if (
+            (event.touches.length === 2 || syntheticPinch) &&
+            !realityEditor.device.editingState.pinchToScaleDisabled
+        ) {
+            if (syntheticPinch) {
+                // happens for example on remote operator, holding a keyboard key rather than 2-finger pinch
 
                 // try to center the pinch around center of tool in screen coordinates,
                 // but use the startX/Y from synthetic pinch event as a backup value
                 let centerTouch = {
                     x: syntheticPinch.startX,
-                    y: syntheticPinch.startY
-                }
+                    y: syntheticPinch.startY,
+                };
                 let bounds = globalDOMCache[activeVehicle.uuid].getClientRects()[0];
                 if (bounds) {
                     centerTouch = {
                         x: bounds.left + bounds.width / 2,
-                        y: bounds.top + bounds.height / 2
+                        y: bounds.top + bounds.height / 2,
                     };
                 }
 
                 let outerTouch = {
                     x: event.pageX,
-                    y: event.pageY
-                }
-                realityEditor.gui.ar.positioning.scaleVehicle(activeVehicle, centerTouch, outerTouch);
-
+                    y: event.pageY,
+                };
+                realityEditor.gui.ar.positioning.scaleVehicle(
+                    activeVehicle,
+                    centerTouch,
+                    outerTouch
+                );
             } else {
-
                 // consider a touch on 'object__frameKey__' and 'svgobject__frameKey__' to be on the same target
                 // also consider a touch that started on pocket-element to be on the frame element
-                var touchTargets = Array.from(event.touches).map(function(touch) {
-                    var targetId = realityEditor.device.utilities.getVehicleIdFromTargetId(touch.target.id);
+                var touchTargets = Array.from(event.touches).map(function (touch) {
+                    var targetId = realityEditor.device.utilities.getVehicleIdFromTargetId(
+                        touch.target.id
+                    );
                     if (targetId === 'pocket-element') {
                         targetId = activeVehicle.uuid;
                     }
@@ -1582,71 +1798,91 @@ realityEditor.device.onDocumentMultiTouchMove = function (event) {
                     // center the scale event around the first touch the user made
                     centerTouch = {
                         x: event.touches[0].pageX,
-                        y: event.touches[0].pageY
+                        y: event.touches[0].pageY,
                     };
                     outerTouch = {
                         x: event.touches[1].pageX,
-                        y: event.touches[1].pageY
+                        y: event.touches[1].pageY,
                     };
                 } else {
                     // if you have two fingers on the screen (one on the frame, one on the canvas)
                     // make sure the scale event is centered around the frame
-                    Array.from(event.touches).forEach(function(touch){
-
-                        let targetId = realityEditor.device.utilities.getVehicleIdFromTargetId(touch.target.id);
+                    Array.from(event.touches).forEach(function (touch) {
+                        let targetId = realityEditor.device.utilities.getVehicleIdFromTargetId(
+                            touch.target.id
+                        );
                         var didTouchOnFrame = targetId === activeVehicle.uuid;
-                        var didTouchOnNode = targetId === activeVehicle.frameId + activeVehicle.name;
-                        var didTouchOnPocketContainer = touch.target.className === "element-template";
+                        var didTouchOnNode =
+                            targetId === activeVehicle.frameId + activeVehicle.name;
+                        var didTouchOnPocketContainer =
+                            touch.target.className === 'element-template';
                         if (didTouchOnFrame || didTouchOnNode || didTouchOnPocketContainer) {
                             centerTouch = {
                                 x: touch.pageX,
-                                y: touch.pageY
+                                y: touch.pageY,
                             };
                         } else {
                             outerTouch = {
                                 x: touch.pageX,
-                                y: touch.pageY
+                                y: touch.pageY,
                             };
                         }
                     });
                 }
 
-                realityEditor.gui.ar.positioning.scaleVehicle(activeVehicle, centerTouch, outerTouch);
+                realityEditor.gui.ar.positioning.scaleVehicle(
+                    activeVehicle,
+                    centerTouch,
+                    outerTouch
+                );
             }
 
-        // otherwise, if you just have one finger on the screen, move the frame you're on if you can
+            // otherwise, if you just have one finger on the screen, move the frame you're on if you can
         } else if (event.touches.length === 1) {
-            
             // cannot move static copy frames
             if (activeVehicle.staticCopy) {
                 return;
             }
-            
+
             // cannot move nodes inside static copy frames
-            if (typeof activeVehicle.objectId !== "undefined" && typeof activeVehicle.frameId !== "undefined") {
-                var parentFrame = realityEditor.getFrame(activeVehicle.objectId, activeVehicle.frameId);
+            if (
+                typeof activeVehicle.objectId !== 'undefined' &&
+                typeof activeVehicle.frameId !== 'undefined'
+            ) {
+                var parentFrame = realityEditor.getFrame(
+                    activeVehicle.objectId,
+                    activeVehicle.frameId
+                );
                 if (parentFrame && parentFrame.staticCopy) {
                     return;
                 }
             }
 
-            realityEditor.gui.ar.positioning.y =event.touches[0].pageY;
-                realityEditor.gui.ar.positioning.x =   event.touches[0].pageX;
-            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(activeVehicle, event.touches[0].pageX, event.touches[0].pageY, true);
-            
-            var isDeletableVehicle = activeVehicle.type === 'logic' || (globalStates.guiState === "ui" && activeVehicle && activeVehicle.location === "global");
-            
+            realityEditor.gui.ar.positioning.y = event.touches[0].pageY;
+            realityEditor.gui.ar.positioning.x = event.touches[0].pageX;
+            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(
+                activeVehicle,
+                event.touches[0].pageX,
+                event.touches[0].pageY,
+                true
+            );
+
+            var isDeletableVehicle =
+                activeVehicle.type === 'logic' ||
+                (globalStates.guiState === 'ui' &&
+                    activeVehicle &&
+                    activeVehicle.location === 'global');
+
             // visual feedback if you move over the trash
             if (this.isPointerInTrashZone(event.pageX, event.pageY) && isDeletableVehicle) {
                 overlayDiv.classList.add('overlayNegative');
             } else {
                 overlayDiv.classList.remove('overlayNegative');
             }
-            
         }
     }
 
-    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchMove', {event: event});
+    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchMove', { event: event });
 };
 
 /**
@@ -1656,50 +1892,55 @@ realityEditor.device.onDocumentMultiTouchMove = function (event) {
  * @param {number} screenY
  * @return {boolean}
  */
-realityEditor.device.checkIfTouchWithinScreenBounds = function(screenX, screenY) {
-
+realityEditor.device.checkIfTouchWithinScreenBounds = function (screenX, screenY) {
     var isWithinBounds = false;
-    
+
     // for every visible screen, calculate this touch's exact x,y coordinate within that screen plane
     for (var frameKey in realityEditor.gui.screenExtension.visibleScreenObjects) {
-        if (!realityEditor.gui.screenExtension.visibleScreenObjects.hasOwnProperty(frameKey)) continue;
+        if (!realityEditor.gui.screenExtension.visibleScreenObjects.hasOwnProperty(frameKey))
+            continue;
         var visibleScreenObject = realityEditor.gui.screenExtension.visibleScreenObjects[frameKey];
-        var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(visibleScreenObject.object, screenX, screenY);
+        var point = realityEditor.gui.ar.utilities.screenCoordinatesToTargetXY(
+            visibleScreenObject.object,
+            screenX,
+            screenY
+        );
         // visibleScreenObject.x = point.x;
         // visibleScreenObject.y = point.y;
-        
+
         let targetSize = realityEditor.gui.utilities.getTargetSize(visibleScreenObject.object);
-        var isWithinWidth = Math.abs(point.x) < (targetSize.width * 1000)/2;
-        var isWithinHeight = Math.abs(point.y) < (targetSize.height * 1000)/2;
+        var isWithinWidth = Math.abs(point.x) < (targetSize.width * 1000) / 2;
+        var isWithinHeight = Math.abs(point.y) < (targetSize.height * 1000) / 2;
 
         console.log(point, isWithinWidth, isWithinHeight);
-        
+
         if (isWithinWidth && isWithinHeight) {
             isWithinBounds = true;
         }
-
     }
-    
-    return isWithinBounds;
 
+    return isWithinBounds;
 };
 
 /**
  * pop into unconstrained mode if pull out z > threshold
  * @param {Frame|Node} activeVehicle
  */
-realityEditor.device.checkIfFramePulledIntoUnconstrained = function(activeVehicle) {
-
+realityEditor.device.checkIfFramePulledIntoUnconstrained = function (activeVehicle) {
     // many conditions to check to see if it has this feature enabled
-    var ableToBePulled = !(this.editingState.unconstrained || globalStates.unconstrainedPositioning) && 
-                            (!globalStates.freezeButtonState || realityEditor.device.environment.ignoresFreezeButton()) &&
-                            realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable(activeVehicle);
-    
-    if (!ableToBePulled) { return; }
-        
+    var ableToBePulled =
+        !(this.editingState.unconstrained || globalStates.unconstrainedPositioning) &&
+        (!globalStates.freezeButtonState ||
+            realityEditor.device.environment.ignoresFreezeButton()) &&
+        realityEditor.gui.ar.positioning.isVehicleUnconstrainedEditable(activeVehicle);
+
+    if (!ableToBePulled) {
+        return;
+    }
+
     if (!this.editingState.initialCameraPosition) {
-        this.editingState.initialCameraPosition = realityEditor.sceneGraph.getWorldPosition('CAMERA');
-    
+        this.editingState.initialCameraPosition =
+            realityEditor.sceneGraph.getWorldPosition('CAMERA');
     } else {
         let camPos = realityEditor.sceneGraph.getWorldPosition('CAMERA');
         let dx = camPos.x - this.editingState.initialCameraPosition.x;
@@ -1707,9 +1948,9 @@ realityEditor.device.checkIfFramePulledIntoUnconstrained = function(activeVehicl
         let dz = camPos.z - this.editingState.initialCameraPosition.z;
 
         let cameraMoveDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        
+
         // TODO ben: for frames on screen object, if direction is towards screen then push into screen instead
-        
+
         if (cameraMoveDistance > globalStates.framePullThreshold) {
             console.log('pop into unconstrained editing mode');
 
@@ -1717,7 +1958,11 @@ realityEditor.device.checkIfFramePulledIntoUnconstrained = function(activeVehicl
 
             // create copy of static frame when it gets pulled out
             if (activeVehicle.staticCopy) {
-                realityEditor.network.createCopyOfFrame(objects[this.editingState.object].ip, this.editingState.object, this.editingState.frame);
+                realityEditor.network.createCopyOfFrame(
+                    objects[this.editingState.object].ip,
+                    this.editingState.object,
+                    this.editingState.frame
+                );
                 activeVehicle.staticCopy = false;
             }
 
@@ -1727,10 +1972,15 @@ realityEditor.device.checkIfFramePulledIntoUnconstrained = function(activeVehicl
             // tell the renderer to freeze the current matrix as the unconstrained position on the screen
             realityEditor.gui.ar.draw.matrix.copyStillFromMatrixSwitch = true;
             // store this so we can undo the move if needed (e.g. image target disappears)
-            realityEditor.device.editingState.startingMatrix = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).localMatrix;
-            realityEditor.device.editingState.startingTransform = realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).getTransformMatrix();
+            realityEditor.device.editingState.startingMatrix =
+                realityEditor.sceneGraph.getSceneNodeById(activeVehicle.uuid).localMatrix;
+            realityEditor.device.editingState.startingTransform = realityEditor.sceneGraph
+                .getSceneNodeById(activeVehicle.uuid)
+                .getTransformMatrix();
 
-            this.callbackHandler.triggerCallbacks('onFramePulledIntoUnconstrained', {activeVehicle: activeVehicle});
+            this.callbackHandler.triggerCallbacks('onFramePulledIntoUnconstrained', {
+                activeVehicle: activeVehicle,
+            });
         }
     }
 };
@@ -1743,15 +1993,23 @@ realityEditor.device.checkIfFramePulledIntoUnconstrained = function(activeVehicl
  */
 realityEditor.device.onDocumentMultiTouchEnd = function (event) {
     if (realityEditor.device.isMouseEventCameraControl(event)) {
-      return;
+        return;
     }
     modifyTouchEventIfDesktop(event);
 
-    realityEditor.device.touchEventObject(event, "touchend", realityEditor.device.touchInputs.screenTouchEnd);
-    cout("onDocumentMultiTouchEnd");
-    
+    realityEditor.device.touchEventObject(
+        event,
+        'touchend',
+        realityEditor.device.touchInputs.screenTouchEnd
+    );
+    cout('onDocumentMultiTouchEnd');
+
     // if you started editing with beginTouchEditing instead of touchevent on element, programmatically trigger onElementMultiTouchEnd
-    var editingVehicleTouchIndex = this.currentScreenTouches.map(function(elt) { return elt.targetId; }).indexOf((this.editingState.node || this.editingState.frame));
+    var editingVehicleTouchIndex = this.currentScreenTouches
+        .map(function (elt) {
+            return elt.targetId;
+        })
+        .indexOf(this.editingState.node || this.editingState.frame);
     if (editingVehicleTouchIndex === -1) {
         realityEditor.device.onElementMultiTouchEnd(event);
     }
@@ -1759,20 +2017,20 @@ realityEditor.device.onDocumentMultiTouchEnd = function (event) {
     // if multitouch, stop tracking the touches that were removed but keep tracking the ones still there
     if (event.touches.length > 0) {
         // find which touch to remove from the currentScreenTouches
-        var remainingTouches = Array.from(event.touches).map(function(touch) {
+        var remainingTouches = Array.from(event.touches).map(function (touch) {
             return touch.identifier; //touch.target.id.replace(/^(svg)/,"")
         });
-        
+
         var indicesToRemove = [];
-        this.currentScreenTouches.forEach(function(elt, index) {
+        this.currentScreenTouches.forEach(function (elt, index) {
             // this touch isn't here anymore
             if (remainingTouches.indexOf(elt.identifier) === -1) {
                 indicesToRemove.push(index);
             }
         });
-        
+
         // remove them in a separate loop because it can cause problems to remove elements from the same loop you're iterating over
-        indicesToRemove.forEach(function(index) {
+        indicesToRemove.forEach(function (index) {
             realityEditor.device.currentScreenTouches.splice(index, 1);
         });
     } else {
@@ -1781,7 +2039,8 @@ realityEditor.device.onDocumentMultiTouchEnd = function (event) {
         // realityEditor.gui.menus.buttonOn([]);
         var didDisplayCrafting = globalStates.currentLogic; // proxy to determine if crafting board is open / we shouldn't reset the menu
         if (!didDisplayCrafting) {
-            var didDisplayGroundplane = realityEditor.gui.settings.toggleStates.visualizeGroundPlane;
+            var didDisplayGroundplane =
+                realityEditor.gui.settings.toggleStates.visualizeGroundPlane;
             if (didDisplayGroundplane) {
                 realityEditor.gui.menus.switchToMenu('groundPlane');
             } else {
@@ -1789,19 +2048,29 @@ realityEditor.device.onDocumentMultiTouchEnd = function (event) {
             }
         }
     }
-    
+
     // stop editing the active frame or node if there are no more touches on it
     if (this.editingState.object) {
         // TODO: touchesOnActiveVehicle returns 0 if you tapped through a fullscreen frame, because the touch targetId doesnt update to be the thing behind it
-        var touchesOnActiveVehicle = this.currentScreenTouches.map(function(elt) { return elt.targetId; }).filter(function(touchTarget) {
-            return (touchTarget === this.editingState.frame || touchTarget === this.editingState.node || touchTarget === "pocket-element");
-        }.bind(this));
+        var touchesOnActiveVehicle = this.currentScreenTouches
+            .map(function (elt) {
+                return elt.targetId;
+            })
+            .filter(
+                function (touchTarget) {
+                    return (
+                        touchTarget === this.editingState.frame ||
+                        touchTarget === this.editingState.node ||
+                        touchTarget === 'pocket-element'
+                    );
+                }.bind(this)
+            );
 
         var activeVehicle = this.getEditingVehicle();
 
         if (touchesOnActiveVehicle.length === 0) {
             console.log('this is the last touch - hide editing overlay');
-            
+
             // TODO: if pocketNode.node === activeVehicle, move node to closestFrameToScreenPosition upon dropping it
             // if (activeVehicle === pocketNode.node) {
             //
@@ -1817,36 +2086,41 @@ realityEditor.device.onDocumentMultiTouchEnd = function (event) {
             // }
 
             if (activeVehicle && !globalStates.editingMode) {
-                globalDOMCache[(this.editingState.node || this.editingState.frame)].querySelector('.corners').style.visibility = 'hidden';
+                globalDOMCache[this.editingState.node || this.editingState.frame].querySelector(
+                    '.corners'
+                ).style.visibility = 'hidden';
 
                 realityEditor.gui.ar.positioning.coverFull2DTools(false);
             }
 
             this.resetEditingState();
-
         } else {
             // if there's still a touch on it (it was being scaled), reset touch offset so vehicle doesn't jump
             this.editingState.touchOffset = null;
-            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(activeVehicle, event.touches[0].pageX, event.touches[0].pageY, true);
-
+            realityEditor.gui.ar.positioning.moveVehicleToScreenCoordinate(
+                activeVehicle,
+                event.touches[0].pageX,
+                event.touches[0].pageY,
+                true
+            );
         }
     }
-    
+
     // if tap on background when no visible objects, auto-focus camera
     // if (event.target.id === 'canvas') {
     //     if (Object.keys(realityEditor.gui.ar.draw.visibleObjects).length === 0) {
     //         realityEditor.app.focusCamera();
     //     }
     // }
-    
-    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchEnd', {event: event});
+
+    this.callbackHandler.triggerCallbacks('onDocumentMultiTouchEnd', { event: event });
 };
 
 /**
  * @typedef {Object} ScreenEventObject
  * @desc Data structure to hold touch events to be sent to screens
  * @property {number|null} version
- * @property {string|null} object 
+ * @property {string|null} object
  * @property {string|null} frame
  * @property {string|null} node
  * @property {number} x
@@ -1859,25 +2133,25 @@ realityEditor.device.onDocumentMultiTouchEnd = function (event) {
  * @type {ScreenEventObject}
  */
 realityEditor.device.eventObject = {
-    version : null,
+    version: null,
     object: null,
-    frame : null,
-    node : null,
+    frame: null,
+    node: null,
     x: 0,
     y: 0,
     type: null,
-    touches:[
+    touches: [
         {
             screenX: 0,
             screenY: 0,
-            type:null
+            type: null,
         },
         {
             screenX: 0,
             screenY: 0,
-            type:null
-        }
-    ]
+            type: null,
+        },
+    ],
 };
 
 /**
@@ -1887,7 +2161,7 @@ realityEditor.device.eventObject = {
  * @param {Function} cb
  */
 realityEditor.device.touchEventObject = function (evt, type, cb) {
-    if(!evt.touches) return;
+    if (!evt.touches) return;
     if (evt.touches.length >= 1) {
         realityEditor.device.eventObject.x = evt.touches[0].screenX;
         realityEditor.device.eventObject.y = evt.touches[0].screenY;
@@ -1897,18 +2171,23 @@ realityEditor.device.touchEventObject = function (evt, type, cb) {
         realityEditor.device.eventObject.touches[0].type = type;
 
         if (type === 'touchstart') {
-            
             var didJustAddPocket = false;
             if (realityEditor.device.eventObject.object && realityEditor.device.eventObject.frame) {
-                var existingEventFrame = realityEditor.getFrame(realityEditor.device.eventObject.object, realityEditor.device.eventObject.frame);
-                didJustAddPocket = (existingEventFrame && existingEventFrame === pocketFrame.vehicle && pocketFrame.waitingToRender);
+                var existingEventFrame = realityEditor.getFrame(
+                    realityEditor.device.eventObject.object,
+                    realityEditor.device.eventObject.frame
+                );
+                didJustAddPocket =
+                    existingEventFrame &&
+                    existingEventFrame === pocketFrame.vehicle &&
+                    pocketFrame.waitingToRender;
             }
-            
+
             if (!didJustAddPocket) {
                 realityEditor.device.eventObject.object = null;
                 realityEditor.device.eventObject.frame = null;
                 var ele = evt.target;
-                while (ele && ele.tagName !== "BODY" && ele.tagName !== "HTML") {
+                while (ele && ele.tagName !== 'BODY' && ele.tagName !== 'HTML') {
                     if (ele.objectId && ele.frameId) {
                         realityEditor.device.eventObject.object = ele.objectId;
                         realityEditor.device.eventObject.frame = ele.frameId;
@@ -1937,6 +2216,6 @@ realityEditor.device.touchEventObject = function (evt, type, cb) {
 };
 
 realityEditor.device.toolInteractionCallbacks = [];
-realityEditor.device.onToolInteraction = function(callback) {
+realityEditor.device.onToolInteraction = function (callback) {
     this.toolInteractionCallbacks.push(callback);
 };

@@ -1,9 +1,8 @@
-
 Start two edge servers (A and B) each on its own computer.
 
 Test:
 
-1. all links work 
+1. all links work
 2. Link from A node to B node
 3. Link from A logic node to B node
 4. Link from A node to B Logic node
@@ -18,10 +17,10 @@ Test:
 13. all tools have the right UI behavior
 14. Link tools with A hardware interface values and see that they have the right values when you close and open the toolbox
 15. that all tools show the right nodes when dropped on objects and world
-16. check that all tool nodes for each tool are working 
-17. Check that the distance scaling work for all tools 
-18. add 50 tools into the space and check how the distance scaling works 
-19. register world object and see if all tools are at the right position 
+16. check that all tool nodes for each tool are working
+17. Check that the distance scaling work for all tools
+18. add 50 tools into the space and check how the distance scaling works
+19. register world object and see if all tools are at the right position
 20. register world object and check if all tools on an object are at the right spot
-21. add tools to an object without registering world object then register world object and see if the position is right 
+21. add tools to an object without registering world object then register world object and see if the position is right
 22. register world object then add tools to object. close the app, reopen and then only lock at the object and see if the tools are at the right spot.

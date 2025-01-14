@@ -1,6 +1,6 @@
-import {CameraVisPatch} from './CameraVisPatch.js';
-import {ShaderMode, DEPTH_WIDTH, DEPTH_HEIGHT} from './Shaders.js';
-import {rvl} from '../../thirdPartyCode/rvl/index.js';
+import { CameraVisPatch } from './CameraVisPatch.js';
+import { ShaderMode, DEPTH_WIDTH, DEPTH_HEIGHT } from './Shaders.js';
+import { rvl } from '../../thirdPartyCode/rvl/index.js';
 import RVLParser from '../../thirdPartyCode/rvl/RVLParser.js';
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
@@ -20,22 +20,29 @@ class SpatialPatchCoordinator {
         } catch (e) {
             console.warn('error updating spatialPatchCoordinator');
         }
-        
+
         requestAnimationFrame(this.update.bind(this));
     }
     addPostMessageHandlers() {
         // add handler for tools to programmatically take spatial snapshots
-        realityEditor.network.addPostMessageHandler('captureSpatialSnapshot', (_, fullMessageData) => {
-            this.mobileARDeviceCaptureSpatialSnapshot(fullMessageData.frame);
-        });
+        realityEditor.network.addPostMessageHandler(
+            'captureSpatialSnapshot',
+            (_, fullMessageData) => {
+                this.mobileARDeviceCaptureSpatialSnapshot(fullMessageData.frame);
+            }
+        );
     }
 
     mobileARDeviceCaptureSpatialSnapshot(parentFrameKey) {
-        realityEditor.app.promises.get3dSnapshot().then(({texture, textureDepth}) => {
+        realityEditor.app.promises.get3dSnapshot().then(({ texture, textureDepth }) => {
             if (debug) {
                 let previewRGB = `${texture.substring(0, 16)} ... ${texture.slice(-16)}`;
                 let previewDepth = `${textureDepth.substring(0, 16)} ... ${textureDepth.slice(-16)}`;
-                console.log('got spatial snapshot textures', `RGB: ${previewRGB}`, `Depth: ${previewDepth}`);
+                console.log(
+                    'got spatial snapshot textures',
+                    `RGB: ${previewRGB}`,
+                    `Depth: ${previewDepth}`
+                );
             }
 
             // decompress the depth byteArray using the RVL parser
@@ -56,12 +63,16 @@ class SpatialPatchCoordinator {
                 decodedDepthDataURL = this.getImageDataFromRawDepth(uuid, rawDepth);
             }
 
-            let worldNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+            let worldNode = realityEditor.sceneGraph.getSceneNodeById(
+                realityEditor.sceneGraph.getWorldId()
+            );
             if (texture && textureDepth && rawDepth && decodedDepthDataURL && worldNode) {
                 let container = new THREE.Group();
                 let phone = new THREE.Group();
                 phone.matrixAutoUpdate = false;
-                let cameraMatrix = realityEditor.sceneGraph.getCameraNode().getMatrixRelativeTo(worldNode);
+                let cameraMatrix = realityEditor.sceneGraph
+                    .getCameraNode()
+                    .getMatrixRelativeTo(worldNode);
 
                 // for some reason, each element in the camera's first and third rows are negative
                 // perhaps because the pointcloud does: mesh.scale.set(-1, 1, -1);
@@ -93,14 +104,14 @@ class SpatialPatchCoordinator {
                     spatialSnapshotData: {
                         textureDataURL: textureDataURL,
                         textureDepthDataURL: decodedDepthDataURL,
-                    }
+                    },
                 });
             } else {
                 // send error message into the frame that requested the capture
                 realityEditor.network.postMessageIntoFrame(parentFrameKey, {
                     spatialSnapshotError: {
-                        reason: 'Error getting RGB texture and/or depth texture'
-                    }
+                        reason: 'Error getting RGB texture and/or depth texture',
+                    },
                 });
             }
         });
@@ -124,18 +135,29 @@ class SpatialPatchCoordinator {
             this.patches[key].setShaderMode(msgData.shaderMode);
         });
 
-
         this.onVehicleDeleted = this.onVehicleDeleted.bind(this);
         realityEditor.device.registerCallback('vehicleDeleted', this.onVehicleDeleted); // deleted using userinterface
         realityEditor.network.registerCallback('vehicleDeleted', this.onVehicleDeleted); // deleted using server
     }
-    
+
     setMatrixFromArray(matrix, array) {
         matrix.set(
-            array[0], array[4], array[8], array[12],
-            array[1], array[5], array[9], array[13],
-            array[2], array[6], array[10], array[14],
-            array[3], array[7], array[11], array[15]
+            array[0],
+            array[4],
+            array[8],
+            array[12],
+            array[1],
+            array[5],
+            array[9],
+            array[13],
+            array[2],
+            array[6],
+            array[10],
+            array[14],
+            array[3],
+            array[7],
+            array[11],
+            array[15]
         );
     }
 
@@ -162,7 +184,7 @@ class SpatialPatchCoordinator {
     clonePatches(shaderMode, cameras) {
         let clonedPatches = {};
         for (let camera of Object.values(cameras)) {
-            const {key, patch} = camera.clonePatch(shaderMode);
+            const { key, patch } = camera.clonePatch(shaderMode);
             patch.add();
             this.patches[key] = patch;
             clonedPatches[key] = patch;
@@ -212,7 +234,7 @@ class SpatialPatchCoordinator {
         patch.add();
         this.patches[serialization.key] = patch;
     }
-    
+
     // updates the snapshot shader to render more flatly when you observe it from a similar position and angle
     // compared to the position/angle that it was captured at
     updatePatchMaterialUniforms() {
@@ -221,7 +243,9 @@ class SpatialPatchCoordinator {
             if (typeof patch.material.uniforms.viewAngleSimilarity === 'undefined') continue;
             if (typeof patch.material.uniforms.viewPositionSimilarity === 'undefined') continue;
 
-            let viewingCameraForwardVector = realityEditor.gui.ar.utilities.getForwardVector(realityEditor.sceneGraph.getCameraNode().worldMatrix);
+            let viewingCameraForwardVector = realityEditor.gui.ar.utilities.getForwardVector(
+                realityEditor.sceneGraph.getCameraNode().worldMatrix
+            );
             let viewAngleSimilarity = 0;
             let MIN_DISTANCE_THRESHOLD = 2000;
             let MAX_DISTANCE_THRESHOLD = 6000;
@@ -229,12 +253,27 @@ class SpatialPatchCoordinator {
             // TODO: currently we're comparing the viewing angle/distance based on the tool associated with
             //  the snapshot, not the snapshot itself. This is ok as long as you dont drag the tool icon.
             if (realityEditor.sceneGraph.getSceneNodeById(key)) {
-                let snapshotForwardVector = realityEditor.gui.ar.utilities.getForwardVector(realityEditor.sceneGraph.getSceneNodeById(key).worldMatrix);
-                viewAngleSimilarity = -1 * realityEditor.gui.ar.utilities.dotProduct(snapshotForwardVector, viewingCameraForwardVector);
+                let snapshotForwardVector = realityEditor.gui.ar.utilities.getForwardVector(
+                    realityEditor.sceneGraph.getSceneNodeById(key).worldMatrix
+                );
+                viewAngleSimilarity =
+                    -1 *
+                    realityEditor.gui.ar.utilities.dotProduct(
+                        snapshotForwardVector,
+                        viewingCameraForwardVector
+                    );
                 viewAngleSimilarity = Math.max(0, viewAngleSimilarity); // limit it to 0 instead of going to -1 if viewing from anti-parallel direction
                 viewDistance = realityEditor.sceneGraph.getDistanceToCamera(key);
             }
-            let viewPositionSimilarity = Math.min(1, Math.max(0, 1.0 - (viewDistance - MIN_DISTANCE_THRESHOLD) / (MAX_DISTANCE_THRESHOLD - MIN_DISTANCE_THRESHOLD)));
+            let viewPositionSimilarity = Math.min(
+                1,
+                Math.max(
+                    0,
+                    1.0 -
+                        (viewDistance - MIN_DISTANCE_THRESHOLD) /
+                            (MAX_DISTANCE_THRESHOLD - MIN_DISTANCE_THRESHOLD)
+                )
+            );
 
             patch.material.uniforms.viewAngleSimilarity.value = viewAngleSimilarity;
             patch.material.uniforms.viewPositionSimilarity.value = viewPositionSimilarity;
@@ -256,7 +295,7 @@ class SpatialPatchCoordinator {
             };
         }
 
-        let {canvas, context, imageData} = this.depthCanvasCache[id];
+        let { canvas, context, imageData } = this.depthCanvasCache[id];
         canvas.width = DEPTH_WIDTH;
         canvas.height = DEPTH_HEIGHT;
         let maxDepth14bits = 0;

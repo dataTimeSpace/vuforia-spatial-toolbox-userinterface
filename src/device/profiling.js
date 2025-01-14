@@ -1,8 +1,8 @@
-createNameSpace("realityEditor.device.profiling");
+createNameSpace('realityEditor.device.profiling');
 
-import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
+import { ProfilerSettingsUI } from '../gui/ProfilerSettingsUI.js';
 
-(function(exports) {
+(function (exports) {
     let isShown = false;
     let isActivated = false;
     let profilerSettingsUI = null;
@@ -13,32 +13,46 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
     const IDLE_TIMEOUT = 5000; // if 5s pass with no new start/stop processes, reset the average/min/max
 
     function initService() {
-        realityEditor.network.addPostMessageHandler('profilerStartTimeProcess', (msgContent, _fullMessage) => {
-            startTimeProcess(msgContent.name, { numStopsRequired: msgContent.numStopsRequired });
-        });
-
-        realityEditor.network.addPostMessageHandler('profilerStopTimeProcess', (msgContent, _fullMessage) => {
-            let options = {
-                showMessage: msgContent.showMessage,
-                showAggregate: msgContent.showAggregate,
-                displayTimeout: msgContent.displayTimeout,
-                includeCount: msgContent.includeCount
-            };
-            stopTimeProcess(msgContent.name, msgContent.category, options);
-        });
-
-        realityEditor.network.addPostMessageHandler('profilerLogMessage', (msgContent, _fullMessage) => {
-            let formattedTime = formatLogTime();
-            let displayText = `${msgContent.message} <span style='color:grey'>${formattedTime}</span>`;
-            let options = {
-                displayTimeout: msgContent.displayTimeout
+        realityEditor.network.addPostMessageHandler(
+            'profilerStartTimeProcess',
+            (msgContent, _fullMessage) => {
+                startTimeProcess(msgContent.name, {
+                    numStopsRequired: msgContent.numStopsRequired,
+                });
             }
-            logIndividualProcess(displayText, options);
-        });
+        );
 
-        realityEditor.network.addPostMessageHandler('profilerCountMessage', (msgContent, _fullMessage) => {
-            logProcessCount(msgContent.message);
-        });
+        realityEditor.network.addPostMessageHandler(
+            'profilerStopTimeProcess',
+            (msgContent, _fullMessage) => {
+                let options = {
+                    showMessage: msgContent.showMessage,
+                    showAggregate: msgContent.showAggregate,
+                    displayTimeout: msgContent.displayTimeout,
+                    includeCount: msgContent.includeCount,
+                };
+                stopTimeProcess(msgContent.name, msgContent.category, options);
+            }
+        );
+
+        realityEditor.network.addPostMessageHandler(
+            'profilerLogMessage',
+            (msgContent, _fullMessage) => {
+                let formattedTime = formatLogTime();
+                let displayText = `${msgContent.message} <span style='color:grey'>${formattedTime}</span>`;
+                let options = {
+                    displayTimeout: msgContent.displayTimeout,
+                };
+                logIndividualProcess(displayText, options);
+            }
+        );
+
+        realityEditor.network.addPostMessageHandler(
+            'profilerCountMessage',
+            (msgContent, _fullMessage) => {
+                logProcessCount(msgContent.message);
+            }
+        );
     }
 
     function formatLogTime() {
@@ -66,7 +80,16 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
         }
     }
 
-    function stopTimeProcess(processTitle, category, options = { showMessage: false, showAggregate: true, displayTimeout: 3000, includeCount: true }) {
+    function stopTimeProcess(
+        processTitle,
+        category,
+        options = {
+            showMessage: false,
+            showAggregate: true,
+            displayTimeout: 3000,
+            includeCount: true,
+        }
+    ) {
         if (!isShown) return;
         if (!isActivated) return;
         if (!profilerSettingsUI) return;
@@ -78,7 +101,10 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
 
         if (typeof processTimes[processTitle].numStopsRequired !== 'undefined') {
             processTimes[processTitle].numStopsAccumulated += 1;
-            if (processTimes[processTitle].numStopsAccumulated < processTimes[processTitle].numStopsRequired) {
+            if (
+                processTimes[processTitle].numStopsAccumulated <
+                processTimes[processTitle].numStopsRequired
+            ) {
                 return; // wait until we receive enough stops
             }
         }
@@ -94,9 +120,11 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
 
         if (!process.start || !process.end) return;
 
-        let time = (process.end - process.start)
+        let time = process.end - process.start;
         let displayTime = time.toFixed(2);
-        let numStopsText = processTimes[processTitle].numStopsAccumulated ? `(${processTimes[processTitle].numStopsAccumulated} stops)` : '';
+        let numStopsText = processTimes[processTitle].numStopsAccumulated
+            ? `(${processTimes[processTitle].numStopsAccumulated} stops)`
+            : '';
         let labelText = `${processTitle}: ${yellow(displayTime)} ms ${numStopsText}`;
 
         setTimeout(() => {
@@ -117,13 +145,18 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
             let maxT = info.slowest.toFixed(2);
             let countString = options.includeCount ? ` (${info.count})` : '';
             let meanLabelText = `${category}${countString} –– mean: ${yellow(meanT)} –– min: ${yellow(minT)} –– max: ${yellow(maxT)}`;
-            profilerSettingsUI.addOrUpdateLabel(`mean_${category}`, meanLabelText, { pinToTop: true });
+            profilerSettingsUI.addOrUpdateLabel(`mean_${category}`, meanLabelText, {
+                pinToTop: true,
+            });
         } else {
             console.warn('no category info', category, processTitle, processCategories);
         }
     }
 
-    function logIndividualProcess(processTitle, options = { displayTimeout: 3000, labelText: null }) {
+    function logIndividualProcess(
+        processTitle,
+        options = { displayTimeout: 3000, labelText: null }
+    ) {
         if (!isShown) return;
         if (!isActivated) return;
         if (!profilerSettingsUI) return;
@@ -145,7 +178,7 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
         let categoryName = `${processTitle}_count`;
         if (typeof processCategories[categoryName] === 'undefined') {
             processCategories[categoryName] = {
-                count: 1
+                count: 1,
             };
         } else {
             processCategories[categoryName].count += 1;
@@ -163,7 +196,7 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
                 slowest: time,
                 mean: time,
                 count: 1,
-                numDisplayResets: 0
+                numDisplayResets: 0,
             };
         } else if (timeBetweenCategoryUpdates > IDLE_TIMEOUT) {
             let numDisplayResets = processCategories[category].numDisplayResets + 1;
@@ -172,14 +205,20 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
                 slowest: time,
                 mean: time,
                 count: 1,
-                numDisplayResets: numDisplayResets
+                numDisplayResets: numDisplayResets,
             };
         } else {
             let prevCount = processCategories[category].count;
             let prevMean = processCategories[category].mean;
 
-            processCategories[category].fastest = Math.min(processCategories[category].fastest, time);
-            processCategories[category].slowest = Math.max(processCategories[category].slowest, time);
+            processCategories[category].fastest = Math.min(
+                processCategories[category].fastest,
+                time
+            );
+            processCategories[category].slowest = Math.max(
+                processCategories[category].slowest,
+                time
+            );
             processCategories[category].mean = (prevCount * prevMean + time) / (prevCount + 1); // update mean
             processCategories[category].count += 1;
         }
@@ -220,15 +259,15 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
     }
 
     // Helper functions useful for users of startTimeProcess/stopTimeProcess
-    
+
     // computes the FNV-1a hash of a string - useful as a UUID for a stringified matrix
     function getShortHashForString(str) {
         let hash = 2166136261n; // Initialize to an offset_basis for FNV-1a 32bit
-        for(let i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             hash ^= BigInt(str.charCodeAt(i));
             hash *= 16777619n;
         }
-        return (hash & 0xFFFFFFFFn).toString(16).padStart(8, '0');
+        return (hash & 0xffffffffn).toString(16).padStart(8, '0');
     }
 
     // helper function to count the number of frames on all objects which are subscribed to matrices
@@ -236,9 +275,15 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
         return Object.values(objects).reduce((totalCount, obj) => {
             const thisObjectCount = Object.keys(obj.frames).reduce((frameCount, frameKey) => {
                 let frame = obj.frames[frameKey];
-                let sendsMatrix = frame.sendMatrix || (frame.sendMatrices && (frame.sendMatrices.devicePose ||
-                    frame.sendMatrices.groundPlane || frame.sendMatrices.anchoredModelView ||
-                    frame.sendMatrices.allObjects || frame.sendMatrices.model || frame.sendMatrices.view));
+                let sendsMatrix =
+                    frame.sendMatrix ||
+                    (frame.sendMatrices &&
+                        (frame.sendMatrices.devicePose ||
+                            frame.sendMatrices.groundPlane ||
+                            frame.sendMatrices.anchoredModelView ||
+                            frame.sendMatrices.allObjects ||
+                            frame.sendMatrices.model ||
+                            frame.sendMatrices.view));
                 return frameCount + (sendsMatrix ? 1 : 0);
             }, 0);
             return totalCount + thisObjectCount;
@@ -259,6 +304,6 @@ import { ProfilerSettingsUI } from "../gui/ProfilerSettingsUI.js";
     // helper function
     exports.getShortHashForString = getShortHashForString;
     exports.countSubscribedFrames = countSubscribedFrames;
-}(realityEditor.device.profiling));
+})(realityEditor.device.profiling);
 
 export const initService = realityEditor.device.profiling.initService;

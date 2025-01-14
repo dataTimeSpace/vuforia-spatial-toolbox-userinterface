@@ -1,6 +1,5 @@
 export class MapShaderSettingsUI {
     constructor() {
-
         this.root = document.createElement('div');
         this.root.id = 'hpa-settings';
 
@@ -80,7 +79,7 @@ export class MapShaderSettingsUI {
         let minAngle = sliderMinRange.value;
         let maxAngle = sliderMaxRange.value;
 
-        sliderMinRange.addEventListener('input', function() {
+        sliderMinRange.addEventListener('input', function () {
             const val = parseFloat(this.value);
             if (val > maxAngle) {
                 sliderMaxRange.value = val;
@@ -93,7 +92,7 @@ export class MapShaderSettingsUI {
             realityEditor.app.pathfinding.updateSteepnessRange(minAngle, maxAngle);
         });
 
-        sliderMinNumber.addEventListener('input', function() {
+        sliderMinNumber.addEventListener('input', function () {
             const val = parseFloat(this.value);
             if (val > maxAngle) {
                 sliderMaxRange.value = val;
@@ -106,7 +105,7 @@ export class MapShaderSettingsUI {
             realityEditor.app.pathfinding.updateSteepnessRange(minAngle, maxAngle);
         });
 
-        sliderMaxRange.addEventListener('input', function() {
+        sliderMaxRange.addEventListener('input', function () {
             const val = parseFloat(this.value);
             if (val < minAngle) {
                 sliderMinRange.value = val;
@@ -119,7 +118,7 @@ export class MapShaderSettingsUI {
             realityEditor.app.pathfinding.updateSteepnessRange(minAngle, maxAngle);
         });
 
-        sliderMaxNumber.addEventListener('input', function() {
+        sliderMaxNumber.addEventListener('input', function () {
             const val = parseFloat(this.value);
             if (val < minAngle) {
                 sliderMinRange.value = val;
@@ -143,31 +142,39 @@ export class MapShaderSettingsUI {
             this.toggle();
         });
         // Toggle menu minimization when clicking on the header, but only if not dragging
-        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', event => {
+        this.root.querySelector('.hpa-settings-header').addEventListener('mousedown', (event) => {
             event.stopPropagation();
             let mouseDownX = event.clientX;
             let mouseDownY = event.clientY;
-            const mouseUpListener = event => {
+            const mouseUpListener = (event) => {
                 const mouseUpX = event.clientX;
                 const mouseUpY = event.clientY;
                 if (mouseDownX === mouseUpX && mouseDownY === mouseUpY) {
                     this.toggleMinimized();
                 }
-                this.root.querySelector('.hpa-settings-header').removeEventListener('mouseup', mouseUpListener);
+                this.root
+                    .querySelector('.hpa-settings-header')
+                    .removeEventListener('mouseup', mouseUpListener);
             };
-            this.root.querySelector('.hpa-settings-header').addEventListener('mouseup', mouseUpListener);
+            this.root
+                .querySelector('.hpa-settings-header')
+                .addEventListener('mouseup', mouseUpListener);
         });
 
-        this.root.querySelector('#measure-app-select-map-shader').addEventListener('change', (event) => {
-            realityEditor.gui.threejsScene.changeMeasureMapType(event.target.value);
-        });
-        
+        this.root
+            .querySelector('#measure-app-select-map-shader')
+            .addEventListener('change', (event) => {
+                realityEditor.gui.threejsScene.changeMeasureMapType(event.target.value);
+            });
+
         realityEditor.device.registerCallback('vehicleDeleted', this.onVehicleDeleted.bind(this)); // deleted using userinterface
         realityEditor.network.registerCallback('vehicleDeleted', this.onVehicleDeleted.bind(this)); // deleted using server
 
-        this.root.querySelector('#measure-app-highlight-walkable-area').addEventListener('change', (event) => {
-            realityEditor.gui.threejsScene.highlightWalkableArea(event.target.checked);
-        });
+        this.root
+            .querySelector('#measure-app-highlight-walkable-area')
+            .addEventListener('change', (event) => {
+                realityEditor.gui.threejsScene.highlightWalkableArea(event.target.checked);
+            });
 
         // Add listeners to aid with clicking checkboxes
         this.root.querySelectorAll('.hpa-settings-section-row-checkbox').forEach((checkbox) => {
@@ -193,15 +200,21 @@ export class MapShaderSettingsUI {
         if (!event.objectKey || !event.frameKey || event.nodeKey) {
             return;
         }
-        if (realityEditor.envelopeManager.getFrameTypeFromKey(event.objectKey, event.frameKey) === 'spatialMeasure') {
+        if (
+            realityEditor.envelopeManager.getFrameTypeFromKey(event.objectKey, event.frameKey) ===
+            'spatialMeasure'
+        ) {
             this.root.querySelector('#measure-app-select-map-shader').value = 'color';
             realityEditor.gui.threejsScene.changeMeasureMapType('color');
             this.hide();
 
             let iframe = document.getElementById('iframe' + event.frameKey);
-            iframe.contentWindow.postMessage(JSON.stringify({
-                isAppClosed: true,
-            }), '*');
+            iframe.contentWindow.postMessage(
+                JSON.stringify({
+                    isAppClosed: true,
+                }),
+                '*'
+            );
         }
     }
 
@@ -223,11 +236,11 @@ export class MapShaderSettingsUI {
                 this.root.style.left = `${dragStartLeft + event.clientX - dragStartX}px`;
                 this.root.style.top = `${dragStartTop + event.clientY - dragStartY}px`;
                 this.snapToFitScreen();
-            }
+            };
             const mouseUpListener = () => {
                 document.removeEventListener('mousemove', mouseMoveListener);
                 document.removeEventListener('mouseup', mouseUpListener);
-            }
+            };
             document.addEventListener('mousemove', mouseMoveListener);
             document.addEventListener('mouseup', mouseUpListener);
         });
@@ -249,7 +262,10 @@ export class MapShaderSettingsUI {
             this.root.style.left = `${window.innerWidth - this.root.offsetWidth}px`;
         }
         // Keep the header visible on the screen off the bottom
-        if (this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight > window.innerHeight) {
+        if (
+            this.root.offsetTop + this.root.querySelector('.hpa-settings-header').offsetHeight >
+            window.innerHeight
+        ) {
             this.root.style.top = `${window.innerHeight - this.root.querySelector('.hpa-settings-header').offsetHeight}px`;
         }
     }

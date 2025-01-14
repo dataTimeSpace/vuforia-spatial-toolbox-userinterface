@@ -1,11 +1,10 @@
-createNameSpace("realityEditor.gui.ar.anchors");
+createNameSpace('realityEditor.gui.ar.anchors');
 
 /**
  * @fileOverview
  */
 
-(function(exports) {
-
+(function (exports) {
     let anchorObjects = {};
     let utilities = realityEditor.gui.ar.utilities;
     let fullscreenAnchor = null;
@@ -17,14 +16,21 @@ createNameSpace("realityEditor.gui.ar.anchors");
         realityEditor.gui.ar.draw.addVisibleObjectModifier(modifyVisibleObjects);
         realityEditor.gui.ar.draw.addUpdateListener(onUpdate);
 
-        realityEditor.gui.settings.addToggle('Hide Anchor Icons', 'don\'t accidentally reposition anchors', 'hideAnchorIcons',  '../../../svg/foundObjectAnchor.svg', false, function(newValue) {
-            // only draw frame ghosts while in programming mode if we're not in power-save mode
-            if (newValue) {
-                hideAnchorIcons();
-            } else {
-                showAnchorIcons();
+        realityEditor.gui.settings.addToggle(
+            'Hide Anchor Icons',
+            "don't accidentally reposition anchors",
+            'hideAnchorIcons',
+            '../../../svg/foundObjectAnchor.svg',
+            false,
+            function (newValue) {
+                // only draw frame ghosts while in programming mode if we're not in power-save mode
+                if (newValue) {
+                    hideAnchorIcons();
+                } else {
+                    showAnchorIcons();
+                }
             }
-        });
+        );
     }
 
     /**
@@ -57,8 +63,15 @@ createNameSpace("realityEditor.gui.ar.anchors");
      */
     function isAnchorObject(objectId) {
         let object = realityEditor.getObject(objectId);
-        if (!object) { return false; }
-        if (realityEditor.humanPose.utils.isHumanPoseObject(object) || realityEditor.avatar.utils.isAvatarObject(object)) { return false; }
+        if (!object) {
+            return false;
+        }
+        if (
+            realityEditor.humanPose.utils.isHumanPoseObject(object) ||
+            realityEditor.avatar.utils.isAvatarObject(object)
+        ) {
+            return false;
+        }
         return anchorObjects.hasOwnProperty(objectId);
     }
 
@@ -74,11 +87,14 @@ createNameSpace("realityEditor.gui.ar.anchors");
     function modifyVisibleObjects(visibleObjects) {
         // if there's no visible world object other than the world_local, ignore all this code
         let bestWorldObject = realityEditor.worldObjects.getBestWorldObject();
-        if (!bestWorldObject || bestWorldObject.objectId === realityEditor.worldObjects.getLocalWorldId()) {
+        if (
+            !bestWorldObject ||
+            bestWorldObject.objectId === realityEditor.worldObjects.getLocalWorldId()
+        ) {
             return;
         }
 
-        let anchorObjectIds = Object.keys(objects).filter(function(objectKey) {
+        let anchorObjectIds = Object.keys(objects).filter(function (objectKey) {
             return isAnchorObject(objectKey);
         });
 
@@ -87,15 +103,18 @@ createNameSpace("realityEditor.gui.ar.anchors");
             return;
         }
 
-        anchorObjectIds.forEach(function(objectKey) {
+        anchorObjectIds.forEach(function (objectKey) {
             // object.matrix is its position relative to the world..
             // e.g. if object.matrix is identity, its visibleObjects matrix should be equal to
             // the visibleObjects matrix of its world
-            let objectMatrix = realityEditor.getObject(objectKey).matrix || utilities.newIdentityMatrix();
+            let objectMatrix =
+                realityEditor.getObject(objectKey).matrix || utilities.newIdentityMatrix();
 
             let sceneNode = realityEditor.sceneGraph.getSceneNodeById(objectKey);
             if (sceneNode) {
-                let worldObjectSceneNode = realityEditor.sceneGraph.getSceneNodeById(bestWorldObject.objectId);
+                let worldObjectSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+                    bestWorldObject.objectId
+                );
                 sceneNode.setParent(worldObjectSceneNode);
                 sceneNode.setLocalMatrix(objectMatrix);
             }
@@ -119,14 +138,16 @@ createNameSpace("realityEditor.gui.ar.anchors");
     function shouldAddToVisibleObjects(objectKey) {
         // TODO ben: reimplement with canUnload
         let isOutsideViewport = false; //realityEditor.gui.ar.positioning.canUnload(objectKey,
-            // finalAnchorMatrices[objectKey], anchorContentSize/2, anchorContentSize/2);
+        // finalAnchorMatrices[objectKey], anchorContentSize/2, anchorContentSize/2);
         let distanceToCamera = realityEditor.sceneGraph.getDistanceToCamera(objectKey);
 
         if (fullscreenAnchor === objectKey) {
             return true;
         }
 
-        let isDistanceOk = distanceToCamera < getAnchorDistanceThreshold(objectKey) || !realityEditor.device.environment.supportsDistanceFading();
+        let isDistanceOk =
+            distanceToCamera < getAnchorDistanceThreshold(objectKey) ||
+            !realityEditor.device.environment.supportsDistanceFading();
 
         return !isOutsideViewport && isDistanceOk;
     }
@@ -152,7 +173,9 @@ createNameSpace("realityEditor.gui.ar.anchors");
                     'matrix3d(1, 0, 0, 0,' +
                     '0, 1, 0, 0,' +
                     '0, 0, 1, 0,' +
-                    '0, 0, ' + zIndex + ', 1)';
+                    '0, 0, ' +
+                    zIndex +
+                    ', 1)';
                 continue;
             }
 
@@ -168,10 +191,12 @@ createNameSpace("realityEditor.gui.ar.anchors");
             } else {
                 hideAnchorElementIfNeeded(objectKey); // hide if it was outside (last frame)
             }
-            
+
             // hide if it is too far away or entirely behind the camera
-            let distanceToCamera =  realityEditor.sceneGraph.getDistanceToCamera(objectKey);
-            let isDistanceOk = distanceToCamera < getAnchorDistanceThreshold(objectKey) || !realityEditor.device.environment.supportsDistanceFading();
+            let distanceToCamera = realityEditor.sceneGraph.getDistanceToCamera(objectKey);
+            let isDistanceOk =
+                distanceToCamera < getAnchorDistanceThreshold(objectKey) ||
+                !realityEditor.device.environment.supportsDistanceFading();
             let isNowOutsideViewport = !isDistanceOk;
             // TODO: re-implement canUnload for more stringent viewport culling when outside frustum
 
@@ -196,12 +221,14 @@ createNameSpace("realityEditor.gui.ar.anchors");
      */
     function getAnchorDistanceThreshold(objectKey) {
         let maxFrameDistanceThreshold = 0;
-        realityEditor.forEachFrameInObject(objectKey, function(objectKey, frameKey) {
+        realityEditor.forEachFrameInObject(objectKey, function (objectKey, frameKey) {
             let frame = realityEditor.getFrame(objectKey, frameKey);
             let distanceScale = realityEditor.gui.ar.getDistanceScale(frame);
             // multiply the default min distance by the amount this frame distance has been scaled up
             let scaleFactor = 0.8; // discount the distance of frames compared to the anchor threshold
-            let distanceThreshold = scaleFactor * (distanceScale * realityEditor.device.distanceScaling.getDefaultDistance());
+            let distanceThreshold =
+                scaleFactor *
+                (distanceScale * realityEditor.device.distanceScaling.getDefaultDistance());
             if (distanceThreshold > maxFrameDistanceThreshold) {
                 maxFrameDistanceThreshold = distanceThreshold;
             }
@@ -220,12 +247,16 @@ createNameSpace("realityEditor.gui.ar.anchors");
             return; // don't hide the fullscreen anchor otherwise no way to go back
         }
 
-        if (activeElt && (!anchorsOutsideOfViewport[objectKey] || !activeElt.classList.contains('outsideOfViewport'))) {
+        if (
+            activeElt &&
+            (!anchorsOutsideOfViewport[objectKey] ||
+                !activeElt.classList.contains('outsideOfViewport'))
+        ) {
             anchorsOutsideOfViewport[objectKey] = true; // make sure to keep track of this property
             activeElt.classList.add('outsideOfViewport');
         }
     }
-    
+
     /**
      * Creates a DOM element for the given object.
      * Element must be constructed in a certain way to render correctly in 3d space.
@@ -234,7 +265,12 @@ createNameSpace("realityEditor.gui.ar.anchors");
     function createAnchorElement(objectKey) {
         let anchorContainer = document.createElement('div');
         anchorContainer.id = 'anchor' + objectKey;
-        anchorContainer.classList.add('anchorContainer', 'ignorePointerEvents', 'main', 'visibleFrameContainer');
+        anchorContainer.classList.add(
+            'anchorContainer',
+            'ignorePointerEvents',
+            'main',
+            'visibleFrameContainer'
+        );
 
         if (realityEditor.gui.settings.toggleStates.hideAnchorIcons) {
             anchorContainer.classList.add('hiddenAnchor');
@@ -250,20 +286,22 @@ createNameSpace("realityEditor.gui.ar.anchors");
         let anchorContents = document.createElement('div');
         anchorContents.id = 'anchorContents' + objectKey;
         anchorContents.classList.add('anchorContents', 'usePointerEvents');
-        anchorContents.style.left = (globalStates.height/2 - anchorContentSize/2) + 'px';
-        anchorContents.style.top = (globalStates.width/2 - anchorContentSize/2) + 'px';
-        
+        anchorContents.style.left = globalStates.height / 2 - anchorContentSize / 2 + 'px';
+        anchorContents.style.top = globalStates.width / 2 - anchorContentSize / 2 + 'px';
+
         anchorContainer.appendChild(anchorContents);
         document.getElementById('GUI').appendChild(anchorContainer);
-        
+
         globalDOMCache['anchor' + objectKey] = anchorContainer;
         globalDOMCache['anchorContents' + objectKey] = anchorContents;
 
         updateAnchorGraphics(objectKey, true);
 
         // attach event listeners
-        anchorContents.addEventListener('pointerup', function(event) {
-            if (realityEditor.device.environment.requiresMouseEvents() && event.button === 2) { return; } // ignore right-clicks
+        anchorContents.addEventListener('pointerup', function (event) {
+            if (realityEditor.device.environment.requiresMouseEvents() && event.button === 2) {
+                return;
+            } // ignore right-clicks
 
             onAnchorTapped(objectKey);
         });
@@ -272,22 +310,20 @@ createNameSpace("realityEditor.gui.ar.anchors");
         let objectSceneNode = realityEditor.sceneGraph.getSceneNodeById(objectKey);
         let elementMatrix = [];
         let scale = 0.5;
-        let transform = [
-            scale, 0, 0, 0,
-            0, scale, 0, 0,
-            0, 0, scale, 0,
-            0, 0, 0, 1
-        ];
+        let transform = [scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, scale, 0, 0, 0, 0, 1];
         utilities.multiplyMatrix(transform, makeRotationZ(Math.PI), elementMatrix);
-        realityEditor.sceneGraph.addVisualElement(anchorContainer.id, objectSceneNode, undefined, elementMatrix);
+        realityEditor.sceneGraph.addVisualElement(
+            anchorContainer.id,
+            objectSceneNode,
+            undefined,
+            elementMatrix
+        );
     }
 
-    var makeRotationZ =  function ( theta ) {
-        var c = Math.cos( theta ), s = Math.sin( theta );
-        return [  c, -s, 0, 0,
-            s, c, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1];
+    var makeRotationZ = function (theta) {
+        var c = Math.cos(theta),
+            s = Math.sin(theta);
+        return [c, -s, 0, 0, s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
     };
 
     /**
@@ -305,23 +341,18 @@ createNameSpace("realityEditor.gui.ar.anchors");
                 // calculates position relative to world so that anchor is positioned at the camera
                 if (!realityEditor.device.environment.isCameraOrientationFlipped()) {
                     realityEditor.sceneGraph.moveSceneNodeToCamera(objectKey, true);
-
                 } else {
                     // needs to be upside-down relative to camera in certain environments
                     let sceneNode = realityEditor.sceneGraph.getSceneNodeById(objectKey);
                     let cameraNode = realityEditor.sceneGraph.getSceneNodeById('CAMERA');
-                    let initialVehicleMatrix = [
-                        1, 0, 0, 0,
-                        0, -1, 0, 0,
-                        0, 0, 1, 0,
-                        0, 0, 0, 1
-                    ];
+                    let initialVehicleMatrix = [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
                     sceneNode.setPositionRelativeTo(cameraNode, initialVehicleMatrix);
                 }
-                
+
                 // store the new relative position of the anchor to the world
                 let anchorObject = realityEditor.getObject(objectKey);
-                anchorObject.matrix = realityEditor.sceneGraph.getSceneNodeById(objectKey).localMatrix;
+                anchorObject.matrix =
+                    realityEditor.sceneGraph.getSceneNodeById(objectKey).localMatrix;
 
                 // upload to the server for persistence. scene graph makes sure it uploads position relative to world
                 realityEditor.sceneGraph.network.uploadObjectPosition(objectKey);
@@ -346,8 +377,10 @@ createNameSpace("realityEditor.gui.ar.anchors");
     function updateAnchorGraphics(objectKey, forceCreation) {
         let container = globalDOMCache['anchor' + objectKey];
         let element = globalDOMCache['anchorContents' + objectKey];
-        if (fullscreenAnchor === objectKey && (!element.classList.contains('anchorContentsFullscreen') || forceCreation)) {
-
+        if (
+            fullscreenAnchor === objectKey &&
+            (!element.classList.contains('anchorContentsFullscreen') || forceCreation)
+        ) {
             // this will make sure it isn't inside an invisible container
             container.classList.add('anchorContainerFullscreen');
 
@@ -392,9 +425,9 @@ createNameSpace("realityEditor.gui.ar.anchors");
 
             let centerContainer = document.createElement('div');
             centerContainer.classList.add('anchorCenter');
-            let size = (0.6 * globalStates.width);
-            centerContainer.style.left = (globalStates.height/2 - size/2) + 'px';
-            centerContainer.style.top = (globalStates.width/2 - size/2) + 'px';
+            let size = 0.6 * globalStates.width;
+            centerContainer.style.left = globalStates.height / 2 - size / 2 + 'px';
+            centerContainer.style.top = globalStates.width / 2 - size / 2 + 'px';
 
             let centerSvg = document.createElement('img');
             centerSvg.src = '../../../svg/anchorCenter.svg';
@@ -415,7 +448,6 @@ createNameSpace("realityEditor.gui.ar.anchors");
             // this needs to happen after elements have been added to the DOM
             resizeAnchorText(objectKey);
         } else if (element.classList.contains('anchorContentsFullscreen') || forceCreation) {
-
             container.classList.remove('anchorContainerFullscreen');
 
             // first show the sidebar buttons
@@ -423,8 +455,8 @@ createNameSpace("realityEditor.gui.ar.anchors");
 
             // resize it to be a small centered icon in its container
             element.classList.remove('anchorContentsFullscreen');
-            element.style.left = (globalStates.height/2 - anchorContentSize/2) + 'px';
-            element.style.top = (globalStates.width/2 - anchorContentSize/2) + 'px';
+            element.style.left = globalStates.height / 2 - anchorContentSize / 2 + 'px';
+            element.style.top = globalStates.width / 2 - anchorContentSize / 2 + 'px';
 
             // rebuild the HTML with an SVG icon
             element.innerHTML = '';
@@ -459,7 +491,7 @@ createNameSpace("realityEditor.gui.ar.anchors");
         textfield.style.fontSize = maxFontSize + 'px';
 
         // resize text to fit after it renders once
-        requestAnimationFrame(function() {
+        requestAnimationFrame(function () {
             let desiredWidth = anchorElement.clientWidth * 0.35;
             let anchorCenter = anchorElement.querySelector('.anchorCenter');
             if (anchorCenter) {
@@ -485,7 +517,7 @@ createNameSpace("realityEditor.gui.ar.anchors");
         fullscreenAnchor = objectKey;
         // update the HTML of the anchor based on whether it is now fullscreen or not
         updateAnchorGraphics(objectKey);
-        
+
         // make sure it doesn't get stuck with isOutsideViewport invisibility
         if (anchorsOutsideOfViewport[objectKey]) {
             delete anchorsOutsideOfViewport[objectKey];
@@ -497,20 +529,26 @@ createNameSpace("realityEditor.gui.ar.anchors");
     // for now, returns true if any world other than world_local has been seen
     function isAnchorObjectDetected(_objectKey) {
         let bestWorldObject = realityEditor.worldObjects.getBestWorldObject();
-        if (!bestWorldObject) { return false; }
+        if (!bestWorldObject) {
+            return false;
+        }
         return bestWorldObject.objectId !== realityEditor.worldObjects.getLocalWorldId();
     }
 
     function hideAnchorIcons() {
-        Array.from(document.querySelectorAll('.anchorContainer')).forEach(function(anchorContainer) {
-            anchorContainer.classList.add('hiddenAnchor');
-        });
+        Array.from(document.querySelectorAll('.anchorContainer')).forEach(
+            function (anchorContainer) {
+                anchorContainer.classList.add('hiddenAnchor');
+            }
+        );
     }
 
     function showAnchorIcons() {
-        Array.from(document.querySelectorAll('.anchorContainer')).forEach(function(anchorContainer) {
-            anchorContainer.classList.remove('hiddenAnchor');
-        });
+        Array.from(document.querySelectorAll('.anchorContainer')).forEach(
+            function (anchorContainer) {
+                anchorContainer.classList.remove('hiddenAnchor');
+            }
+        );
     }
 
     exports.initService = initService;
@@ -519,5 +557,4 @@ createNameSpace("realityEditor.gui.ar.anchors");
     exports.isAnchorObject = isAnchorObject;
     exports.snapAnchorToScreen = snapAnchorToScreen;
     exports.isAnchorObjectDetected = isAnchorObjectDetected;
-
 })(realityEditor.gui.ar.anchors);

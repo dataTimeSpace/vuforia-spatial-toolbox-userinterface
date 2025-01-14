@@ -1,4 +1,4 @@
-createNameSpace("realityEditor.avatar.iconMenu");
+createNameSpace('realityEditor.avatar.iconMenu');
 
 /**
  * @fileOverview realityEditor.avatar.iconMenu
@@ -6,7 +6,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
  * Show their initials, and clicking on them allows you to rename yourself or follow other users' views
  */
 
-(function(exports) {
+(function (exports) {
     // Note: MAX_ICONS isn't set here, it is set to realityEditor.device.environment.variables.maxAvatarIcons
     // If more than MAX_ICONS avatars are connected, the icons for extras will be hidden/combined in the ellipsis icon
 
@@ -16,21 +16,27 @@ createNameSpace("realityEditor.avatar.iconMenu");
 
     let callbacks = {
         onMenuItemClicked: [],
-    }
+    };
 
     // Enum of the menu item labels, which other modules can also check against to listen to specific menu items
     const MENU_ITEMS = Object.freeze({
         EditName: 'Edit Name',
         AllFollowMe: 'All Follow Me',
         FollowThem: 'Follow',
-        FollowMe: 'Follow Me'
+        FollowMe: 'Follow Me',
     });
 
     function initService() {
         // the iconMenu itself provides the implementation of the Edit Name menu item.
         // Other menu items can be implemented by their relevant modules, e.g. desktopCamera can handle Follow actions
         onAvatarIconMenuItemSelected((params) => {
-            if (!(params.isMyIcon && params.buttonText === realityEditor.avatar.iconMenu.MENU_ITEMS.EditName)) return;
+            if (
+                !(
+                    params.isMyIcon &&
+                    params.buttonText === realityEditor.avatar.iconMenu.MENU_ITEMS.EditName
+                )
+            )
+                return;
             // show a modal that lets you type in a name
             realityEditor.gui.modal.openInputModal({
                 headerText: 'Edit Avatar Name',
@@ -47,7 +53,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
                         // write to window.localStorage and use instead of anonymous in the future in this browser
                         window.localStorage.setItem('manuallyEnteredUsername', userName);
                     }
-                }
+                },
             });
         });
     }
@@ -83,8 +89,10 @@ createNameSpace("realityEditor.avatar.iconMenu");
 
         // build and add each of the icons to the container, and attach pointer event listeners to them
         sortedKeys.forEach((objectKey, index) => {
-            if (index >= MAX_ICONS) { return; } // after the ellipsis, we ignore the rest
-            let isEllipsis = index === (MAX_ICONS - 1) && sortedKeys.length > MAX_ICONS; // last one turns into "+2", "+3", etc
+            if (index >= MAX_ICONS) {
+                return;
+            } // after the ellipsis, we ignore the rest
+            let isEllipsis = index === MAX_ICONS - 1 && sortedKeys.length > MAX_ICONS; // last one turns into "+2", "+3", etc
             let numTooMany = sortedKeys.length - (MAX_ICONS - 1);
 
             let info = connectedAvatars[objectKey];
@@ -93,9 +101,19 @@ createNameSpace("realityEditor.avatar.iconMenu");
                 initials = '+' + numTooMany;
             }
 
-            let usersFollowingMe = realityEditor.avatar.utils.getUsersFollowingUser(objectKey, connectedAvatars);
+            let usersFollowingMe = realityEditor.avatar.utils.getUsersFollowingUser(
+                objectKey,
+                connectedAvatars
+            );
             let isMyIcon = objectKey.includes(realityEditor.avatar.utils.getAvatarName());
-            let iconDiv = createAvatarIcon(iconContainer, objectKey, initials, index, isMyIcon, isEllipsis);
+            let iconDiv = createAvatarIcon(
+                iconContainer,
+                objectKey,
+                initials,
+                index,
+                isMyIcon,
+                isEllipsis
+            );
 
             // TODO: show more details on who you are following, and who is following you
             if (usersFollowingMe.length > 0) {
@@ -111,7 +129,9 @@ createNameSpace("realityEditor.avatar.iconMenu");
             // or put all the extra names into the tooltip text
             if (isEllipsis) {
                 let remainingKeys = sortedKeys.slice(-1 * numTooMany);
-                let names = remainingKeys.map(key => connectedAvatars[key].name).filter(name => !!name);
+                let names = remainingKeys
+                    .map((key) => connectedAvatars[key].name)
+                    .filter((name) => !!name);
                 names = names.slice(0, ADDITIONAL_NAMES); // limit number of comma-separated names
                 tooltipText = names.join(', ');
 
@@ -130,14 +150,16 @@ createNameSpace("realityEditor.avatar.iconMenu");
                 iconImageDiv.addEventListener(eventName, hideFullNameTooltip);
             });
             iconImageDiv.addEventListener('pointerup', () => {
-                if (isEllipsis) { // don't add follow menu to ellipsis
+                if (isEllipsis) {
+                    // don't add follow menu to ellipsis
                     return; // TODO: what should happen when you click on the "+N" icon? show all names?
                 }
                 toggleDropdown(objectKey, info, initials, isMyIcon);
             });
         });
 
-        let iconsWidth = Math.min(MAX_ICONS, sortedKeys.length) * (ICON_WIDTH + ICON_GAP) + ICON_GAP;
+        let iconsWidth =
+            Math.min(MAX_ICONS, sortedKeys.length) * (ICON_WIDTH + ICON_GAP) + ICON_GAP;
         iconContainer.style.width = iconsWidth + 'px';
     }
     /**
@@ -147,7 +169,6 @@ createNameSpace("realityEditor.avatar.iconMenu");
      * @param {Object.<string, UserProfile>} connectedAvatars
      */
     function renderLeaderUI(connectedAvatars) {
-
         let leaderContainer = document.getElementById('avatarLeaderContainer');
         if (!leaderContainer) {
             leaderContainer = document.createElement('div');
@@ -167,7 +188,10 @@ createNameSpace("realityEditor.avatar.iconMenu");
         }
 
         let myId = realityEditor.avatar.getMyAvatarId();
-        let usersFollowingMe = realityEditor.avatar.utils.getUsersFollowingUser(myId, connectedAvatars);
+        let usersFollowingMe = realityEditor.avatar.utils.getUsersFollowingUser(
+            myId,
+            connectedAvatars
+        );
 
         if (usersFollowingMe.length > 0) {
             let plural = usersFollowingMe.length > 1;
@@ -204,7 +228,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
      * @param {HTMLElement} iconDropdown
      */
     function showDropdown(iconDropdown) {
-        Array.from(document.querySelectorAll('.avatarListIconDropdown')).forEach(dropdown => {
+        Array.from(document.querySelectorAll('.avatarListIconDropdown')).forEach((dropdown) => {
             hideDropdown(dropdown);
         });
         iconDropdown.classList.remove('hiddenDropdown');
@@ -235,11 +259,39 @@ createNameSpace("realityEditor.avatar.iconMenu");
         container.id = 'avatarIconDropdown' + objectId;
         container.classList.add('avatarListIconDropdown', 'hiddenDropdown'); // hide, because toggle happens right after creation
         if (isMyIcon) {
-            addMenuItemToDropdown(container, MENU_ITEMS.EditName, objectId, userProfile, userInitials, isMyIcon);
-            addMenuItemToDropdown(container, MENU_ITEMS.AllFollowMe, objectId, userProfile, userInitials, isMyIcon);
+            addMenuItemToDropdown(
+                container,
+                MENU_ITEMS.EditName,
+                objectId,
+                userProfile,
+                userInitials,
+                isMyIcon
+            );
+            addMenuItemToDropdown(
+                container,
+                MENU_ITEMS.AllFollowMe,
+                objectId,
+                userProfile,
+                userInitials,
+                isMyIcon
+            );
         } else {
-            addMenuItemToDropdown(container, MENU_ITEMS.FollowThem, objectId, userProfile, userInitials, isMyIcon);
-            addMenuItemToDropdown(container, MENU_ITEMS.FollowMe, objectId, userProfile, userInitials, isMyIcon);
+            addMenuItemToDropdown(
+                container,
+                MENU_ITEMS.FollowThem,
+                objectId,
+                userProfile,
+                userInitials,
+                isMyIcon
+            );
+            addMenuItemToDropdown(
+                container,
+                MENU_ITEMS.FollowMe,
+                objectId,
+                userProfile,
+                userInitials,
+                isMyIcon
+            );
         }
         parent.appendChild(container);
         return container;
@@ -253,7 +305,14 @@ createNameSpace("realityEditor.avatar.iconMenu");
      * @param {string|null} userInitials
      * @param {boolean} isMyIcon
      */
-    function addMenuItemToDropdown(parentDiv, textContent, objectId, userProfile, userInitials, isMyIcon) {
+    function addMenuItemToDropdown(
+        parentDiv,
+        textContent,
+        objectId,
+        userProfile,
+        userInitials,
+        isMyIcon
+    ) {
         let item = document.createElement('div');
         item.classList.add('avatarListIconDropdownItem');
         item.textContent = textContent;
@@ -267,7 +326,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
                     avatarProfile: userProfile,
                     userInitials: userInitials,
                     isMyIcon: isMyIcon,
-                    pointerEvent: e
+                    pointerEvent: e,
                 });
             });
             hideDropdown(parentDiv);
@@ -287,8 +346,8 @@ createNameSpace("realityEditor.avatar.iconMenu");
     function createIconContainer() {
         let iconContainer = document.createElement('div');
         iconContainer.id = 'avatarIconContainer';
-        iconContainer.classList.add('avatarIconContainerScaleAdjustment')
-        document.body.appendChild(iconContainer)
+        iconContainer.classList.add('avatarIconContainerScaleAdjustment');
+        document.body.appendChild(iconContainer);
         return iconContainer;
     }
     /**
@@ -305,7 +364,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
         let iconDiv = document.createElement('div');
         iconDiv.id = 'avatarIcon' + objectKey;
         iconDiv.classList.add('avatarListIcon', 'avatarListIconVerticalAdjustment');
-        iconDiv.style.left = (ICON_GAP + (ICON_WIDTH + ICON_GAP) * index) + 'px';
+        iconDiv.style.left = ICON_GAP + (ICON_WIDTH + ICON_GAP) * index + 'px';
         parent.appendChild(iconDiv);
 
         let iconImg = document.createElement('img');
@@ -329,7 +388,9 @@ createNameSpace("realityEditor.avatar.iconMenu");
 
         // color the avatar icon to match the avatar color (the same color used by cursor, pointer, etc)
         let color = realityEditor.avatar.utils.getColor(realityEditor.getObject(objectKey));
-        let lightColor = realityEditor.avatar.utils.getColorLighter(realityEditor.getObject(objectKey));
+        let lightColor = realityEditor.avatar.utils.getColorLighter(
+            realityEditor.getObject(objectKey)
+        );
         if (isMyIcon && color) {
             iconImg.style.border = '2px solid white';
             iconImg.style.backgroundColor = color;
@@ -349,7 +410,7 @@ createNameSpace("realityEditor.avatar.iconMenu");
      * @returns {boolean}
      */
     function areAnyDropdownsShown() {
-        return Array.from(document.querySelectorAll('.avatarListIconDropdown')).some(dropdown => {
+        return Array.from(document.querySelectorAll('.avatarListIconDropdown')).some((dropdown) => {
             return dropdown && dropdown.classList && !dropdown.classList.contains('hiddenDropdown');
         });
     }
@@ -389,10 +450,13 @@ createNameSpace("realityEditor.avatar.iconMenu");
         }
 
         const clickActionText = isEllipsis ? '' : ' (click for options)';
-        const nameText = isMyAvatar ? (name ? `${name} (You)` : 'You') : (name || 'Anonymous');
+        const nameText = isMyAvatar ? (name ? `${name} (You)` : 'You') : name || 'Anonymous';
         nameDiv.innerText = `${nameText}${clickActionText}`;
         let clickActionTextWidth = 8 * clickActionText.length;
-        let width = Math.max(120, ((nameDiv.innerText.length - clickActionText.length)) * 12 + clickActionTextWidth);
+        let width = Math.max(
+            120,
+            (nameDiv.innerText.length - clickActionText.length) * 12 + clickActionTextWidth
+        );
         nameDiv.style.width = width + 'px';
         container.style.display = '';
     }
@@ -410,5 +474,4 @@ createNameSpace("realityEditor.avatar.iconMenu");
     exports.renderAvatarIconList = renderAvatarIconList;
     exports.onAvatarIconMenuItemSelected = onAvatarIconMenuItemSelected;
     exports.MENU_ITEMS = MENU_ITEMS;
-
-}(realityEditor.avatar.iconMenu));
+})(realityEditor.avatar.iconMenu);

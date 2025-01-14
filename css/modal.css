@@ -4,9 +4,9 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0, 0, 0, 0.7);
     -webkit-backdrop-filter: blur(2px);
-    -webkit-transform: translateZ(8990px)
+    -webkit-transform: translateZ(8990px);
 }
 
 #modalContainer {
@@ -16,10 +16,10 @@
     left: 20vw;
     top: 20vh;
     text-align: center;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 13px;
     border-radius: 5px;
-    -webkit-transform: translateZ(9000px)
+    -webkit-transform: translateZ(9000px);
 }
 
 #modalDescription {
@@ -65,9 +65,9 @@
 }
 
 .buttonGreen {
-    color: rgb(41,253,47);
-    border: 2px solid rgb(41,253,47);
-    background-color: rgba(41,253,47,0.05);
+    color: rgb(41, 253, 47);
+    border: 2px solid rgb(41, 253, 47);
+    background-color: rgba(41, 253, 47, 0.05);
 }
 
 .buttonRed {
@@ -81,49 +81,49 @@
 }
 
 .buttonBlue {
-    color: rgb(45,255,255);
-    border: 2px solid rgb(45,255,255);
-    background-color: rgba(45,255,255,0.05);
+    color: rgb(45, 255, 255);
+    border: 2px solid rgb(45, 255, 255);
+    background-color: rgba(45, 255, 255, 0.05);
 }
 
 .buttonBlue:active {
-    background-color: rgba(45,255,255,0.3);
+    background-color: rgba(45, 255, 255, 0.3);
 }
 
 .buttonPurple {
-    color: rgb(210,113,255);
-    border: 2px solid rgb(210,113,255);
-    background-color: rgba(210,113,255,0.05);
+    color: rgb(210, 113, 255);
+    border: 2px solid rgb(210, 113, 255);
+    background-color: rgba(210, 113, 255, 0.05);
 }
 
 .buttonPurple:active {
-    background-color: rgba(210,113,255,0.3);
+    background-color: rgba(210, 113, 255, 0.3);
 }
 
 .buttonYellow {
-    color: rgb(255,255,45);
-    border: 2px solid rgb(255,255,45);
-    background-color: rgba(255,255,45,0.05);
+    color: rgb(255, 255, 45);
+    border: 2px solid rgb(255, 255, 45);
+    background-color: rgba(255, 255, 45, 0.05);
 }
 
 .buttonYellow:active {
-    background-color: rgba(255,255,45,0.3);
+    background-color: rgba(255, 255, 45, 0.3);
 }
 
 .buttonWhite {
-    color: rgb(255,255,255);
-    border: 2px solid rgb(255,255,255);
-    background-color: rgba(255,255,255,0.05);
+    color: rgb(255, 255, 255);
+    border: 2px solid rgb(255, 255, 255);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .buttonWhite:active {
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .buttonHidden {
     visibility: hidden;
-    color: rgba(255,255,255,0.0);;
-    background-color: rgba(255,255,255,0.0);
+    color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0);
 }
 
 @keyframes modalFadeIn {
@@ -132,13 +132,12 @@
     }
     100% {
         opacity: 1;
-
     }
 }
 
 @keyframes modalFadeOut {
     0% {
-        opacity:1;
+        opacity: 1;
     }
     100% {
         opacity: 0;
@@ -155,7 +154,7 @@
 }
 
 .modalInvisibleFadeOut {
-    opacity:1;
+    opacity: 1;
 
     animation-name: fadeOut;
     animation-duration: 250ms;
@@ -185,9 +184,9 @@
     top: 5vh;
     height: 90vh;
     text-align: left;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     border-radius: 5px;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255, 255, 255, 0.7);
     -webkit-transform: translateZ(8995px);
     color: black;
 }
@@ -198,9 +197,9 @@
     top: 25vh;
     height: 50vh;
     text-align: center;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     border-radius: 5px;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255, 255, 255, 0.7);
     -webkit-transform: translateZ(8995px);
     color: black;
 }
@@ -232,7 +231,7 @@
     bottom: 5vh;
     border-radius: 5px;
     background-color: white;
-    color: rgb(80,80,80);
+    color: rgb(80, 80, 80);
     font-size: 2vw;
     text-align: center;
 }
@@ -247,11 +246,18 @@
     width: 30vw;
 }
 
-
-a.modalLink:link { color:#494a4b;}
-a.modalLink:visited { color: #494a4b; }
-a.modalLink:hover { color: #686869; }
-a.modalLink:active { color: #757575; }
+a.modalLink:link {
+    color: #494a4b;
+}
+a.modalLink:visited {
+    color: #494a4b;
+}
+a.modalLink:hover {
+    color: #686869;
+}
+a.modalLink:active {
+    color: #757575;
+}
 
 /* Styles for 2D modal with grey background, header, description, and buttons */
 /* blurs the background behind the modal */
@@ -261,9 +267,9 @@ a.modalLink:active { color: #757575; }
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(0, 0, 0, 0.2);
     -webkit-backdrop-filter: blur(20px);
-    -webkit-transform: translateZ(8990px)
+    -webkit-transform: translateZ(8990px);
 }
 
 @keyframes blurThenClear {
@@ -292,9 +298,9 @@ a.modalLink:active { color: #757575; }
     top: 25vh;
     height: 30vh;
     text-align: center;
-    font-family: "Open Sans", sans-serif;
+    font-family: 'Open Sans', sans-serif;
     border-radius: 5px;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255, 255, 255, 0.7);
     -webkit-transform: translateZ(8995px);
     color: black;
 }
@@ -342,7 +348,7 @@ a.modalLink:active { color: #757575; }
     padding-bottom: 3vh;
     border-radius: 5px;
     background-color: white;
-    color: rgb(80,80,80);
+    color: rgb(80, 80, 80);
     font-size: 12px;
     text-align: center;
 }
@@ -359,12 +365,12 @@ a.modalLink:active { color: #757575; }
 
 .loaderContainerPortrait {
     height: max(36vh, 36vw) !important;
-    top: calc(50vh - max(36vh, 36vw)/2) !important;
+    top: calc(50vh - max(36vh, 36vw) / 2) !important;
 }
 
 .loaderContainerPortraitTall {
     height: max(50vh, 50vw) !important;
-    top: calc(50vh - max(50vh, 50vw)/2) !important;
+    top: calc(50vh - max(50vh, 50vw) / 2) !important;
 }
 
 .loader {
@@ -380,8 +386,12 @@ a.modalLink:active { color: #757575; }
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 #scanGenerateProgressBarContainer {
@@ -389,7 +399,7 @@ a.modalLink:active { color: #757575; }
     left: calc((100vw - min(800px, calc(100vw - 80px))) / 2);
     width: min(800px, calc(100vw - 80px));
     height: 15px;
-    background-color: rgba(255,255,255, 0.3);
+    background-color: rgba(255, 255, 255, 0.3);
     border-radius: 15px;
     overflow: hidden;
     transform: translateZ(8991px); /* in front of blurred modalFadeNotification */
@@ -401,5 +411,5 @@ a.modalLink:active { color: #757575; }
     top: 0;
     height: 100%;
     width: 0;
-    background-color: rgba(255,255,255, 0.9);
+    background-color: rgba(255, 255, 255, 0.9);
 }

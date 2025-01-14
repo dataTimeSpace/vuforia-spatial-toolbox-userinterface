@@ -1,16 +1,16 @@
 /*
-* Copyright © 2018 PTC
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+ * Copyright © 2018 PTC
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 createNameSpace('realityEditor.device.multiclientUI');
 
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
-(function(exports) {
+(function (exports) {
     let allConnectedCameras = {};
     let isCameraSubscriptionActiveForObject = {};
 
@@ -58,8 +58,8 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
     function initService() {
         // if (!realityEditor.device.desktopAdapter.isDesktop()) { return; }
-        realityEditor.network.addObjectDiscoveredCallback(function(object, objectKey) {
-            setTimeout(function() {
+        realityEditor.network.addObjectDiscoveredCallback(function (object, objectKey) {
+            setTimeout(function () {
                 setupWorldSocketSubscriptionsIfNeeded(objectKey);
             }, 100); // give time for bestWorldObject to update before checking
         });
@@ -84,14 +84,20 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
     function onCameraMatrix(data) {
         let msgData = JSON.parse(data);
-        if (typeof msgData.cameraMatrix !== 'undefined' && typeof msgData.editorId !== 'undefined') {
+        if (
+            typeof msgData.cameraMatrix !== 'undefined' &&
+            typeof msgData.editorId !== 'undefined'
+        ) {
             allConnectedCameras[msgData.editorId] = msgData.cameraMatrix;
         }
     }
 
     // helper function to generate an integer hash from a string (https://stackoverflow.com/a/15710692)
     function hashCode(s) {
-        return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+        return s.split('').reduce(function (a, b) {
+            a = (a << 5) - a + b.charCodeAt(0);
+            return a & a;
+        }, 0);
     }
 
     function update() {
@@ -99,28 +105,30 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
         // here we render boxes at the location of each other camera...
 
         try {
-            Object.keys(allConnectedCameras).forEach(function(editorId) {
+            Object.keys(allConnectedCameras).forEach(function (editorId) {
                 let cameraMatrix = allConnectedCameras[editorId];
-                let existingMesh = realityEditor.gui.threejsScene.getObjectByName('camera_' + editorId);
+                let existingMesh = realityEditor.gui.threejsScene.getObjectByName(
+                    'camera_' + editorId
+                );
                 if (!existingMesh) {
                     // each client gets a random but consistent color based on their editorId
                     let id = Math.abs(hashCode(editorId));
-                    const color = `hsl(${(id % Math.PI) * 360 / Math.PI}, 100%, 50%)`;
+                    const color = `hsl(${((id % Math.PI) * 360) / Math.PI}, 100%, 50%)`;
                     const geo = new THREE.IcosahedronBufferGeometry(100);
                     geo.deleteAttribute('normal');
                     geo.deleteAttribute('uv');
 
                     const vectors = [
-                      new THREE.Vector3(1, 0, 0),
-                      new THREE.Vector3(0, 1, 0),
-                      new THREE.Vector3(0, 0, 1)
+                        new THREE.Vector3(1, 0, 0),
+                        new THREE.Vector3(0, 1, 0),
+                        new THREE.Vector3(0, 0, 1),
                     ];
 
                     const position = geo.attributes.position;
                     const centers = new Float32Array(position.count * 3);
 
-                    for (let i = 0, l = position.count; i < l; i ++) {
-                      vectors[i % 3].toArray(centers, i * 3);
+                    for (let i = 0, l = position.count; i < l; i++) {
+                        vectors[i % 3].toArray(centers, i * 3);
                     }
 
                     geo.setAttribute('center', new THREE.BufferAttribute(centers, 3));
@@ -138,13 +146,13 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
                     // const coneGeo = new THREE.LatheGeometry(points, 4);
                     const coneGeo = new THREE.ConeGeometry(7.5 * 1000, 15 * 1000, 4);
                     const coneMesh = new THREE.Mesh(
-                      coneGeo,
-                      new THREE.MeshBasicMaterial({
-                        color: new THREE.Color(color),
-                        transparent: true,
-                        opacity: 0.05,
-                        side: THREE.DoubleSide,
-                      })
+                        coneGeo,
+                        new THREE.MeshBasicMaterial({
+                            color: new THREE.Color(color),
+                            transparent: true,
+                            opacity: 0.05,
+                            side: THREE.DoubleSide,
+                        })
                     );
                     // coneMesh.rotation.x = -Math.PI / 2;
                     // coneMesh.rotation.y = Math.PI / 4;
@@ -154,16 +162,15 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
                     coneMesh.position.z = -7.5 * 1000;
 
                     const coneMesh2 = new THREE.Mesh(
-                      coneGeo,
-                      new THREE.MeshBasicMaterial({
-                        color: new THREE.Color(color),
-                        wireframe: true,
-                      })
+                        coneGeo,
+                        new THREE.MeshBasicMaterial({
+                            color: new THREE.Color(color),
+                            wireframe: true,
+                        })
                     );
                     coneMesh2.rotation.x = -Math.PI / 2;
                     coneMesh2.rotation.y = Math.PI / 4;
                     coneMesh2.position.z = 0; // 7.5 * 1000;
-
 
                     existingMesh = new THREE.Group();
                     existingMesh.add(coneMesh);
@@ -174,7 +181,10 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
                     existingMesh.matrixAutoUpdate = false;
                     realityEditor.gui.threejsScene.addToScene(existingMesh);
                 }
-                realityEditor.gui.threejsScene.setMatrixFromArray(existingMesh.matrix, cameraMatrix);
+                realityEditor.gui.threejsScene.setMatrixFromArray(
+                    existingMesh.matrix,
+                    cameraMatrix
+                );
             });
         } catch (e) {
             console.warn(e);
@@ -185,4 +195,3 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
 
     exports.initService = initService;
 })(realityEditor.device.multiclientUI);
-

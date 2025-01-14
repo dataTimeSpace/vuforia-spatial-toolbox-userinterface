@@ -1,23 +1,19 @@
 import * as THREE from '../../thirdPartyCode/three/three.module.js';
-import {
-    SCALE,
-    JOINTS,
-    JOINT_CONNECTIONS, 
-    JOINT_RADIUS,
-    BONE_RADIUS
-} from './constants.js';
+import { SCALE, JOINTS, JOINT_CONNECTIONS, JOINT_RADIUS, BONE_RADIUS } from './constants.js';
 
 const HUMAN_POSE_ID_PREFIX = '_HUMAN_';
 
 const JOINT_NODE_NAME = 'storage';
 const JOINT_PUBLIC_DATA_KEYS = {
     data: 'data',
-    transferData: 'whole_pose'
+    transferData: 'whole_pose',
 };
 
 // other modules in the project can use this to reliably check whether an object is a humanPose object
 function isHumanPoseObject(object) {
-    if (!object) { return false; }
+    if (!object) {
+        return false;
+    }
     return object.type === 'human' || object.objectId.indexOf(HUMAN_POSE_ID_PREFIX) === 0;
 }
 
@@ -29,8 +25,8 @@ function makePoseData(name, poseJoints, frameData) {
         imageSize: frameData.imageSize,
         focalLength: frameData.focalLength,
         principalPoint: frameData.principalPoint,
-        transformW2C: frameData.transformW2C
-    }
+        transformW2C: frameData.transformW2C,
+    };
 }
 
 function getPoseObjectName(pose) {
@@ -38,8 +34,10 @@ function getPoseObjectName(pose) {
 }
 
 function getPoseStringFromObject(poseObject) {
-    let jointPositions = Object.keys(poseObject.frames).map(jointFrameId => realityEditor.sceneGraph.getWorldPosition(jointFrameId));
-    return jointPositions.map(position => positionToRoundedString(position)).join()
+    let jointPositions = Object.keys(poseObject.frames).map((jointFrameId) =>
+        realityEditor.sceneGraph.getWorldPosition(jointFrameId)
+    );
+    return jointPositions.map((position) => positionToRoundedString(position)).join();
 }
 
 function positionToRoundedString(position) {
@@ -72,18 +70,26 @@ function indexOfMin(arr) {
 
 // returns the {objectKey, frameKey, nodeKey} address of the storeData node on this object
 function getJointNodeInfo(humanObject, jointName) {
-    if (!humanObject) { return null; }
+    if (!humanObject) {
+        return null;
+    }
 
     let humanObjectKey = humanObject.objectId;
-    let humanFrameKey = Object.keys(humanObject.frames).find(name => name.includes(jointName));
-    if (!humanObject.frames || !humanFrameKey) { return null; }
-    let humanNodeKey = Object.keys(humanObject.frames[humanFrameKey].nodes).find(name => name.includes(JOINT_NODE_NAME));
-    if (!humanNodeKey) { return null; }
+    let humanFrameKey = Object.keys(humanObject.frames).find((name) => name.includes(jointName));
+    if (!humanObject.frames || !humanFrameKey) {
+        return null;
+    }
+    let humanNodeKey = Object.keys(humanObject.frames[humanFrameKey].nodes).find((name) =>
+        name.includes(JOINT_NODE_NAME)
+    );
+    if (!humanNodeKey) {
+        return null;
+    }
     return {
         objectKey: humanObjectKey,
         frameKey: humanFrameKey,
-        nodeKey: humanNodeKey
-    }
+        nodeKey: humanNodeKey,
+    };
 }
 
 function getDummyJointMatrix(jointId) {
@@ -173,7 +179,7 @@ function getDummyJointMatrix(jointId) {
             matrix.setPosition(0, -0.8 * SCALE, 0);
             return matrix;
         default:
-            console.error(`Cannot create dummy joint for joint ${jointId}, not implemented`)
+            console.error(`Cannot create dummy joint for joint ${jointId}, not implemented`);
             return matrix;
     }
 }
@@ -186,47 +192,58 @@ function getDummyBoneMatrix(bone) {
     let pos = new THREE.Vector3(
         (jointA.x + jointB.x) / 2,
         (jointA.y + jointB.y) / 2,
-        (jointA.z + jointB.z) / 2,
+        (jointA.z + jointB.z) / 2
     );
 
-    let diff = new THREE.Vector3(jointB.x - jointA.x, jointB.y - jointA.y,
-        jointB.z - jointA.z);
+    let diff = new THREE.Vector3(jointB.x - jointA.x, jointB.y - jointA.y, jointB.z - jointA.z);
     let scale = new THREE.Vector3(1, diff.length() / SCALE, 1);
     diff.normalize();
 
     let rot = new THREE.Quaternion();
-    rot.setFromUnitVectors(new THREE.Vector3(0, 1, 0),
-        diff);
-    
+    rot.setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff);
+
     matrix.compose(pos, rot, scale);
-    
+
     return matrix;
 }
 
 function createDummySkeleton() {
     const dummySkeleton = new THREE.Group();
-    
+
     dummySkeleton.joints = {};
     const jointGeometry = new THREE.SphereGeometry(JOINT_RADIUS * SCALE, 12, 12);
     const material = new THREE.MeshLambertMaterial();
-    dummySkeleton.jointInstancedMesh = new THREE.InstancedMesh(jointGeometry, material, Object.values(JOINTS).length);
+    dummySkeleton.jointInstancedMesh = new THREE.InstancedMesh(
+        jointGeometry,
+        material,
+        Object.values(JOINTS).length
+    );
     Object.values(JOINTS).forEach((jointId, i) => {
         dummySkeleton.joints[jointId] = i;
         dummySkeleton.jointInstancedMesh.setMatrixAt(i, getDummyJointMatrix(jointId));
     });
 
-    const boneGeometry = new THREE.CylinderGeometry(BONE_RADIUS * SCALE, BONE_RADIUS * SCALE, SCALE, 3);
-    dummySkeleton.boneInstancedMesh = new THREE.InstancedMesh(boneGeometry, material, Object.values(JOINT_CONNECTIONS).length);
+    const boneGeometry = new THREE.CylinderGeometry(
+        BONE_RADIUS * SCALE,
+        BONE_RADIUS * SCALE,
+        SCALE,
+        3
+    );
+    dummySkeleton.boneInstancedMesh = new THREE.InstancedMesh(
+        boneGeometry,
+        material,
+        Object.values(JOINT_CONNECTIONS).length
+    );
     Object.values(JOINT_CONNECTIONS).forEach((bone, i) => {
         dummySkeleton.boneInstancedMesh.setMatrixAt(i, getDummyBoneMatrix(bone));
     });
 
     dummySkeleton.add(dummySkeleton.jointInstancedMesh);
     dummySkeleton.add(dummySkeleton.boneInstancedMesh);
-    
+
     dummySkeleton.jointNameFromIndex = (index) => {
-        return Object.keys(dummySkeleton.joints).find(key => dummySkeleton.joints[key] === index);
-    }
+        return Object.keys(dummySkeleton.joints).find((key) => dummySkeleton.joints[key] === index);
+    };
 
     dummySkeleton.jointInstancedMesh.joints = dummySkeleton.joints;
     return dummySkeleton;
@@ -237,10 +254,15 @@ function createDummySkeleton() {
  * @return {Matrix4} - the matrix of the ground plane relative to the world
  */
 function getGroundPlaneRelativeMatrix() {
-    let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(realityEditor.sceneGraph.getWorldId());
+    let worldSceneNode = realityEditor.sceneGraph.getSceneNodeById(
+        realityEditor.sceneGraph.getWorldId()
+    );
     let groundPlaneSceneNode = realityEditor.sceneGraph.getGroundPlaneNode();
     let groundPlaneRelativeMatrix = new THREE.Matrix4();
-    setMatrixFromArray(groundPlaneRelativeMatrix, worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode));
+    setMatrixFromArray(
+        groundPlaneRelativeMatrix,
+        worldSceneNode.getMatrixRelativeTo(groundPlaneSceneNode)
+    );
     return groundPlaneRelativeMatrix;
 }
 
@@ -250,51 +272,94 @@ function getGroundPlaneRelativeMatrix() {
  * @param {number[]} array - the array to set the matrix from
  */
 function setMatrixFromArray(matrix, array) {
-    matrix.set( array[0], array[4], array[8], array[12],
-        array[1], array[5], array[9], array[13],
-        array[2], array[6], array[10], array[14],
-        array[3], array[7], array[11], array[15]
+    matrix.set(
+        array[0],
+        array[4],
+        array[8],
+        array[12],
+        array[1],
+        array[5],
+        array[9],
+        array[13],
+        array[2],
+        array[6],
+        array[10],
+        array[14],
+        array[3],
+        array[7],
+        array[11],
+        array[15]
     );
 }
 
 /**
  * Converts joint positions and confidences from schema JOINTS_V1 to the current JOINTS schema
- * @param {Object.<string, THREE.Vector3>} jointPositions - dictionary of positions (in/out param) 
+ * @param {Object.<string, THREE.Vector3>} jointPositions - dictionary of positions (in/out param)
  * @param {Object.<string, number>} jointConfidences - dictionary of confidences (in/out param)
  */
 function convertFromJointsV1(jointPositions, jointConfidences) {
-
     // expand with dummy hand joints which positions are collapsed to wrist joint
 
-    [JOINTS.LEFT_THUMB_CMC, JOINTS.LEFT_THUMB_MCP, JOINTS.LEFT_THUMB_IP, JOINTS.LEFT_THUMB_TIP,
-        JOINTS.LEFT_INDEX_FINGER_MCP, JOINTS.LEFT_INDEX_FINGER_PIP, JOINTS.LEFT_INDEX_FINGER_DIP, JOINTS.LEFT_INDEX_FINGER_TIP,
-        JOINTS.LEFT_MIDDLE_FINGER_MCP, JOINTS.LEFT_MIDDLE_FINGER_PIP, JOINTS.LEFT_MIDDLE_FINGER_DIP, JOINTS.LEFT_MIDDLE_FINGER_TIP,
-        JOINTS.LEFT_RING_FINGER_MCP, JOINTS.LEFT_RING_FINGER_PIP, JOINTS.LEFT_RING_FINGER_DIP, JOINTS.LEFT_RING_FINGER_TIP,
-        JOINTS.LEFT_PINKY_MCP, JOINTS.LEFT_PINKY_PIP, JOINTS.LEFT_PINKY_DIP, JOINTS.LEFT_PINKY_TIP
-    ].forEach(joint => {
+    [
+        JOINTS.LEFT_THUMB_CMC,
+        JOINTS.LEFT_THUMB_MCP,
+        JOINTS.LEFT_THUMB_IP,
+        JOINTS.LEFT_THUMB_TIP,
+        JOINTS.LEFT_INDEX_FINGER_MCP,
+        JOINTS.LEFT_INDEX_FINGER_PIP,
+        JOINTS.LEFT_INDEX_FINGER_DIP,
+        JOINTS.LEFT_INDEX_FINGER_TIP,
+        JOINTS.LEFT_MIDDLE_FINGER_MCP,
+        JOINTS.LEFT_MIDDLE_FINGER_PIP,
+        JOINTS.LEFT_MIDDLE_FINGER_DIP,
+        JOINTS.LEFT_MIDDLE_FINGER_TIP,
+        JOINTS.LEFT_RING_FINGER_MCP,
+        JOINTS.LEFT_RING_FINGER_PIP,
+        JOINTS.LEFT_RING_FINGER_DIP,
+        JOINTS.LEFT_RING_FINGER_TIP,
+        JOINTS.LEFT_PINKY_MCP,
+        JOINTS.LEFT_PINKY_PIP,
+        JOINTS.LEFT_PINKY_DIP,
+        JOINTS.LEFT_PINKY_TIP,
+    ].forEach((joint) => {
         jointPositions[joint] = jointPositions[JOINTS.LEFT_WRIST];
         jointConfidences[joint] = 0.0;
     });
 
-    [JOINTS.RIGHT_THUMB_CMC, JOINTS.RIGHT_THUMB_MCP, JOINTS.RIGHT_THUMB_IP, JOINTS.RIGHT_THUMB_TIP,
-        JOINTS.RIGHT_INDEX_FINGER_MCP, JOINTS.RIGHT_INDEX_FINGER_PIP, JOINTS.RIGHT_INDEX_FINGER_DIP, JOINTS.RIGHT_INDEX_FINGER_TIP,
-        JOINTS.RIGHT_MIDDLE_FINGER_MCP, JOINTS.RIGHT_MIDDLE_FINGER_PIP, JOINTS.RIGHT_MIDDLE_FINGER_DIP, JOINTS.RIGHT_MIDDLE_FINGER_TIP,
-        JOINTS.RIGHT_RING_FINGER_MCP, JOINTS.RIGHT_RING_FINGER_PIP, JOINTS.RIGHT_RING_FINGER_DIP, JOINTS.RIGHT_RING_FINGER_TIP,
-        JOINTS.RIGHT_PINKY_MCP, JOINTS.RIGHT_PINKY_PIP, JOINTS.RIGHT_PINKY_DIP, JOINTS.RIGHT_PINKY_TIP
-    ].forEach(joint => {
+    [
+        JOINTS.RIGHT_THUMB_CMC,
+        JOINTS.RIGHT_THUMB_MCP,
+        JOINTS.RIGHT_THUMB_IP,
+        JOINTS.RIGHT_THUMB_TIP,
+        JOINTS.RIGHT_INDEX_FINGER_MCP,
+        JOINTS.RIGHT_INDEX_FINGER_PIP,
+        JOINTS.RIGHT_INDEX_FINGER_DIP,
+        JOINTS.RIGHT_INDEX_FINGER_TIP,
+        JOINTS.RIGHT_MIDDLE_FINGER_MCP,
+        JOINTS.RIGHT_MIDDLE_FINGER_PIP,
+        JOINTS.RIGHT_MIDDLE_FINGER_DIP,
+        JOINTS.RIGHT_MIDDLE_FINGER_TIP,
+        JOINTS.RIGHT_RING_FINGER_MCP,
+        JOINTS.RIGHT_RING_FINGER_PIP,
+        JOINTS.RIGHT_RING_FINGER_DIP,
+        JOINTS.RIGHT_RING_FINGER_TIP,
+        JOINTS.RIGHT_PINKY_MCP,
+        JOINTS.RIGHT_PINKY_PIP,
+        JOINTS.RIGHT_PINKY_DIP,
+        JOINTS.RIGHT_PINKY_TIP,
+    ].forEach((joint) => {
         jointPositions[joint] = jointPositions[JOINTS.RIGHT_WRIST];
         jointConfidences[joint] = 0.0;
     });
-
 }
 
 /**
  * Converts joint positions and confidences from schema JOINTS_V2 to the current JOINTS schema
- * @param {Object.<string, THREE.Vector3>} jointPositions - dictionary of positions (in/out param) 
+ * @param {Object.<string, THREE.Vector3>} jointPositions - dictionary of positions (in/out param)
  * @param {Object.<string, number>} jointConfidences - dictionary of confidences (in/out param)
  */
 function convertFromJointsV2(jointPositions, jointConfidences) {
-    convertFromJointsV1(jointPositions, jointConfidences)
+    convertFromJointsV1(jointPositions, jointConfidences);
 }
 
 export {
@@ -311,5 +376,5 @@ export {
     getJointNodeInfo,
     createDummySkeleton,
     convertFromJointsV1,
-    convertFromJointsV2
+    convertFromJointsV2,
 };
