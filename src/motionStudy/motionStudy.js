@@ -322,7 +322,12 @@ export class MotionStudy {
     }
 
     createTableView() {
-        this.tableViewMenu = new DraggableMenu('analytics-table-view-root', 'Table View', {});
+        this.tableViewMenu = new DraggableMenu(
+            'analytics-table-view-root',
+            `Table View
+            <a href="#" class="draggable-menu-additional-controls">Export CSV</a>`,
+            {}
+        );
         // const rowNames = ['Step 1', 'Step 2', 'Step 3', 'Step 4'];
         // const columnNames = ['Head', 'Torso', 'Left Arm', 'Right Arm', 'Left Leg', 'Right Leg'];
         // const data = [
@@ -343,6 +348,11 @@ export class MotionStudy {
         //     poses.map(pose => pose.)
         //     this.humanPoseAnalyzer.muriLens.getTableViewValue(joint)
         // })
+        let exportLink = this.tableViewMenu.root.querySelector('.draggable-menu-additional-controls');
+        exportLink.onclick = (e) => {
+            console.log(this.tableView.table.rows);
+            e.stopPropagation();
+        };
 
         this.tableViewMenu.body.innerHTML = ''; // Remove old table view if it exists
         const lens = this.humanPoseAnalyzer.activeLens;

@@ -55,6 +55,20 @@
     background-color: #181818;
 }
 
+.draggable-menu-additional-controls {
+    display: inline-block;
+    font-size: 16px;
+    padding-left: 8px;
+    color: white;
+    opacity: 0.7;
+}
+.draggable-menu-additional-controls:visited {
+    color: white;
+}
+.draggable-menu-additional-controls:hover {
+    opacity: 1;
+}
+
 .draggable-menu-body {
     margin: 15px;
     overflow-x: scroll;

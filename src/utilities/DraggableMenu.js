@@ -8,7 +8,6 @@ export class DraggableMenu {
             <div class="draggable-menu-header">
                 <div class="draggable-menu-title">${title}</div>
                 <div class="draggable-menu-header-icons">
-                    <!-- additional buttons go here -->
                     <div class="draggable-menu-fullscreen-icon draggable-menu-header-icon">⇱</div>
                     <div class="draggable-menu-minimize-icon draggable-menu-header-icon">&ndash;</div>
                 </div>
