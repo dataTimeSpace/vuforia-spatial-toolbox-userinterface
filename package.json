@@ -6,13 +6,15 @@
     "@vitest/coverage-v8": "^2.1.4",
     "eslint": "^8.57.0",
     "jsdoc": "^4.0.4",
+    "prettier": "^3.4.2",
     "vite": "^5.4.10",
     "vitest": "^2.0.1"
   },
   "scripts": {
     "pre-test-setup": "cp src/motionStudy/config.js.template src/motionStudy/config.js",
     "test": "npm run lint",
-    "lint": "eslint .",
+    "format": "prettier --write .",
+    "lint": "prettier --check . && eslint .",
     "build": "vite build && cp -r svg css png thirdPartyCode src dist/"
   },
   "repository": {
