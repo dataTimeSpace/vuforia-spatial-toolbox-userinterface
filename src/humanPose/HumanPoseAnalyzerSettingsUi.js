@@ -12,7 +12,7 @@ export class HumanPoseAnalyzerSettingsUi {
         this.root.innerHTML = `
             <div class="hpa-settings-header">
                 <div class="hpa-settings-title">Analytics Settings</div>
-                <div class="hpa-settings-header-icon">_</div>
+                <div class="hpa-settings-header-icon">&ndash;</div>
             </div>
             <div class="hpa-settings-body">
                 <div class="hpa-settings-section">
@@ -359,7 +359,7 @@ export class HumanPoseAnalyzerSettingsUi {
             return;
         }
         this.root.classList.remove('hpa-settings-minimized');
-        this.root.querySelector('.hpa-settings-header-icon').innerText = '_';
+        this.root.querySelector('.hpa-settings-header-icon').innerHTML = '&ndash;';
     }
     
     toggleMinimized() {

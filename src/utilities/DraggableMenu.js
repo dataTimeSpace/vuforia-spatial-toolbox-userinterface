@@ -8,8 +8,9 @@ export class DraggableMenu {
             <div class="draggable-menu-header">
                 <div class="draggable-menu-title">${title}</div>
                 <div class="draggable-menu-header-icons">
-                    <div class="draggable-menu-fullscreen-icon draggable-menu-header-icon">⇱</div>  
-                    <div class="draggable-menu-minimize-icon draggable-menu-header-icon">_</div>                
+                    <!-- additional buttons go here -->
+                    <div class="draggable-menu-fullscreen-icon draggable-menu-header-icon">⇱</div>
+                    <div class="draggable-menu-minimize-icon draggable-menu-header-icon">&ndash;</div>
                 </div>
             </div>
             <div class="draggable-menu-body"></div>
@@ -127,7 +128,7 @@ export class DraggableMenu {
         }
         if (
             this.root.offsetTop +
-                this.root.querySelector(".draggable-menu-header").offsetHeight >
+            this.root.querySelector(".draggable-menu-header").offsetHeight >
             window.innerHeight
         ) {
             return true;
@@ -149,7 +150,7 @@ export class DraggableMenu {
         }
         if (
             this.root.offsetTop +
-                this.root.querySelector(".draggable-menu-header").offsetHeight >
+            this.root.querySelector(".draggable-menu-header").offsetHeight >
             window.innerHeight
         ) {
             this.root.style.top = `${window.innerHeight - this.root.querySelector(".draggable-menu-header").offsetHeight}px`;
@@ -210,8 +211,7 @@ export class DraggableMenu {
         this.maximized = true;
         this.root.classList.remove("draggable-menu-minimized");
         this.root.style.width = "";
-        this.root.querySelector(".draggable-menu-minimize-icon").innerText =
-            "_";
+        this.root.querySelector('.draggable-menu-minimize-icon').innerHTML = '&ndash;';
         this.root
             .querySelector(".draggable-menu-fullscreen-icon")
             .classList.remove("hidden");
