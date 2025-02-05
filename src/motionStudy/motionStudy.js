@@ -3,6 +3,7 @@ import * as THREE from '../../thirdPartyCode/three/three.module.js';
 import { Timeline } from './timeline.js';
 import { DraggableMenu } from '../utilities/DraggableMenu.js';
 import { TableView } from '../utilities/TableView.js';
+import { PathMap } from './PathMap.js';
 import { TagSystem, TagCategory, Tag } from '../utilities/TagSystem.js';
 import { RegionCard, RegionCardState } from './regionCard.js';
 import { HumanPoseAnalyzer } from '../humanPose/HumanPoseAnalyzer.js';
@@ -73,6 +74,8 @@ export class MotionStudy {
         this.valueAddWasteTimeManager = new ValueAddWasteTimeManager();
         this.tagSystem = new TagSystem();
         this.createTagSystemMenu();
+        this.pathMap = new PathMap();
+        this.createPathMapMenu();
 
         // this.pinnedRegionCardsContainer.appendChild(this.createStepSensorsButton.container);
 
@@ -1861,5 +1864,14 @@ export class MotionStudy {
 
         this.updateExportLinks();
         //this.writeMotionStudyData();
+    }
+
+    createPathMapMenu() {
+        this.pathMapMenu = new DraggableMenu(
+            'analytics-path-map-root',
+            'Path Map',
+            {}
+        );
+        this.pathMapMenu.initialize();
     }
 }
