@@ -241,9 +241,9 @@ export class MotionStudy {
         this.tagSystemMenu.body
             .querySelector('#analytics-tag-system-tag-section')
             .querySelector('.draggable-menu-section-title').innerText = this.tagSystemMenuState
-            .selectedCategory
-            ? `${this.tagSystemMenuState.selectedCategory.name} Tags`
-            : 'Tags';
+                .selectedCategory
+                ? `${this.tagSystemMenuState.selectedCategory.name} Tags`
+                : 'Tags';
 
         if (this.tagSystemMenuState.selectedCategory) {
             categorySelect.value = this.tagSystemMenuState.selectedCategory.name;
@@ -1574,7 +1574,7 @@ export class MotionStudy {
         // compute total stats over all region cards
         // make a pseudo region card
         let totalCard = this.aggregateRegionCardSummaryValues(this.pinnedRegionCards);
-        totalCard.getLabel = function () {
+        totalCard.getLabel = function() {
             return 'All steps';
         };
         totalCard.poses = [1]; // dummy member
