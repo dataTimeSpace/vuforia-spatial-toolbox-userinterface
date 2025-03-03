@@ -386,16 +386,15 @@ createNameSpace('realityEditor.gui.settings.setupSettingsMenu');
 
         if (shouldShowIntroModal) {
             let modalBody =
-                'The Vuforia Spatial Toolbox is an open source research platform for exploring Augmented Reality and Spatial Computing.<br>' +
+                'The DTS Toolbox is an open source research platform for exploring Augmented Reality and Spatial Computing.<br>' +
                 '<ul>' +
-                "</li>1. <a class='modalLink' href='https://spatialtoolbox.vuforia.com/docs/use/using-the-app'>Learn how to use the Spatial Toolbox</a><br><br></li>" +
-                "</li>2. <a class='modalLink' href='https://spatialtoolbox.vuforia.com/docs/use/connect-to-the-physical-world/startSystem'> Learn how to connect the Physical World</a><br><br></li>" +
-                "</li>3. <a class='modalLink' href='https://forum.spatialtoolbox.vuforia.com'> Join the conversation with your questions, ideas and collaboration</a><br><br></li>" +
-                "</li>4. <a class='modalLink' href='https://github.com/ptcrealitylab'> Browse the Open Source Code on Github</a><br><br></li>" +
+                "<li>1. <a class='modalLink' href='https://spatialtoolbox.vuforia.com/docs/use/using-the-app'>Learn how to use the Toolbox</a><br><br></li>" +
+                "<li>2. <a class='modalLink' href='https://spatialtoolbox.vuforia.com/docs/use/connect-to-the-physical-world/startSystem'> Learn how to connect the Physical World</a><br><br></li>" +
+                "<li>4. <a class='modalLink' href='https://github.com/dataTimeSpace'> Browse the Open Source Code on Github</a><br><br></li>" +
                 '</ul>';
 
             realityEditor.gui.modal.openClassicModal(
-                'Welcome to the Vuforia Spatial Toolbox!',
+                'Welcome to the DTS Toolbox!',
                 modalBody,
                 'Close',
                 "Close and Don't Show Again",
