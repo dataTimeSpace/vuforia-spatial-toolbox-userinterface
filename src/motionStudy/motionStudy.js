@@ -303,7 +303,7 @@ export class MotionStudy {
         this.tableViewMenu = new DraggableMenu(
             'analytics-table-view-root',
             `Table View
-            <a href="#" class="draggable-menu-additional-controls">Export CSV</a>`,
+            <a href="#" class="draggable-menu-additional-controls" download="spatial analytics table view.csv">Export CSV</a>`,
             {}
         );
         // const rowNames = ['Step 1', 'Step 2', 'Step 3', 'Step 4'];
@@ -329,10 +329,38 @@ export class MotionStudy {
         let exportLink = this.tableViewMenu.root.querySelector(
             '.draggable-menu-additional-controls'
         );
-        exportLink.onclick = (e) => {
-            console.log(this.tableView.table.rows);
+        exportLink.addEventListener('mousedown', (e) => {
             e.stopPropagation();
-        };
+        });
+        exportLink.addEventListener('mouseup', (e) => {
+            e.stopPropagation();
+        });
+        exportLink.addEventListener('click', (e) => {
+            let csvRows = [];
+            for (let row of this.tableView.table.rows) {
+                let csvRow = [];
+                for (let cell of row.cells) {
+                    if (csvRows.length === 0 && csvRow.length == 0 && cell.textContent === '') {
+                        csvRow.push('Step');
+                        continue;
+                    }
+                    let quotesEscaped = cell.textContent.replace(/"/g, '""');
+                    csvRow.push(`"${quotesEscaped}"`);
+                }
+                csvRows.push(csvRow);
+            }
+            let dataUrl =
+                'data:text/csv;charset=UTF-8,' +
+                encodeURIComponent(
+                    csvRows
+                        .map((csvRow) => {
+                            return csvRow.join(',');
+                        })
+                        .join('\n')
+                );
+
+            exportLink.href = dataUrl;
+        });
 
         this.tableViewMenu.body.innerHTML = ''; // Remove old table view if it exists
         const lens = this.humanPoseAnalyzer.activeLens;
