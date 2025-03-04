@@ -74,8 +74,9 @@ export class MotionStudy {
         this.valueAddWasteTimeManager = new ValueAddWasteTimeManager();
         this.tagSystem = new TagSystem();
         this.createTagSystemMenu();
-        this.pathMap = new PathMap();
         this.createPathMapMenu();
+        this.pathMap = new PathMap(this.pathMapMenu.body);
+        this.updatePathMap();
 
         // this.pinnedRegionCardsContainer.appendChild(this.createStepSensorsButton.container);
 
@@ -1901,5 +1902,15 @@ export class MotionStudy {
             {}
         );
         this.pathMapMenu.initialize();
+        this.pathMapMenu.on('show', () => {
+            this.updatePathMap();
+        });
+        this.pathMapMenu.on('maximize', () => {
+            this.updatePathMap();
+        });
+    }
+
+    updatePathMap() {
+        this.pathMap.update(this);
     }
 }
